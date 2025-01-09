@@ -16,6 +16,7 @@ async def fetch_urls(urls):
         for url in urls:
             result = await crawler.arun(url=url)
             results.append(result.markdown)
+        print(results)
         return results
 
 

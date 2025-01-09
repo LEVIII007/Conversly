@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import Header from '@/components/Header';
+import { SessionProvider } from 'next-auth/react';
 
 export const metadata: Metadata = {
   title: 'ChatbotAI - Create Custom AI Chatbots',
@@ -13,12 +14,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body>
+        <SessionProvider>
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
           <Header />
           <main>{children}</main>
         </div>
+        </SessionProvider>
       </body>
     </html>
   );

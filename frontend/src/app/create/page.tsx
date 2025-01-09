@@ -1,25 +1,66 @@
 'use client';
 
-import { Globe, Upload, Loader } from 'lucide-react';
+import { Globe, Upload, Loader, PlusCircle, Trash } from 'lucide-react';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { createChatBot } from '@/lib/process-data';
+import { useSession } from 'next-auth/react';
 
 export default function CreatePage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [name, setName] = useState('');
-  const [websiteUrl, setWebsiteUrl] = useState('');
+  const [websiteUrls, setWebsiteUrls] = useState(['']); // Multiple URLs
   const [files, setFiles] = useState<FileList | null>(null);
   const [systemPrompt, setSystemPrompt] = useState('');
+  const { data: session } = useSession();
+
+  const handleAddUrlField = () => setWebsiteUrls([...websiteUrls, '']);
+  const handleRemoveUrlField = (index: number) =>
+    setWebsiteUrls(websiteUrls.filter((_, i) => i !== index));
+  const handleUrlChange = (index: number, value: string) =>
+    setWebsiteUrls(websiteUrls.map((url, i) => (i === index ? value : url)));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
-    // Simulating processing time
-    setTimeout(() => {
-      router.push('/chat/new-chat-id');
-    }, 3000);
+
+    try {
+      // Prepare document data as Blob
+      const documents = files
+        ? Array.from(files).map((file) => ({
+            type: file.type.includes('pdf') ? 'pdf' as const : 'txt' as const,
+            content: file,
+          }))
+        : [];
+
+      // Remove empty URLs from the list
+      const validUrls = websiteUrls.filter((url) => url.trim() !== '');
+
+      console.log('Creating chatbot:', {
+        name,
+        systemPrompt,
+        validUrls,
+        documents
+      });
+
+      // Call the createChatBot function
+      const chatbot = await createChatBot({
+        name,
+        description: '',
+        System_Prompt: systemPrompt,
+        website_URL: validUrls,
+        documents,
+      });
+
+      // Redirect to the chatbot's page after creation
+      router.push(`/chat/${chatbot.chatbot.id}`);
+    } catch (error: any) {
+      console.error('Error creating chatbot:', error.message || error);
+      alert(`Failed to create chatbot: ${error.message || error}`);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -35,7 +76,6 @@ export default function CreatePage() {
       ) : (
         <>
           <h1 className="text-3xl font-bold mb-8">Create New Chatbot</h1>
-          
           <div className="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-lg">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
@@ -64,17 +104,36 @@ export default function CreatePage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">Website URL (Optional)</label>
-                <div className="flex items-center gap-2">
-                  <Globe className="w-5 h-5 text-gray-500" />
-                  <input
-                    type="url"
-                    value={websiteUrl}
-                    onChange={(e) => setWebsiteUrl(e.target.value)}
-                    placeholder="https://example.com"
-                    className="flex-1 rounded-lg border p-2 dark:bg-gray-700 dark:border-gray-600"
-                  />
-                </div>
+                <label className="block text-sm font-medium mb-1">Website URLs (Optional)</label>
+                {websiteUrls.map((url, index) => (
+                  <div key={index} className="flex items-center gap-2 mb-2">
+                    <Globe className="w-5 h-5 text-gray-500" />
+                    <input
+                      type="url"
+                      value={url}
+                      onChange={(e) => handleUrlChange(index, e.target.value)}
+                      placeholder="https://example.com"
+                      className="flex-1 rounded-lg border p-2 dark:bg-gray-700 dark:border-gray-600"
+                    />
+                    {websiteUrls.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveUrlField(index)}
+                        className="text-red-500"
+                      >
+                        <Trash className="w-5 h-5" />
+                      </button>
+                    )}
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={handleAddUrlField}
+                  className="text-indigo-500 flex items-center gap-1"
+                >
+                  <PlusCircle className="w-5 h-5" />
+                  Add URL
+                </button>
               </div>
 
               <div>

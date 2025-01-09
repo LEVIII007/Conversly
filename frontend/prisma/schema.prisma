@@ -2,11 +2,11 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
- 
+
 generator client {
   provider = "prisma-client-js"
 }
- 
+
 model User {
   id            String          @id @default(cuid())
   name          String?
@@ -15,13 +15,13 @@ model User {
   image         String?
   accounts      Account[]
   sessions      Session[]
+  chatbots      ChatBot[]       @relation("UserChatBots")
   // Optional for WebAuthn support
   Authenticator Authenticator[]
- 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
 }
- 
+
 model Account {
   userId            String
   type              String
@@ -34,33 +34,30 @@ model Account {
   scope             String?
   id_token          String?
   session_state     String?
- 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
- 
+
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
- 
+
   @@id([provider, providerAccountId])
 }
- 
+
 model Session {
   sessionToken String   @unique
   userId       String
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
- 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
- 
+
 model VerificationToken {
   identifier String
   token      String
   expires    DateTime
- 
   @@id([identifier, token])
 }
- 
+
 // Optional for WebAuthn support
 model Authenticator {
   credentialID         String  @unique
@@ -71,8 +68,33 @@ model Authenticator {
   credentialDeviceType String
   credentialBackedUp   Boolean
   transports           String?
- 
+
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
- 
+
   @@id([userId, credentialID])
+}
+
+// ChatBot Model
+model ChatBot {
+  id            Int          @id @default(autoincrement())
+  userId        String       // Foreign key to User model
+  user          User         @relation("UserChatBots", fields: [userId], references: [id])
+  name          String
+  description   String
+  System_Prompt String
+  website_URL   String[]
+  documents     Document[]   @relation("ChatBotDocuments")
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
+
+// Document Model
+model Document {
+  id         Int      @id @default(autoincrement())
+  type       String
+  name       String
+  chatbotId  Int?
+  chatbot    ChatBot? @relation("ChatBotDocuments", fields: [chatbotId], references: [id])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }

@@ -37,7 +37,15 @@ def ensure_index(index_name):
 def chunk_text(content):
     # Split content into chunks based on '###' headings
     chunks = re.split(r"(?<=###)\s*", content)
-    return [chunk.strip() for chunk in chunks if chunk.strip()]
+    final_chunks = []
+    for chunk in chunks:
+        words = chunk.strip().split()
+        while len(words) > 300:
+            final_chunks.append(' '.join(words[:300]))
+            words = words[300:]
+        if words:
+            final_chunks.append(' '.join(words))
+    return final_chunks
 
 # Function to get embeddings from Gemini model
 
@@ -69,6 +77,9 @@ def get_embeddings_from_gemini(texts):
     return embeddings
 
 def embed(content, chatbotID):
+    print("Embedding content...")
+    # Chunk text into sections
+    print(content)
     chunks = chunk_text(content)
     # Generate embeddings using Gemini
     embeddings = get_embeddings_from_gemini(chunks)
@@ -83,12 +94,14 @@ def embed(content, chatbotID):
         })
     
     index = ensure_index(chatbotID)
+    print("Upserting vectors into Pinecone...")
 
     # Upsert vectors into Pinecone
     index.upsert(
         vectors=records,
-        namespace="gemini-namespace"
+        namespace=chatbotID
     )
+    print("Content embedded successfully.")
 
 # # Example usage of the embed function
 # if __name__ == "__main__":
