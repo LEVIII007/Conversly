@@ -1,0 +1,8 @@
+/backend/venv/
+/frontend/node_modules/
+/.env
+/frontend/.next
+/out
+.DS_Store
+*.log
+/frontend/.bolt/
