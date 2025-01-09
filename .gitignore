@@ -6,3 +6,7 @@
 .DS_Store
 *.log
 /frontend/.bolt/
+/frontend/.env.local
+/frontend/.env
+
+/backend/.env
