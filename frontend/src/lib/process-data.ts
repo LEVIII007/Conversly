@@ -28,19 +28,34 @@ export async function createChatBot({
       throw new Error('User is not authenticated.');
     }
 
+    // model ChatBot {
+    //   id            Int          @id @default(autoincrement())
+    //   userId        String       @db.VarChar
+    //   name          String       @db.VarChar
+    //   description   String
+    //   System_Prompt String
+    //   website_URL   String[]
+    //   documents     String[]
+    //   createdAt     DateTime?    @default(now()) @db.Timestamptz(6)
+    //   updatedAt     DateTime?    @default(now()) @db.Timestamptz(6)
+    //   embeddings    embeddings[]
+    // }
     // Create the chatbot in the database
     const chatbot = await prisma.chatBot.create({
       data: {
-        name,
-        description,
-        System_Prompt,
-        website_URL,
-        userId: session.user.id, // Associate chatbot with the user
+      name,
+      description,
+      System_Prompt,
+      website_URL,
+      documents: documents.map((doc) => doc.content.name),
+      userId: session.user.id, // Associate chatbot with the user
       },
     });
 
+
     // Prepare FormData for the backend request
     const formData = new FormData();
+    formData.append('userId', session.user.id.toString());
     formData.append('chatbotID', chatbot.id.toString());
     formData.append('websiteURL', JSON.stringify(website_URL)); // Backend will parse this JSON
 

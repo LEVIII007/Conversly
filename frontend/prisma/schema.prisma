@@ -1,26 +1,13 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
-}
 
-model User {
-  id            String          @id @default(cuid())
-  name          String?
-  email         String          @unique
-  emailVerified DateTime?
-  image         String?
-  accounts      Account[]
-  sessions      Session[]
-  chatbots      ChatBot[]       @relation("UserChatBots")
-  // Optional for WebAuthn support
-  Authenticator Authenticator[]
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
-}
 
 model Account {
   userId            String
@@ -34,30 +21,33 @@ model Account {
   scope             String?
   id_token          String?
   session_state     String?
+ 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
+ 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+ 
   @@id([provider, providerAccountId])
 }
-
+ 
 model Session {
   sessionToken String   @unique
   userId       String
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+ 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
-
+ 
 model VerificationToken {
   identifier String
   token      String
   expires    DateTime
+ 
   @@id([identifier, token])
 }
-
+ 
 // Optional for WebAuthn support
 model Authenticator {
   credentialID         String  @unique
@@ -68,33 +58,50 @@ model Authenticator {
   credentialDeviceType String
   credentialBackedUp   Boolean
   transports           String?
-
+ 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+ 
   @@id([userId, credentialID])
 }
 
-// ChatBot Model
+model User {
+  id            String          @id @default(cuid())
+  name          String?
+  email         String          @unique
+  emailVerified DateTime?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+  // Optional for WebAuthn support
+  Authenticator Authenticator[]
+ 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model ChatBot {
   id            Int          @id @default(autoincrement())
-  userId        String       // Foreign key to User model
-  user          User         @relation("UserChatBots", fields: [userId], references: [id])
-  name          String
+  userId        String       @db.VarChar
+  name          String       @db.VarChar
   description   String
   System_Prompt String
   website_URL   String[]
-  documents     Document[]   @relation("ChatBotDocuments")
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
+  documents     String[]
+  createdAt     DateTime?    @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime?    @default(now()) @db.Timestamptz(6)
+  embeddings    embeddings[]
 }
 
-// Document Model
-model Document {
-  id         Int      @id @default(autoincrement())
-  type       String
-  name       String
-  chatbotId  Int?
-  chatbot    ChatBot? @relation("ChatBotDocuments", fields: [chatbotId], references: [id])
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+model embeddings {
+  id        Int                   @id @default(autoincrement())
+  userId    String                @db.VarChar
+  chatbotid Int
+  topic     String                @db.VarChar
+  text      String                @db.VarChar
+  embedding Unsupported("vector")
+  createdAt DateTime?             @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime?             @default(now()) @db.Timestamptz(6)
+  ChatBot   ChatBot               @relation(fields: [chatbotid], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_chatbotid")
+
+  @@index([embedding], map: "embedding_idx")
 }

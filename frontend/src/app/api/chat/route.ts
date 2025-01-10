@@ -1,6 +1,7 @@
 import { openai } from "@ai-sdk/openai";
 import { streamText, convertToCoreMessages} from "ai";
-import { searchDocumentation } from "./utility";
+// import { searchDocumentation } from "./utility";
+import { searchDocumentation } from "./pg";
 import { z } from "zod";
 
 

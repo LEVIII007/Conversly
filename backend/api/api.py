@@ -2,7 +2,7 @@ from fastapi import FastAPI, UploadFile, File, HTTPException, Form
 from typing import List
 from pydantic import BaseModel
 
-import embed
+from pgembed import embed
 from web import fetch_urls
 from doc import process_documents
 
@@ -16,6 +16,7 @@ class UploadRequest(BaseModel):
 
 @app.post("/process")
 async def process(
+    userId: str = Form(...),
     chatbotID: str = Form(...),
     websiteURL: str = Form(...),
     documents: List[UploadFile] = File(...),
@@ -43,8 +44,8 @@ async def process(
 
         # Embed website content
         try:
-            for pages in content:
-                embed.embed(pages, chatbotID)
+            for pages, website_url in zip(content, website_urls):  # Ensure correct pairing
+                await embed(pages, chatbotID, userId, topic=website_url)
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Error embedding website content: {str(e)}")
 
@@ -58,8 +59,10 @@ async def process(
 
         # Embed document content
         try:
-            for doc in documents_content:
-                embed.embed(doc, chatbotID)
+            for document in documents_content:  # Iterate over the list of dictionaries
+                filename = document["filename"]
+                content = document["content"]
+                await embed(content, chatbotID, userId, topic=filename)
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Error embedding document content: {str(e)}")
 
