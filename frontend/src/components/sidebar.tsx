@@ -1,11 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Globe, Upload } from 'lucide-react';
+import { Globe, Upload, Book } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { FileUpload } from './FileUpload';
+import { AddKnowledgeDialog } from './addKnowledge';
 
 const toneOptions = [
   "Professional",
@@ -18,21 +17,20 @@ const toneOptions = [
 interface SidebarProps {
   isSidebarOpen: boolean;
   selectedTone: string;
-  onAddWebsite: (urls: string[]) => void;
-  onAddDocument: (files: File[]) => void;
+  onAddKnowledge: (urls: string[], files: File[]) => void;
   onToneChange: (tone: string) => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
   isSidebarOpen,
   selectedTone,
-  onAddWebsite,
-  onAddDocument,
+  onAddKnowledge,
   onToneChange,
 }) => {
   const [isFileDialogOpen, setIsFileDialogOpen] = useState(false);
   const [isUrlDialogOpen, setIsUrlDialogOpen] = useState(false);
   const [urls, setUrls] = useState(['']);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const handleUrlChange = (index: number, value: string) => {
     const newUrls = [...urls];
@@ -45,14 +43,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
   };
 
   const handleUrlSubmit = () => {
-    onAddWebsite(urls.filter(url => url.trim() !== ''));
+    onAddKnowledge(urls.filter(url => url.trim() !== ''), []); // Pass empty files array
     setIsUrlDialogOpen(false);
     setUrls(['']);
   };
 
   const handleFileUpload = (files: File[]) => {
-    onAddDocument(files);
+    onAddKnowledge([], files); // Pass empty urls array
     setIsFileDialogOpen(false);
+  };
+
+  const handleAddKnowledge = (urls: string[], files: File[]) => {
+    onAddKnowledge(urls, files);
+    setIsDialogOpen(false);
   };
 
   return (
@@ -64,57 +67,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div className="p-4">
         <h2 className="text-xl font-bold mb-4">Settings</h2>
 
-        {/* Add Website */}
+        {/* Add Knowledge */}
         <div className="mb-6">
-          <h3 className="text-sm font-semibold mb-2">Add Website</h3>
-          <Dialog open={isUrlDialogOpen} onOpenChange={setIsUrlDialogOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" className="w-full justify-start">
-                <Globe className="mr-2 h-4 w-4" />
-                Add URL
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add Website URLs</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                {urls.map((url, index) => (
-                  <div key={index} className="flex items-center space-x-2">
-                    <Input
-                      type="url"
-                      placeholder="Enter website URL"
-                      value={url}
-                      onChange={(e) => handleUrlChange(index, e.target.value)}
-                    />
-                    {index === urls.length - 1 && (
-                      <Button onClick={addUrlField} size="icon">+</Button>
-                    )}
-                  </div>
-                ))}
-                <Button onClick={handleUrlSubmit}>Submit</Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
-
-        {/* Add Document */}
-        <div className="mb-6">
-          <h3 className="text-sm font-semibold mb-2">Add Document</h3>
-          <Dialog open={isFileDialogOpen} onOpenChange={setIsFileDialogOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" className="w-full justify-start">
-                <Upload className="mr-2 h-4 w-4" />
-                Upload File
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Upload Files</DialogTitle>
-              </DialogHeader>
-              <FileUpload onChange={handleFileUpload} />
-            </DialogContent>
-          </Dialog>
+          <h3 className="text-sm font-semibold mb-2">Add Knowledge</h3>
+          <Button
+            variant="outline"
+            className="w-full justify-start text-white"
+            onClick={() => setIsDialogOpen(true)}
+          >
+            <Book className="mr-2 h-4 w-4" />
+            Add URLs or Files
+          </Button>
+          <AddKnowledgeDialog
+            isOpen={isDialogOpen}
+            onClose={() => setIsDialogOpen(false)}
+            onSubmit={handleAddKnowledge}
+          />
         </div>
 
         {/* Tone Settings */}
@@ -125,8 +93,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <button
                 key={tone}
                 onClick={() => onToneChange(tone)}
-                className={`btn-tone ${
-                  selectedTone === tone ? 'btn-tone-selected' : 'btn-tone-unselected'
+                className={`w-full text-left px-3 py-2 rounded ${
+                  selectedTone === tone
+                    ? 'bg-blue-600 text-white'
+                    : 'text-gray-300 hover:bg-gray-700'
                 }`}
               >
                 {tone}
