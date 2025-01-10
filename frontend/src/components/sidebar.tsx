@@ -1,6 +1,11 @@
 'use client';
 
+import React, { useState } from 'react';
 import { Globe, Upload } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { FileUpload } from './FileUpload';
 
 const toneOptions = [
   "Professional",
@@ -13,8 +18,8 @@ const toneOptions = [
 interface SidebarProps {
   isSidebarOpen: boolean;
   selectedTone: string;
-  onAddWebsite: () => void;
-  onAddDocument: () => void;
+  onAddWebsite: (urls: string[]) => void;
+  onAddDocument: (files: File[]) => void;
   onToneChange: (tone: string) => void;
 }
 
@@ -25,6 +30,31 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onAddDocument,
   onToneChange,
 }) => {
+  const [isFileDialogOpen, setIsFileDialogOpen] = useState(false);
+  const [isUrlDialogOpen, setIsUrlDialogOpen] = useState(false);
+  const [urls, setUrls] = useState(['']);
+
+  const handleUrlChange = (index: number, value: string) => {
+    const newUrls = [...urls];
+    newUrls[index] = value;
+    setUrls(newUrls);
+  };
+
+  const addUrlField = () => {
+    setUrls([...urls, '']);
+  };
+
+  const handleUrlSubmit = () => {
+    onAddWebsite(urls.filter(url => url.trim() !== ''));
+    setIsUrlDialogOpen(false);
+    setUrls(['']);
+  };
+
+  const handleFileUpload = (files: File[]) => {
+    onAddDocument(files);
+    setIsFileDialogOpen(false);
+  };
+
   return (
     <div
       className={`fixed inset-y-0 left-0 transform ${
@@ -37,19 +67,54 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Add Website */}
         <div className="mb-6">
           <h3 className="text-sm font-semibold mb-2">Add Website</h3>
-          <button onClick={onAddWebsite} className="btn-sidebar">
-            <Globe size={16} />
-            <span>Add URL</span>
-          </button>
+          <Dialog open={isUrlDialogOpen} onOpenChange={setIsUrlDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="w-full justify-start">
+                <Globe className="mr-2 h-4 w-4" />
+                Add URL
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add Website URLs</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                {urls.map((url, index) => (
+                  <div key={index} className="flex items-center space-x-2">
+                    <Input
+                      type="url"
+                      placeholder="Enter website URL"
+                      value={url}
+                      onChange={(e) => handleUrlChange(index, e.target.value)}
+                    />
+                    {index === urls.length - 1 && (
+                      <Button onClick={addUrlField} size="icon">+</Button>
+                    )}
+                  </div>
+                ))}
+                <Button onClick={handleUrlSubmit}>Submit</Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
 
         {/* Add Document */}
         <div className="mb-6">
           <h3 className="text-sm font-semibold mb-2">Add Document</h3>
-          <button onClick={onAddDocument} className="btn-sidebar">
-            <Upload size={16} />
-            <span>Upload File</span>
-          </button>
+          <Dialog open={isFileDialogOpen} onOpenChange={setIsFileDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="w-full justify-start">
+                <Upload className="mr-2 h-4 w-4" />
+                Upload File
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Upload Files</DialogTitle>
+              </DialogHeader>
+              <FileUpload onChange={handleFileUpload} />
+            </DialogContent>
+          </Dialog>
         </div>
 
         {/* Tone Settings */}
@@ -73,3 +138,4 @@ export const Sidebar: React.FC<SidebarProps> = ({
     </div>
   );
 };
+

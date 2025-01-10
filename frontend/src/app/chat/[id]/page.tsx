@@ -5,19 +5,25 @@ import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { SendHorizontal } from 'lucide-react';
 import { useEffect, useRef, useState } from "react";
-import MyComponent from "./_components/greeting";
+import MyComponent from "@/components/greeting";
 import { useChat } from "ai/react";
-import ReactMarkdown from "react-markdown";
+import { MemoizedMarkdown } from "@/components/memoized-markdown";
+// import ReactMarkdown from "react-markdown";
 
-const templateQuestions = [
-  "What can you help me with?",
-  "Tell me about your capabilities",
-  "How do I get started?",
-];
+// const templateQuestions = [
+//   "What can you help me with?",
+//   "Tell me about your capabilities",
+//   "How do I get started?",
+// ];
 
 export default function Chat() {
   const { messages, input, handleInputChange, handleSubmit, isLoading, stop } = useChat({
-    maxToolRoundtrips: 5,
+    maxToolRoundtrips: 1,
+    body: {
+      tone: "Professional",
+      prompt: "Please provide me with the information I need.",
+      chatbotID: "4",
+    },
   });
 
   const [showTemplateQuestions, setShowTemplateQuestions] = useState(true);
@@ -25,12 +31,15 @@ export default function Chat() {
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     handleSubmit(e);
+    setTimeout(() => {
+      setShowTemplateQuestions(true);
+    }, 10000);
   };
 
-  const handleTemplateQuestionClick = (question: string) => {
-    handleSubmit(undefined, { input: question });
-    setShowTemplateQuestions(false);
-  };
+  // const handleTemplateQuestionClick = (question: string) => {
+  //   handleSubmit(undefined, { input: question });
+  //   setShowTemplateQuestions(false);
+  // };
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollToBottom = () => {
@@ -55,19 +64,19 @@ export default function Chat() {
       </div>
       
       <div className="flex-grow w-full overflow-y-auto hide-scrollbar mb-4">
-        {showTemplateQuestions && messages.length === 0 && (
-          <div className="flex flex-wrap justify-center gap-2 mb-4">
-            {templateQuestions.map((question, index) => (
-              <Button
-                key={index}
-                onClick={() => handleTemplateQuestionClick(question)}
-                className="bg-slate-700 text-white"
-              >
-                {question}
-              </Button>
-            ))}
-          </div>
-        )}
+        {/* {showTemplateQuestions && messages.length === 0 && (
+          // <div className="flex flex-wrap justify-center gap-2 mb-4">
+          //   {templateQuestions.map((question, index) => (
+          //     <Button
+          //       key={index}
+          //       onClick={() => handleTemplateQuestionClick(question)}
+          //       className="bg-slate-700 text-white"
+          //     >
+          //       {question}
+          //     </Button>
+          //   ))}
+          // </div>
+        )} */}
         
         <div className="flex flex-col gap-4">
           {messages.map((message) => (
@@ -79,7 +88,7 @@ export default function Chat() {
                     : "bg-gray-100 text-gray-900"
                 }`}
               >
-                <ReactMarkdown>{message.content}</ReactMarkdown>
+                <MemoizedMarkdown id={message.id} content={message.content} />
               </div>
             </div>
           ))}

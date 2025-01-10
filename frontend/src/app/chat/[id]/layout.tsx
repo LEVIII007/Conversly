@@ -7,13 +7,14 @@ import { Settings } from 'lucide-react';
 export default function ChatLayout({ children }: { children: ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedTone, setSelectedTone] = useState("Professional");
+  const [websiteUrl, setWebsiteUrl] = useState("");
 
   const handleAddWebsite = () => {
     console.log("Add website functionality to be implemented");
   };
 
   const handleAddDocument = () => {
-    console.log("Add document functionality to be implemented");
+
   };
 
   const handleToneChange = (tone: string) => {

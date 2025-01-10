@@ -36,13 +36,13 @@ export async function searchDocumentation(prompt: string,  chatbotID : string): 
         console.log("New embedding array size:", newembeddings.length);
         const index = pc.index(chatbotID);
         const queryResponse = await index.namespace(chatbotID).query({
-            topK: 2,
+            topK: 1,
             vector: newembeddings,
             includeValues: false,
             includeMetadata: true
           });
 
-          console.log("Query response:", queryResponse);
+        //   console.log("Query response:", queryResponse);
             const results = queryResponse.matches.map((result: any) => {
                 console.log("Result metadata:", result.metadata.text);
                 return result.metadata.text;
