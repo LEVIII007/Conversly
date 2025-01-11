@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import Header from '@/components/Header';
-import { SessionProvider } from 'next-auth/react';
+import { AuthProvider } from '@/components/auth-provider';
 
 export const metadata: Metadata = {
   title: 'ChatbotAI - Create Custom AI Chatbots',
@@ -16,12 +16,12 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body>
-        <SessionProvider>
+        <AuthProvider>
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
           <Header />
           <main>{children}</main>
         </div>
-        </SessionProvider>
+        </AuthProvider>
       </body>
     </html>
   );

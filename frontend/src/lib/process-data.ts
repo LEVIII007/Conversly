@@ -107,6 +107,7 @@ export async function addKnowledge({
 
     // Prepare FormData for the backend request
     const formData = new FormData();
+    formData.append('userId', session.user.id.toString());
     formData.append('chatbotID', chatbotID);
     formData.append('websiteURL', JSON.stringify(website_URL)); // Backend will parse this JSON
 

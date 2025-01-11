@@ -23,6 +23,7 @@ export async function searchDocumentation(
   chatbotID: string
 ): Promise<{ error: string } | { text: any }[]> {
   console.log("searchDocumentation called!");
+  console.log("Prompt:", prompt);
   try {
     // Initialize Google AI model
     const googleai = new GoogleGenerativeAI(process.env.API_KEY as string).getGenerativeModel({
