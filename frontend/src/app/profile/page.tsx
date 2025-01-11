@@ -89,14 +89,14 @@ export default function ProfilePage() {
 
   if (status === 'loading') {
     return (
-      <div className="flex items-center justify-center h-screen bg-background text-foreground">
+      <div className="flex items-center justify-center h-screen">
         <div className="w-12 h-12 border-4 border-primary border-dashed rounded-full animate-spin"></div>
       </div>
     );
   }
 
   if (status === 'unauthenticated') {
-    return <div className="text-center mt-8 text-foreground">You are not signed in. Please sign in to view your profile.</div>;
+    return <div className="text-center mt-8">You are not signed in. Please sign in to view your profile.</div>;
   }
 
   return (
@@ -108,7 +108,7 @@ export default function ProfilePage() {
             <h1 className="text-3xl font-bold">Profile Settings</h1>
             <button
               onClick={() => setIsEditing(!isEditing)}
-              className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-secondary transition-colors duration-300"
+              className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors duration-300"
             >
               {isEditing ? 'Save Changes' : 'Edit Profile'}
             </button>
@@ -125,7 +125,7 @@ export default function ProfilePage() {
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="text-xl font-semibold bg-transparent border-b-2 border-border focus:border-primary focus:outline-none transition-colors duration-300"
+                    className="text-xl font-semibold bg-transparent border-b-2 border-input focus:border-ring focus:outline-none transition-colors duration-300"
                   />
                 ) : (
                   <h2 className="text-2xl font-semibold">{name}</h2>
@@ -143,7 +143,7 @@ export default function ProfilePage() {
         <div className="bg-card text-card-foreground rounded-xl p-6 shadow-lg">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl font-semibold">Subscription</h2>
-            <Link href="/subscription" className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-secondary transition-colors duration-300">
+            <Link href="/subscription" className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors duration-300">
               Manage Subscription
             </Link>
           </div>
@@ -165,7 +165,7 @@ export default function ProfilePage() {
         <div className="bg-card text-card-foreground rounded-xl p-6 shadow-lg">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-semibold">Your Chatbots</h2>
-            <Link href="/create" className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-secondary transition-colors duration-300">
+            <Link href="/create" className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors duration-300">
               Create New
             </Link>
           </div>
