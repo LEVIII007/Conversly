@@ -1,10 +1,10 @@
 import React from 'react';
 import { Bot, Upload, Globe, Plus } from 'lucide-react';
-import Layout from './components/Layout';
+import RootLayout from './app/layout';
 
 function App() {
   return (
-    <Layout>
+    <RootLayout>
       <div className="space-y-8">
         {/* Hero Section */}
         <section className="text-center py-20 space-y-6">
@@ -95,7 +95,7 @@ function App() {
           </div>
         </section>
       </div>
-    </Layout>
+    </RootLayout>
   );
 }
 

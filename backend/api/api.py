@@ -52,16 +52,23 @@ async def process(
         # Process uploaded documents
         try:
             documents_content = await process_documents(documents)
+
+            print("Documents content:")
+            print(documents_content)
         except HTTPException as e:
             raise e  # Propagate file format errors
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Error processing documents: {str(e)}")
+        
+        print("Embedding document content...")
 
         # Embed document content
         try:
             for document in documents_content:  # Iterate over the list of dictionaries
                 filename = document["filename"]
                 content = document["content"]
+                print(f"Embedding document: {filename}")
+                print(f"Content: {content}")
                 await embed(content, chatbotID, userId, topic=filename)
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Error embedding document content: {str(e)}")
@@ -75,3 +82,4 @@ async def process(
     except Exception as general_err:
         # Catch-all for unexpected errors
         return {"status": "error", "detail": f"An unexpected error occurred: {str(general_err)}"}
+    

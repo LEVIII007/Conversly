@@ -114,3 +114,45 @@ export async function UpdateKnowledgeBase({
 
 
 
+export const deleteKnowledge = async (id: number, topic : string) => {
+    const session = await auth();
+    try {
+        // Ensure the user is authenticated
+        if (!session || !session?.user?.id) {
+            throw new Error('User is not authenticated.');
+        }
+        // Delete the embeddings associated with the website urls
+        await prisma.embeddings.deleteMany({
+            where: {
+                chatbotid: id,
+                topic: topic,
+            },
+        });
+    } catch (error) {
+        console.error(error);
+        return [];
+    }
+}
+
+
+
+// export const updateWebsite = async (id: number, website_URL: string[]): Promise<void> => {
+//     const session = await auth();
+//     try {
+//         // Ensure the user is authenticated
+//         if (!session || !session?.user?.id) {
+//             throw new Error('User is not authenticated.');
+//         }
+//         const result = await prisma.embeddings.deleteMany({
+//             where: {
+//                 chatbotid: id && website_URL,
+//             },
+//         });
+//     } catch (error) {
+//         console.error(error);
+//         return [];
+//     }
+// }
+
+
+

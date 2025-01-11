@@ -60,7 +60,7 @@ export async function createChatBot({
     formData.append('websiteURL', JSON.stringify(website_URL)); // Backend will parse this JSON
 
     documents.forEach((doc, index) => {
-      formData.append('documents', doc.content, `document-${index}.${doc.type}`);
+      formData.append('documents', doc.content, doc.content.name);
     });
 
     // Send the request to the backend for processing

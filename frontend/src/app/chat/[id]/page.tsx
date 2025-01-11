@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { SendHorizontal } from 'lucide-react';
 import { useEffect, useRef, useState } from "react";
-import MyComponent from "@/components/greeting";
 import { useChat } from "ai/react";
 import { MemoizedMarkdown } from "@/components/memoized-markdown";
 // import ReactMarkdown from "react-markdown";
@@ -53,7 +52,6 @@ export default function Chat() {
   return (
     <div className="flex flex-col items-center min-h-screen w-full max-w-6xl mx-auto pt-4 px-4">
       <div className="w-full flex justify-center flex-col items-center mb-4">
-        <MyComponent />
         <Image
           src="/bot.jpeg"
           width={200}
