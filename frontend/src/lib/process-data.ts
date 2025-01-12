@@ -9,6 +9,7 @@ interface ChatBot {
   System_Prompt: string;
   website_URL: string[];
   documents: Array<{ type: 'pdf' | 'txt'; content: File }>;
+  logo: File | null;
 }
 
 const SERVER_URL = 'http://localhost:8000';
@@ -19,6 +20,7 @@ export async function createChatBot({
   System_Prompt,
   website_URL,
   documents,
+  logo,
 }: ChatBot) {
   const session = await auth();
 

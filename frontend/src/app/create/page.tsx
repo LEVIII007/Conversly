@@ -1,19 +1,22 @@
 'use client';
 
-import { Globe, Upload, Loader, PlusCircle, Trash } from 'lucide-react';
+import Image from 'next/image';
+import { Globe, Loader, PlusCircle, Trash } from 'lucide-react';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createChatBot } from '@/lib/process-data';
 import { useSession } from 'next-auth/react';
+import { FileUpload } from "@/components/FileUpload";
 
 export default function CreatePage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [name, setName] = useState('');
-  const [websiteUrls, setWebsiteUrls] = useState(['']); // Multiple URLs
-  const [files, setFiles] = useState<FileList | null>(null);
+  const [websiteUrls, setWebsiteUrls] = useState(['']);
+  const [files, setFiles] = useState<File[]>([]);
   const [systemPrompt, setSystemPrompt] = useState('');
   const { data: session } = useSession();
+  const [logo, setLogo] = useState<File | null>(null);
 
   const handleAddUrlField = () => setWebsiteUrls([...websiteUrls, '']);
   const handleRemoveUrlField = (index: number) =>
@@ -21,18 +24,31 @@ export default function CreatePage() {
   const handleUrlChange = (index: number, value: string) =>
     setWebsiteUrls(websiteUrls.map((url, i) => (i === index ? value : url)));
 
+  const handleLogoUpload = (uploadedFiles: File[]) => {
+    if (uploadedFiles.length > 0) {
+      const file = uploadedFiles[0];
+      if (file.type === 'image/jpeg' || file.type === 'image/png') {
+        setLogo(file);
+      } else {
+        alert('Please upload a valid image file (JPEG or PNG)');
+      }
+    }
+  };
+
+  const handleDocumentUpload = (uploadedFiles: File[]) => {
+    setFiles((prevFiles) => [...prevFiles, ...uploadedFiles]);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      // Prepare document data as Blob
-      const documents = files
-        ? Array.from(files).map((file) => ({
-            type: file.type.includes('pdf') ? 'pdf' as const : 'txt' as const,
-            content: file,
-          }))
-        : [];
+      // Prepare document data
+      const documents = files.map((file) => ({
+        type: file.type.includes('pdf') ? 'pdf' as const : 'txt' as const,
+        content: file,
+      }));
 
       // Remove empty URLs from the list
       const validUrls = websiteUrls.filter((url) => url.trim() !== '');
@@ -51,6 +67,7 @@ export default function CreatePage() {
         System_Prompt: systemPrompt,
         website_URL: validUrls,
         documents,
+        logo
       });
 
       // Redirect to the chatbot's page after creation
@@ -77,6 +94,9 @@ export default function CreatePage() {
         <>
           <h1 className="text-3xl font-bold mb-8">Create New Chatbot</h1>
           <div className="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-lg">
+            <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/30 rounded-lg text-sm text-blue-600 dark:text-blue-300">
+              Don't worry if you miss something! You can always edit your chatbot's settings later.
+            </div>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <label className="block text-sm font-medium mb-1">Chatbot Name</label>
@@ -88,6 +108,33 @@ export default function CreatePage() {
                   className="w-full rounded-lg border p-2 dark:bg-gray-700 dark:border-gray-600"
                   required
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Chatbot Logo (Optional)</label>
+                <FileUpload onChange={handleLogoUpload} />
+                {logo && (
+                  <div className="mt-2 flex items-center space-x-2">
+                    <div className="relative w-16 h-16 rounded-full overflow-hidden">
+                      <Image
+                        src={URL.createObjectURL(logo)}
+                        alt="Logo preview"
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setLogo(null)}
+                      className="text-red-500"
+                    >
+                      <Trash className="w-5 h-5" />
+                    </button>
+                  </div>
+                )}
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                  Recommended: Square image (PNG or JPEG)
+                </p>
               </div>
 
               <div>
@@ -138,29 +185,14 @@ export default function CreatePage() {
 
               <div>
                 <label className="block text-sm font-medium mb-1">Upload Documents (Optional)</label>
-                <div className="border-2 border-dashed rounded-lg p-8 text-center">
-                  <Upload className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                  <input
-                    type="file"
-                    multiple
-                    onChange={(e) => setFiles(e.target.files)}
-                    className="hidden"
-                    id="file-upload"
-                  />
-                  <label
-                    htmlFor="file-upload"
-                    className="btn-secondary inline-block cursor-pointer"
-                  >
-                    Choose Files
-                  </label>
-                  {files && (
-                    <div className="mt-4 text-sm text-gray-600 dark:text-gray-300">
-                      {Array.from(files).map((file, index) => (
-                        <div key={index}>{file.name}</div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                <FileUpload onChange={handleDocumentUpload} />
+                {files.length > 0 && (
+                  <div className="mt-4 text-sm text-gray-600 dark:text-gray-300">
+                    {files.map((file, index) => (
+                      <div key={index}>{file.name}</div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <button type="submit" className="btn-primary w-full">
@@ -173,3 +205,4 @@ export default function CreatePage() {
     </div>
   );
 }
+

@@ -31,14 +31,6 @@ def chunk_text(content):
             final_chunks.append(' '.join(words))
     return final_chunks
 
-# # Function to adjust embedding dimension
-# def adjust_embedding_dimension(embedding, target_dimension):
-#     # Adjust the embedding to match the target dimension
-#     if len(embedding) < target_dimension:
-#         embedding.extend([0] * (target_dimension - len(embedding)))
-#     elif len(embedding) > target_dimension:
-#         embedding = embedding[:target_dimension]
-#     return embedding
 
 # Function to get embeddings from Gemini model
 def get_embeddings_from_gemini(texts):
