@@ -84,6 +84,39 @@ export async function addKnowledge({
     formData.append('userId', session.user.id.toString());
     formData.append('chatbotID', chatbotID);
 
+    if (website_URL.length > 0) {
+      await prisma.dataSource.createMany({
+        data: website_URL.map(url => ({
+          chatbotId: parseInt(chatbotID),
+          type: 'Website',
+          name: url,
+          sourceDetails: { url }
+        }))
+      });
+    }
+
+    if (documents.length > 0) {
+      await prisma.dataSource.createMany({
+        data: documents.map((doc, index) => ({
+          chatbotId: parseInt(chatbotID),
+          type: 'Document',
+          name: doc.content.name,
+          sourceDetails: { type: doc.type }
+        }))
+      });
+    }
+
+    if (qandaData.length > 0) {
+      await prisma.dataSource.create({
+        data: {
+          chatbotId: parseInt(chatbotID),
+          type: 'QandA',
+          name: qandaData.map(qanda => qanda.question).join(', '),
+          sourceDetails: { count: qandaData.length }
+        }
+      });
+    }
+
     // Add website URLs if they exist
     if (website_URL.length > 0) {
       formData.append('websiteURL', JSON.stringify(website_URL)); // Backend will parse this JSON
@@ -92,7 +125,7 @@ export async function addKnowledge({
     // Add documents if they exist
     if (documents.length > 0) {
       documents.forEach((doc, index) => {
-        formData.append('documents', doc.content, `document-${index}.${doc.type}`);
+        formData.append('documents', doc.content, doc.content.name);
       });
     }
 
@@ -120,3 +153,4 @@ export async function addKnowledge({
     throw new Error(`Error creating chatbot: ${error.message}`);
   }
 }
+

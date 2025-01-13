@@ -3,6 +3,27 @@
 import { prisma } from '../../prisma';
 import { auth } from '../../auth';
 
+
+export async function fetchChatBot(id: number) {
+  try {
+    const chatbot = await prisma.chatBot.findUnique({
+      where: { id },
+    });
+
+    if (!chatbot) {
+      return { status: 'error', message: 'Chatbot not found' };
+    }
+
+    return { status: 'success', data: chatbot };
+  } catch (error: unknown) {
+    console.error('Error fetching chatbot:', error);
+    if (error instanceof Error) {
+      return { status: 'error', message: error.message };
+    }
+    return { status: 'error', message: 'An unknown error occurred' };
+  }
+}
+
 // Get all chatbots for the profile page
 export async function getChatBots() {
   const session = await auth();

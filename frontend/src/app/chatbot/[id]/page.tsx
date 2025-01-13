@@ -12,6 +12,7 @@ import { DataManagementTab } from '@/components/chatbot/tabs/DataManagementTab';
 import { SettingsTab } from '@/components/chatbot/tabs/SettingsTab';
 import { ChatbotHeader } from '@/components/chatbot/ChatbotHeader';
 import { useToast } from '@/hooks/use-toast';
+import { fetchChatBot } from '@/lib/queries';
 
 export default function ChatbotCustomizationPage() {
   const { id } = useParams();
@@ -23,9 +24,11 @@ export default function ChatbotCustomizationPage() {
     // Fetch chatbot data
     const fetchChatbotData = async () => {
       try {
-        const response = await fetch(`/api/chatbots/${id}`);
-        const data = await response.json();
-        setChatbotData(data);
+        const response = await fetchChatBot(Number(id));
+        if (!response.data) {
+          throw new Error('Failed to load chatbot data');
+        }
+        setChatbotData(response.data);
       } catch (error) {
         toast({
           title: 'Error',
@@ -66,7 +69,7 @@ export default function ChatbotCustomizationPage() {
             </TabsContent>
 
             <TabsContent value="system-prompt">
-              <SystemPromptTab chatbotId={id?.toString() ?? ''} />
+              <SystemPromptTab chatbotId={id?.toString() ?? ''} System_Prompt={chatbotData.System_Prompt} />
             </TabsContent>
 
             <TabsContent value="customization">

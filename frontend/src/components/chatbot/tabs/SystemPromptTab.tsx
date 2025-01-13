@@ -21,8 +21,8 @@ Maintain a [professional but friendly] tone.
 When unsure, acknowledge limitations and direct users to [appropriate resources].
 Focus on providing accurate information from the company's documentation and policies.`;
 
-export function SystemPromptTab({ chatbotId }: { chatbotId: string }) {
-  const [prompt, setPrompt] = useState('');
+export function SystemPromptTab({ chatbotId, System_Prompt }: { chatbotId: string, System_Prompt: string }) {
+  const [prompt, setPrompt] = useState(System_Prompt);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
