@@ -66,12 +66,11 @@ export default function CreatePage() {
         description: '',
         System_Prompt: systemPrompt,
         website_URL: validUrls,
-        documents,
-        logo
+        documents
       });
 
       // Redirect to the chatbot's page after creation
-      router.push(`/chat/${chatbot.chatbot.id}`);
+      router.push(`/chatbot/${chatbot.chatbot.id}`);
     } catch (error: any) {
       console.error('Error creating chatbot:', error.message || error);
       alert(`Failed to create chatbot: ${error.message || error}`);

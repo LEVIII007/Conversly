@@ -9,7 +9,6 @@ interface ChatBot {
   System_Prompt: string;
   website_URL: string[];
   documents: Array<{ type: 'pdf' | 'txt'; content: File }>;
-  logo: File | null;
 }
 
 const SERVER_URL = 'http://localhost:8000';
@@ -20,7 +19,6 @@ export async function createChatBot({
   System_Prompt,
   website_URL,
   documents,
-  logo,
 }: ChatBot) {
   const session = await auth();
 
@@ -30,19 +28,6 @@ export async function createChatBot({
       throw new Error('User is not authenticated.');
     }
 
-    // model ChatBot {
-    //   id            Int          @id @default(autoincrement())
-    //   userId        String       @db.VarChar
-    //   name          String       @db.VarChar
-    //   description   String
-    //   System_Prompt String
-    //   website_URL   String[]
-    //   documents     String[]
-    //   createdAt     DateTime?    @default(now()) @db.Timestamptz(6)
-    //   updatedAt     DateTime?    @default(now()) @db.Timestamptz(6)
-    //   embeddings    embeddings[]
-    // }
-    // Create the chatbot in the database
     const chatbot = await prisma.chatBot.create({
       data: {
       name,
@@ -54,7 +39,11 @@ export async function createChatBot({
       },
     });
 
+    if(website_URL.length === 0 && documents.length === 0){
+      return { chatbot, processingStatus: 'success' };
+    }
 
+        // Prepare FormData for the backend request
     // Prepare FormData for the backend request
     const formData = new FormData();
     formData.append('userId', session.user.id.toString());

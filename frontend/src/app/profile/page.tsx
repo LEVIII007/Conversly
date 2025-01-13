@@ -1,27 +1,21 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Bot, Calendar, Mail, UserIcon, MoreVertical, MessageCircle, Trash2 } from 'lucide-react';
+import { Bot, Calendar, Mail, UserIcon, MoreVertical, MessageCircle, Trash2, Settings } from 'lucide-react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { getChatBots, DeleteChatBot } from '@/lib/queries';
 
 interface ChatBot {
   name: string;
-  userId: string;
   createdAt: Date | null;
-  updatedAt: Date | null;
   id: number;
   description: string;
-  website_URL: string[];
-  documents: string[];
-  System_Prompt: string;
 }
 
 export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState('');
-  const [selectedBot, setSelectedBot] = useState<ChatBot | null>(null);
   const [chatbots, setChatbots] = useState<ChatBot[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -62,14 +56,6 @@ export default function ProfilePage() {
       setName(session.user.name);
     }
   }, [session?.user?.name]);
-
-  const handleBotClick = (bot: ChatBot) => {
-    if (selectedBot?.id === bot.id) {
-      setSelectedBot(null);  // Toggle off if already selected
-    } else {
-      setSelectedBot(bot);  // Show details of the selected bot
-    }
-  };
 
   const handleDeleteBot = async (botId: number) => {
     if (window.confirm('Are you sure you want to delete this chatbot?')) {
@@ -184,7 +170,6 @@ export default function ProfilePage() {
                   <div
                     key={bot.id}
                     className="border border-border rounded-lg p-4 hover:border-primary transition-colors duration-300 cursor-pointer bg-card"
-                    onClick={() => handleBotClick(bot)}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
@@ -215,6 +200,13 @@ export default function ProfilePage() {
                               <MessageCircle className="w-4 h-4 inline-block mr-2" />
                               Open Chat
                             </Link>
+                            <Link
+                              href={`/chatbot/${bot.id}`}
+                              className="block px-4 py-2 text-sm hover:bg-accent transition-colors duration-300"
+                            >
+                              <Settings className="w-4 h-4 inline-block mr-2" />
+                              Manage Settings
+                            </Link>
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -229,25 +221,6 @@ export default function ProfilePage() {
                         )}
                       </div>
                     </div>
-
-                    {selectedBot?.id === bot.id && (
-                      <div className="mt-4 text-sm">
-                        <p className="font-semibold">Website URLs:</p>
-                        <ul className="list-disc pl-5">
-                          {bot.website_URL.map((url, idx) => (
-                            <li key={idx}>{url}</li>
-                          ))}
-                        </ul>
-                        <p className="font-semibold mt-2">Documents:</p>
-                        <ul className="list-disc pl-5">
-                          {bot.documents.map((doc, idx) => (
-                            <li key={idx}>{doc}</li>
-                          ))}
-                        </ul>
-                        <p className="font-semibold mt-2">System Prompt:</p>
-                        <p>{bot.System_Prompt}</p>
-                      </div>
-                    )}
                   </div>
                 ))
               )}
