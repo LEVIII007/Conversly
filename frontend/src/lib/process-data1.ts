@@ -98,10 +98,7 @@ export async function addKnowledge({
 
     // Add Q&A data if it exists
     if (qandaData.length > 0) {
-      qandaData.forEach((qa, index) => {
-        formData.append(`qandaData[${index}][question]`, qa.question);
-        formData.append(`qandaData[${index}][answer]`, qa.answer);
-      });
+      formData.append('qandaData', JSON.stringify(qandaData));
     }
 
     // Send the request to the backend for processing

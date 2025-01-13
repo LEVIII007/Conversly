@@ -27,9 +27,22 @@ async def process(
     try:
         all_embedding_data = []
         
+        # Add debug logging
+        print("Received data:", {
+            "userId": userId,
+            "chatbotID": chatbotID,
+            "websiteURL": websiteURL,
+            "qandaData": qandaData,
+            "documents": [d.filename for d in documents] if documents else []
+        })
+        
         # Parse website URLs and Q&A data
-        website_urls = eval(websiteURL) if websiteURL else []
-        qa_pairs = [eval(qa) for qa in qandaData] if qandaData else []
+        try:
+            website_urls = eval(websiteURL) if websiteURL else []
+            qa_pairs = [eval(qa) for qa in qandaData] if qandaData else []
+        except Exception as e:
+            print("Error parsing input data:", str(e))
+            raise HTTPException(status_code=400, detail=f"Invalid input format: {str(e)}")
 
         # Process websites
         if website_urls:

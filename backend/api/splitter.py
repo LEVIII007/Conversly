@@ -1,9 +1,20 @@
+from langchain_experimental.text_splitter import SemanticChunker
+from langchain.docstore.document import Document
 from langchain.text_splitter import (
     RecursiveCharacterTextSplitter,
     MarkdownTextSplitter,
-    SemanticChunker
 )
+from gemini_embedder import DocumentEmbedder
 import re
+from dotenv import load_dotenv
+
+load_dotenv()
+
+headers_to_split_on = [
+    ("#", "Header 1"),
+    ("##", "Header 2"),
+    ("###", "Header 3"),
+]
 
 # Function to read and chunk text specifically for plain text content
 def chunk_text(content):
@@ -21,49 +32,60 @@ def chunk_text(content):
 
 
 # Factory function to create appropriate text splitters
-def get_text_splitter(content_type: str):
+def get_text_splitter(content_type: str, content: str):
     """
     Returns a text splitter based on the content type.
     """
-    # For PDFs and TXT files - use semantic chunking
-    if content_type in ["application/pdf", "text/plain"]:
-        return SemanticChunker(
-            chunk_size=300,
-            chunk_overlap=50
+    embedder = DocumentEmbedder()
+    # For PDFs, TXT files, and websites - use semantic chunking
+    if content_type in ["application/pdf", "text/plain", "website"]:
+        print("using semantic chunker")
+        text_splitter = SemanticChunker(
+            embedder,
+            breakpoint_threshold_type="percentile",  # or "standard_deviation"
         )
+        print(content)
+        text = Document(page_content=content)
+        docs = text_splitter.split_documents([text])
+        print(f"Generated {len(docs)} chunks")
+        print(docs)
+        return [doc.page_content for doc in docs]
+
+
     
     # For Markdown files
     elif content_type == "text/markdown":
-        return MarkdownTextSplitter(
+        print("using markdown splitter")
+        text_splitter = MarkdownTextSplitter(
+            headers_to_split_on=headers_to_split_on,
+            strip_headers=False,
             chunk_size=1000,
             chunk_overlap=200
         )
+        docs = text_splitter.split_text([content])
+        return [doc.page_content for doc in docs]
+
     
     # For JSON, XML, and other structured data
     elif content_type in ["application/json", "application/xml"]:
-        return RecursiveCharacterTextSplitter(
+        print("using recursive character text splitter")
+        text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=1000,
             chunk_overlap=200,
-            separators=["\n\n", "\n", " ", ""]
+            separators=["\n\n"]
         )
-    
-    # For websites - use semantic chunking
-    elif content_type == "website":
-        return SemanticChunker(
-            chunk_size=300,
-            chunk_overlap=50
-        )
-    
-    # For Q&A - no splitting needed
-    elif content_type == "qa":
-        return None
+        docs = text_splitter.create_documents(content)
+        return docs
+         
     
     # Default fallback
     else:
-        return RecursiveCharacterTextSplitter(
+        text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=1000,
             chunk_overlap=200
         )
+        docs = text_splitter.create_documents(content)
+        return docs
 
 
 # Specialized splitting logic for JSON and CSV files
@@ -107,10 +129,10 @@ def split_csv(csv_content):
     return chunk_text("\n".join(rows))  # Further split rows if too large
 
 
-# Example Usage
-if __name__ == "__main__":
-    markdown_splitter = get_text_splitter("text/markdown")
-    json_splitter = get_text_splitter("application/json")
-    csv_splitter = get_text_splitter("text/csv")
+# # Example Usage
+# if __name__ == "__main__":
+#     markdown_splitter = get_text_splitter("text/markdown")
+#     json_splitter = get_text_splitter("application/json")
+#     csv_splitter = get_text_splitter("text/csv")
 
-    # Use these splitters or specific functions like split_json/split_csv for processing
+#     # Use these splitters or specific functions like split_json/split_csv for processing

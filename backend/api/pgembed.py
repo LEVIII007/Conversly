@@ -74,25 +74,30 @@ def store_embeddings_in_postgres(chatbotID, userId, topic, texts, embeddings):
 
 
 async def embed(content, chatbotID, userId, topic, content_type="text/plain"):
-    print(f"Embedding content of type: {content_type}")
-    
-    # For Q&A, directly store without chunking
-    if content_type == "qa":
-        chunks = [content]
-    else:
-        # For all other content types, use appropriate splitter
-        splitter = get_text_splitter(content_type)
-        chunks = splitter.split_text(content) if splitter else [content]
-    
-    # Generate embeddings
-    embeddings = get_embeddings_from_gemini(chunks)
-    
-    # Return chunks, embeddings, and topic for batch processing
-    return {
-        'chunks': chunks,
-        'embeddings': embeddings,
-        'topic': topic
-    }
+    try:
+        print(f"Embedding content of type: {content_type}")
+        print(f"Content length: {len(content) if content else 0}")
+        
+        # For Q&A, directly store without chunking
+        if content_type == "qa":
+            chunks = [content]
+        else:
+            # Get the appropriate splitter and split the content
+            chunks = get_text_splitter(content_type, content)
+        
+        print(f"Generated {len(chunks)} chunks")
+        
+        # Generate embeddings
+        embeddings = get_embeddings_from_gemini(chunks)
+        
+        return {
+            'chunks': chunks,
+            'embeddings': embeddings,
+            'topic': topic
+        }
+    except Exception as e:
+        print(f"Error in embed function: {str(e)}")
+        raise
 
 # New function for batch storage
 def batch_store_embeddings(chatbotID, userId, embedding_data_list):
