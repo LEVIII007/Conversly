@@ -95,7 +95,7 @@ export function DataSourcesTab({ chatbotId }: { chatbotId: string }) {
         chatbotID: chatbotId,
         website_URL: websiteURLs,
         documents,
-        qandaData, // You'll need to update your backend to handle this
+        qandaData,
       });
 
       toast({

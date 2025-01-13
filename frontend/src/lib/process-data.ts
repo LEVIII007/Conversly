@@ -33,8 +33,6 @@ export async function createChatBot({
       name,
       description,
       System_Prompt,
-      website_URL,
-      documents: documents.map((doc) => doc.content.name),
       userId: session.user.id, // Associate chatbot with the user
       },
     });
@@ -81,12 +79,14 @@ interface addKnowledge {
   chatbotID : string;
   website_URL: string[];
   documents: Array<{ type: 'pdf' | 'txt'; content: File }>;
+  qandaData: Array<{ question: string; answer: string }>;
 }
 
 export async function addKnowledge({
   chatbotID,
   website_URL,
   documents,
+  qandaData,
 }: addKnowledge) {
   const session = await auth();
 
@@ -104,6 +104,10 @@ export async function addKnowledge({
 
     documents.forEach((doc, index) => {
       formData.append('documents', doc.content, `document-${index}.${doc.type}`);
+    });
+
+    qandaData.forEach((qa, index) => {
+      formData.append('qandaData', JSON.stringify(qa));
     });
 
     // Send the request to the backend for processing

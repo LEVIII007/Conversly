@@ -1,10 +1,10 @@
 import google.generativeai as genai
 import os
-import re
 import time
 import dotenv
 import psycopg2
 from psycopg2.extras import execute_values
+from splitter import get_text_splitter
 
 dotenv.load_dotenv()
 
@@ -17,19 +17,19 @@ genai.configure(api_key=GEMINI_API_KEY)
 def get_db_connection():
     return psycopg2.connect(DATABASE_URL)
 
-# Function to read and chunk text
-def chunk_text(content):
-    # Split content into chunks based on '###' headings
-    chunks = re.split(r"(?<=###)\s*", content)
-    final_chunks = []
-    for chunk in chunks:
-        words = chunk.strip().split()
-        while len(words) > 300:
-            final_chunks.append(' '.join(words[:300]))
-            words = words[300:]
-        if words:
-            final_chunks.append(' '.join(words))
-    return final_chunks
+# # Function to read and chunk text
+# def chunk_text(content):
+#     # Split content into chunks based on '###' headings
+#     chunks = re.split(r"(?<=###)\s*", content)
+#     final_chunks = []
+#     for chunk in chunks:
+#         words = chunk.strip().split()
+#         while len(words) > 300:
+#             final_chunks.append(' '.join(words[:300]))
+#             words = words[300:]
+#         if words:
+#             final_chunks.append(' '.join(words))
+#     return final_chunks
 
 
 # Function to get embeddings from Gemini model
@@ -72,18 +72,63 @@ def store_embeddings_in_postgres(chatbotID, userId, topic, texts, embeddings):
     finally:
         conn.close()
 
-# Main function to generate and store embeddings
-def embed(content, chatbotID, userId, topic):
-    print("Embedding content...")
+
+async def embed(content, chatbotID, userId, topic, content_type="text/plain"):
+    print(f"Embedding content of type: {content_type}")
     
-    # Chunk text into sections
-    print(content)
-    chunks = chunk_text(content)
+    # For Q&A, directly store without chunking
+    if content_type == "qa":
+        chunks = [content]
+    else:
+        # For all other content types, use appropriate splitter
+        splitter = get_text_splitter(content_type)
+        chunks = splitter.split_text(content) if splitter else [content]
     
-    # Generate embeddings using Gemini
+    # Generate embeddings
     embeddings = get_embeddings_from_gemini(chunks)
     
-    # Store embeddings in PostgreSQL
-    print("Storing embeddings in PostgreSQL...")
-    store_embeddings_in_postgres(chatbotID, userId, topic, chunks, embeddings)
-    print("Content embedded and stored successfully.")
+    # Return chunks, embeddings, and topic for batch processing
+    return {
+        'chunks': chunks,
+        'embeddings': embeddings,
+        'topic': topic
+    }
+
+# New function for batch storage
+def batch_store_embeddings(chatbotID, userId, embedding_data_list):
+    """
+    Store multiple sets of embeddings in a single database transaction
+    """
+    # SQL query for bulk insertion
+    insert_query = """
+    INSERT INTO "embeddings" ("chatbotid", "userId", "topic", "text", "embedding", "createdAt", "updatedAt")
+    VALUES %s
+    """
+    
+    # Prepare all records for insertion
+    current_time = time.strftime('%Y-%m-%d %H:%M:%S')
+    records = []
+    
+    for data in embedding_data_list:
+        chunks = data['chunks']
+        embeddings = data['embeddings']
+        topic = data['topic']
+        
+        records.extend([
+            (chatbotID, userId, topic, text, embedding, current_time, current_time)
+            for text, embedding in zip(chunks, embeddings)
+        ])
+    
+    # Insert all data in a single transaction
+    try:
+        conn = get_db_connection()
+        with conn.cursor() as cursor:
+            execute_values(cursor, insert_query, records, template=None, page_size=100)
+        conn.commit()
+        print(f"Successfully stored {len(records)} embeddings in database")
+    except Exception as e:
+        print("Failed to insert embeddings:", e)
+        conn.rollback()
+        raise e
+    finally:
+        conn.close()

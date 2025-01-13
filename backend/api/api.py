@@ -2,7 +2,7 @@ from fastapi import FastAPI, UploadFile, File, HTTPException, Form
 from typing import List
 from pydantic import BaseModel
 
-from pgembed import embed
+from pgembed import embed, batch_store_embeddings
 from web import fetch_urls
 from doc import process_documents
 
@@ -12,74 +12,58 @@ app = FastAPI()
 class UploadRequest(BaseModel):
     chatbotID: str
     websiteURL: List[str]
-
+    qandaData: List[str]
+    documents: List[UploadFile]
+    userId: str
 
 @app.post("/process")
 async def process(
     userId: str = Form(...),
     chatbotID: str = Form(...),
     websiteURL: str = Form(...),
-    documents: List[UploadFile] = File(...),
+    qandaData: List[str] = Form(None),
+    documents: List[UploadFile] = File(None),
 ):
-    print("Processing request...")
-    print(f"chatbotID: {chatbotID}")
-    print(f"websiteURL: {websiteURL}")
-    print(f"documents: {documents}")
     try:
-        # Parse website URLs
-        try:
-            website_urls = eval(websiteURL)
-        except Exception:
-            raise HTTPException(status_code=400, detail="Invalid website URL format.")
-
-        # Validate chatbotID
-        if not chatbotID:
-            raise HTTPException(status_code=400, detail="chatbotID is required.")
-
-        # Fetch content from websites
-        try:
-            content = await fetch_urls(website_urls)
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Error fetching website content: {str(e)}")
-
-        # Embed website content
-        try:
-            for pages, website_url in zip(content, website_urls):  # Ensure correct pairing
-                await embed(pages, chatbotID, userId, topic=website_url)
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Error embedding website content: {str(e)}")
-
-        # Process uploaded documents
-        try:
-            documents_content = await process_documents(documents)
-
-            print("Documents content:")
-            print(documents_content)
-        except HTTPException as e:
-            raise e  # Propagate file format errors
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Error processing documents: {str(e)}")
+        all_embedding_data = []
         
-        print("Embedding document content...")
+        # Parse website URLs and Q&A data
+        website_urls = eval(websiteURL) if websiteURL else []
+        qa_pairs = [eval(qa) for qa in qandaData] if qandaData else []
 
-        # Embed document content
-        try:
-            for document in documents_content:  # Iterate over the list of dictionaries
-                filename = document["filename"]
-                content = document["content"]
-                print(f"Embedding document: {filename}")
-                print(f"Content: {content}")
-                await embed(content, chatbotID, userId, topic=filename)
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Error embedding document content: {str(e)}")
+        # Process websites
+        if website_urls:
+            content = await fetch_urls(website_urls)
+            for pages, website_url in zip(content, website_urls):
+                embedding_data = await embed(pages, chatbotID, userId, 
+                                          topic=website_url, 
+                                          content_type="website")
+                all_embedding_data.append(embedding_data)
+
+        # Process Q&A pairs
+        if qa_pairs:
+            for qa in qa_pairs:
+                qa_content = f"Question: {qa['question']}\nAnswer: {qa['answer']}"
+                embedding_data = await embed(qa_content, chatbotID, userId, 
+                                          topic=qa['question'], 
+                                          content_type="qa")
+                all_embedding_data.append(embedding_data)
+
+        # Process documents
+        if documents:
+            documents_content = await process_documents(documents)
+            for document in documents_content:
+                embedding_data = await embed(document["content"], chatbotID, userId, 
+                                          topic=document["filename"],
+                                          content_type=document["type"])
+                all_embedding_data.append(embedding_data)
+
+        # Store all embeddings in a single database transaction
+        if all_embedding_data:
+            batch_store_embeddings(chatbotID, userId, all_embedding_data)
 
         return {"status": "success"}
 
-    except HTTPException as http_err:
-        # Gracefully return HTTPExceptions
-        return {"status": "error", "detail": http_err.detail}
-
-    except Exception as general_err:
-        # Catch-all for unexpected errors
-        return {"status": "error", "detail": f"An unexpected error occurred: {str(general_err)}"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
     

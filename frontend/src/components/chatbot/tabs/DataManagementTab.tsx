@@ -39,7 +39,12 @@ export function DataManagementTab({ chatbotId }: { chatbotId: string }) {
       const data = await fetchDataSources(Number(chatbotId));
       const grouped = data.reduce((acc, source) => {
         const category = ['Website', 'Document', 'QandA'].includes(source.type) ? source.type : 'Other';
-        acc[category as keyof GroupedSources].push(source);
+        if (source.createdAt) {
+          acc[category as keyof GroupedSources].push({
+            ...source,
+            createdAt: new Date(source.createdAt)
+          });
+        }
         return acc;
       }, { Website: [], Document: [], QandA: [], Other: [] } as GroupedSources);
       setSources(grouped);
@@ -94,7 +99,7 @@ export function DataManagementTab({ chatbotId }: { chatbotId: string }) {
             {getIcon(type)} {type}s
           </h3>
           <div className="grid gap-4">
-            {items.map((source) => (
+            {items.map((source: DataSource) => (
               <div key={source.id} className="border rounded-lg p-4 bg-card">
                 <div className="flex items-center justify-between">
                   <div>

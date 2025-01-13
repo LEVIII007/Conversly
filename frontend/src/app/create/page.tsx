@@ -1,206 +1,106 @@
 'use client';
 
-import Image from 'next/image';
-import { Globe, Loader, PlusCircle, Trash } from 'lucide-react';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createChatBot } from '@/lib/process-data';
-import { useSession } from 'next-auth/react';
-import { FileUpload } from "@/components/FileUpload";
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
+import { createChatBot } from '@/lib/process-data1';
 
 export default function CreatePage() {
   const router = useRouter();
+  const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Basic Info
   const [name, setName] = useState('');
-  const [websiteUrls, setWebsiteUrls] = useState(['']);
-  const [files, setFiles] = useState<File[]>([]);
+  const [description, setDescription] = useState('');
   const [systemPrompt, setSystemPrompt] = useState('');
-  const { data: session } = useSession();
-  const [logo, setLogo] = useState<File | null>(null);
-
-  const handleAddUrlField = () => setWebsiteUrls([...websiteUrls, '']);
-  const handleRemoveUrlField = (index: number) =>
-    setWebsiteUrls(websiteUrls.filter((_, i) => i !== index));
-  const handleUrlChange = (index: number, value: string) =>
-    setWebsiteUrls(websiteUrls.map((url, i) => (i === index ? value : url)));
-
-  const handleLogoUpload = (uploadedFiles: File[]) => {
-    if (uploadedFiles.length > 0) {
-      const file = uploadedFiles[0];
-      if (file.type === 'image/jpeg' || file.type === 'image/png') {
-        setLogo(file);
-      } else {
-        alert('Please upload a valid image file (JPEG or PNG)');
-      }
-    }
-  };
-
-  const handleDocumentUpload = (uploadedFiles: File[]) => {
-    setFiles((prevFiles) => [...prevFiles, ...uploadedFiles]);
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      // Prepare document data
-      const documents = files.map((file) => ({
-        type: file.type.includes('pdf') ? 'pdf' as const : 'txt' as const,
-        content: file,
-      }));
-
-      // Remove empty URLs from the list
-      const validUrls = websiteUrls.filter((url) => url.trim() !== '');
-
-      console.log('Creating chatbot:', {
+      const response = await createChatBot({
         name,
-        systemPrompt,
-        validUrls,
-        documents
-      });
-
-      // Call the createChatBot function
-      const chatbot = await createChatBot({
-        name,
-        description: '',
+        description,
         System_Prompt: systemPrompt,
-        website_URL: validUrls,
-        documents
       });
 
-      // Redirect to the chatbot's page after creation
-      router.push(`/chatbot/${chatbot.chatbot.id}`);
-    } catch (error: any) {
-      console.error('Error creating chatbot:', error.message || error);
-      alert(`Failed to create chatbot: ${error.message || error}`);
+      toast({
+        title: 'Success',
+        description: 'Chatbot created successfully!',
+      });
+
+      router.push(`/chatbot/${response.chatbot.id}`);
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to create chatbot',
+        variant: 'destructive',
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      {isLoading ? (
-        <div className="min-h-[60vh] flex flex-col items-center justify-center">
-          <Loader className="w-12 h-12 text-indigo-600 animate-spin mb-4" />
-          <h2 className="text-2xl font-bold mb-2">Creating Your Chatbot</h2>
-          <p className="text-gray-600 dark:text-gray-300">
-            Processing your data and training the AI...
-          </p>
-        </div>
-      ) : (
-        <>
-          <h1 className="text-3xl font-bold mb-8">Create New Chatbot</h1>
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-lg">
-            <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/30 rounded-lg text-sm text-blue-600 dark:text-blue-300">
-              Don't worry if you miss something! You can always edit your chatbot's settings later.
+    <div className="min-h-screen bg-background">
+      <div className="flex-1 flex flex-col items-center">
+        <div className="w-full max-w-4xl px-4 py-8 md:px-8">
+          <form onSubmit={handleSubmit} className="space-y-8 bg-card rounded-lg border p-6">
+            <div className="space-y-6">
+              <h2 className="text-2xl font-bold">Create New Chatbot</h2>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Name</label>
+                  <Input
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Enter chatbot name"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1">Description</label>
+                  <Textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Describe your chatbot's purpose"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1">System Prompt</label>
+                  <Textarea
+                    value={systemPrompt}
+                    onChange={(e) => setSystemPrompt(e.target.value)}
+                    placeholder="Define how your chatbot should behave"
+                    required
+                    className="min-h-[150px]"
+                  />
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    This prompt defines your chatbot's personality and behavior. Be specific about its role, expertise, and how it should interact.
+                  </p>
+                </div>
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={isLoading}
+              >
+                {isLoading ? 'Creating...' : 'Create Chatbot'}
+              </Button>
             </div>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium mb-1">Chatbot Name</label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="My AI Assistant"
-                  className="w-full rounded-lg border p-2 dark:bg-gray-700 dark:border-gray-600"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">Chatbot Logo (Optional)</label>
-                <FileUpload onChange={handleLogoUpload} />
-                {logo && (
-                  <div className="mt-2 flex items-center space-x-2">
-                    <div className="relative w-16 h-16 rounded-full overflow-hidden">
-                      <Image
-                        src={URL.createObjectURL(logo)}
-                        alt="Logo preview"
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setLogo(null)}
-                      className="text-red-500"
-                    >
-                      <Trash className="w-5 h-5" />
-                    </button>
-                  </div>
-                )}
-                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                  Recommended: Square image (PNG or JPEG)
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">System Prompt</label>
-                <textarea
-                  value={systemPrompt}
-                  onChange={(e) => setSystemPrompt(e.target.value)}
-                  placeholder="You are a helpful AI assistant..."
-                  className="w-full rounded-lg border p-2 dark:bg-gray-700 dark:border-gray-600 min-h-[100px]"
-                />
-                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                  Define how your chatbot should behave and what role it should play.
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">Website URLs (Optional)</label>
-                {websiteUrls.map((url, index) => (
-                  <div key={index} className="flex items-center gap-2 mb-2">
-                    <Globe className="w-5 h-5 text-gray-500" />
-                    <input
-                      type="url"
-                      value={url}
-                      onChange={(e) => handleUrlChange(index, e.target.value)}
-                      placeholder="https://example.com"
-                      className="flex-1 rounded-lg border p-2 dark:bg-gray-700 dark:border-gray-600"
-                    />
-                    {websiteUrls.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveUrlField(index)}
-                        className="text-red-500"
-                      >
-                        <Trash className="w-5 h-5" />
-                      </button>
-                    )}
-                  </div>
-                ))}
-                <button
-                  type="button"
-                  onClick={handleAddUrlField}
-                  className="text-indigo-500 flex items-center gap-1"
-                >
-                  <PlusCircle className="w-5 h-5" />
-                  Add URL
-                </button>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">Upload Documents (Optional)</label>
-                <FileUpload onChange={handleDocumentUpload} />
-                {files.length > 0 && (
-                  <div className="mt-4 text-sm text-gray-600 dark:text-gray-300">
-                    {files.map((file, index) => (
-                      <div key={index}>{file.name}</div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <button type="submit" className="btn-primary w-full">
-                Create Chatbot
-              </button>
-            </form>
-          </div>
-        </>
-      )}
+          </form>
+        </div>
+      </div>
     </div>
   );
 }
