@@ -1,12 +1,31 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException, Form
+from fastapi import FastAPI, UploadFile, File, HTTPException, Form, Header
 from typing import List
 from pydantic import BaseModel
+from widget.api import generate_chat_response
 
 from pgembed import embed, batch_store_embeddings
 from web import fetch_urls
 from doc import process_documents
+from typing import Optional
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # In production, replace with specific origins
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+class ChatRequest(BaseModel):
+    question: str
+
+class ChatResponse(BaseModel):
+    answer: str
+    context: Optional[list] = None
 
 
 class UploadRequest(BaseModel):
@@ -80,3 +99,19 @@ async def process(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
+
+
+
+@app.post("/chat", response_model=ChatResponse)
+async def chat(
+    request: ChatRequest, 
+    x_api_key: str = Header(..., alias="X-API-Key")
+):
+    try:
+        # Call the chat service logic
+        print(request.question)
+        return await generate_chat_response(question=request.question, api_key=x_api_key)
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")

@@ -2,6 +2,7 @@
 import { Bot, Upload, Code, Settings, ArrowRight, MessageSquare, Zap, Shield, Globe } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useEffect } from 'react';
 
 const features = [
   {
@@ -127,6 +128,32 @@ const faqs = [
 ];
 
 export default function Home() {
+  useEffect(() => {
+    // Initialize chat widget
+    const script = document.createElement('script');
+    script.src = '/widget/chat.js'; // We'll need to build and serve this
+    script.async = true;
+    script.onload = () => {
+      // @ts-ignore
+      if (window.DocsBotAI) {
+        // @ts-ignore
+        window.DocsBotAI.init({
+          botId: 'test-bot-id',
+          color: '#569CCE', 
+          title: 'AI Assistant',
+          welcomeMessage: 'Hi! How can I help you today? ��',
+          buttonAlign: 'right',
+          buttonText: 'Chat with AI'
+        });
+      }
+    };
+    document.head.appendChild(script);
+
+    return () => {
+      document.head.removeChild(script);
+    };
+  }, []);
+
   return (
     <div className="space-y-32 pb-20">
       {/* Hero Section */}

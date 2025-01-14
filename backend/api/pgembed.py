@@ -17,21 +17,6 @@ genai.configure(api_key=GEMINI_API_KEY)
 def get_db_connection():
     return psycopg2.connect(DATABASE_URL)
 
-# # Function to read and chunk text
-# def chunk_text(content):
-#     # Split content into chunks based on '###' headings
-#     chunks = re.split(r"(?<=###)\s*", content)
-#     final_chunks = []
-#     for chunk in chunks:
-#         words = chunk.strip().split()
-#         while len(words) > 300:
-#             final_chunks.append(' '.join(words[:300]))
-#             words = words[300:]
-#         if words:
-#             final_chunks.append(' '.join(words))
-#     return final_chunks
-
-
 # Function to get embeddings from Gemini model
 def get_embeddings_from_gemini(texts):
     embeddings = []
