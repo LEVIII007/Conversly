@@ -1,5 +1,8 @@
 'use client';
 
+// Add this export to disable static rendering
+export const dynamic = 'force-dynamic';
+
 import { useState, useEffect, useCallback } from 'react';
 import { Bot, Calendar, Mail, UserIcon, MoreVertical, MessageCircle, Trash2, Settings } from 'lucide-react';
 import Link from 'next/link';
@@ -21,32 +24,35 @@ export default function ProfilePage() {
   const [error, setError] = useState<string | null>(null);
   const { data: session, status } = useSession();
   const [openDropdown, setOpenDropdown] = useState<number | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return null;
+  }
+  
 
   const fetchChatBots = useCallback(async () => {
     try {
-      console.log('Starting to fetch chatbots');
       setIsLoading(true);
       setError(null);
       const bots = await getChatBots();
-      console.log('Fetched chatbots:', bots);
       setChatbots(bots);
     } catch (err) {
       console.error('Error fetching chatbots:', err);
       setError('Failed to fetch chatbots. Please try again later.');
     } finally {
-      console.log('Finished fetching chatbots');
       setIsLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    console.log('Status:', status);
-    console.log('Session:', session);
     if (status === 'authenticated') {
-      console.log('User is authenticated, fetching chatbots');
-      fetchChatBots();
+      void fetchChatBots();
     } else if (status === 'unauthenticated') {
-      console.log('User is unauthenticated');
       setIsLoading(false);
     }
   }, [status, fetchChatBots]);
@@ -61,7 +67,7 @@ export default function ProfilePage() {
     if (window.confirm('Are you sure you want to delete this chatbot?')) {
       try {
         await DeleteChatBot({ id: botId });
-        setChatbots(chatbots.filter(bot => bot.id !== botId));
+        setChatbots(prevBots => prevBots.filter(bot => bot.id !== botId));
       } catch (error) {
         console.error('Error deleting chatbot:', error);
         setError('Failed to delete chatbot. Please try again.');

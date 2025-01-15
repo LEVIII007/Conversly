@@ -1,111 +1,125 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Globe, Upload, Book } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { AddKnowledgeDialog } from './addKnowledge';
-
-const toneOptions = [
-  "Professional",
-  "Casual",
-  "Friendly",
-  "Technical",
-  "Simple"
-];
+import { useState } from 'react';
+import { FileUp, Globe, Wand2, Settings, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Button } from './ui/button';
+import { Textarea } from './ui/textarea';
+import { Input } from './ui/input';
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
+import { updateSystemPrompt } from '@/lib/queries'; // Import your existing functions
 
 interface SidebarProps {
-  isSidebarOpen: boolean;
-  selectedTone: string;
-  onAddKnowledge: (urls: string[], files: File[]) => void;
-  onToneChange: (tone: string) => void;
+  onAddKnowledge: (urls: string[], files: File[]) => Promise<void>;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({
-  isSidebarOpen,
-  selectedTone,
-  onAddKnowledge,
-  onToneChange,
-}) => {
-  const [isFileDialogOpen, setIsFileDialogOpen] = useState(false);
-  const [isUrlDialogOpen, setIsUrlDialogOpen] = useState(false);
+export function Sidebar({ onAddKnowledge }: SidebarProps) {
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [systemPrompt, setSystemPrompt] = useState('');
   const [urls, setUrls] = useState(['']);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const { id } = useParams();
 
-  const handleUrlChange = (index: number, value: string) => {
-    const newUrls = [...urls];
-    newUrls[index] = value;
-    setUrls(newUrls);
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      onAddKnowledge(urls, Array.from(e.target.files));
+    }
   };
-
-  const addUrlField = () => {
-    setUrls([...urls, '']);
-  };
-
-  const handleUrlSubmit = () => {
-    onAddKnowledge(urls.filter(url => url.trim() !== ''), []); // Pass empty files array
-    setIsUrlDialogOpen(false);
-    setUrls(['']);
-  };
-
-  const handleFileUpload = (files: File[]) => {
-    onAddKnowledge([], files); // Pass empty urls array
-    setIsFileDialogOpen(false);
-  };
-
-  const handleAddKnowledge = (urls: string[], files: File[]) => {
-    onAddKnowledge(urls, files);
-    setIsDialogOpen(false);
+  const handlePromptUpdate = async () => {
+    await updateSystemPrompt(Number(id), systemPrompt);
   };
 
   return (
-    <div
-      className={`fixed inset-y-0 left-0 transform ${
-        isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      } w-64 bg-gray-800 text-white transition-transform duration-200 ease-in-out lg:relative lg:translate-x-0`}
-    >
-      <div className="p-4">
-        <h2 className="text-xl font-bold mb-4">Settings</h2>
+    <div className={`
+      relative border-r border-border bg-card transition-all duration-300
+      ${isCollapsed ? 'w-20' : 'w-96'}
+    `}>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="absolute -right-4 top-6 z-10"
+        onClick={() => setIsCollapsed(!isCollapsed)}
+      >
+        {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+      </Button>
 
-        {/* Add Knowledge */}
-        <div className="mb-6">
-          <h3 className="text-sm font-semibold mb-2">Add Knowledge</h3>
-          <Button
-            variant="outline"
-            className="w-full justify-start text-white"
-            onClick={() => setIsDialogOpen(true)}
-          >
-            <Book className="mr-2 h-4 w-4" />
-            Add URLs or Files
-          </Button>
-          <AddKnowledgeDialog
-            isOpen={isDialogOpen}
-            onClose={() => setIsDialogOpen(false)}
-            onSubmit={handleAddKnowledge}
-          />
-        </div>
+      <div className={`h-full p-6 ${isCollapsed ? 'hidden' : 'block'}`}>
+        <div className="space-y-6">
+          {/* Header with Settings Link */}
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold">Chat Settings</h2>
+            <Link href={`/chatbot/${id}`}>
+              <Button variant="ghost" size="icon">
+                <Settings size={20} />
+              </Button>
+            </Link>
+          </div>
 
-        {/* Tone Settings */}
-        <div className="mb-6">
-          <h3 className="text-sm font-semibold mb-2">Bot Tone</h3>
+          {/* System Prompt */}
           <div className="space-y-2">
-            {toneOptions.map((tone) => (
-              <button
-                key={tone}
-                onClick={() => onToneChange(tone)}
-                className={`w-full text-left px-3 py-2 rounded ${
-                  selectedTone === tone
-                    ? 'bg-blue-600 text-white'
-                    : 'text-gray-300 hover:bg-gray-700'
-                }`}
-              >
-                {tone}
-              </button>
+            <label className="text-sm font-medium">System Prompt</label>
+            <Textarea
+              value={systemPrompt}
+              onChange={(e) => setSystemPrompt(e.target.value)}
+              placeholder="Define how your chatbot should behave..."
+              className="h-32 text-base"
+            />
+            <Button 
+              onClick={handlePromptUpdate}
+              className="w-full text-base"
+            >
+              <Wand2 className="mr-2 h-5 w-5" />
+              Update Prompt
+            </Button>
+          </div>
+
+          {/* URLs Input */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Add Knowledge from URLs</label>
+            {urls.map((url, index) => (
+              <Input
+                key={index}
+                value={url}
+                onChange={(e) => {
+                  const newUrls = [...urls];
+                  newUrls[index] = e.target.value;
+                  setUrls(newUrls);
+                }}
+                placeholder="https://..."
+                className="text-base"
+              />
             ))}
+            <Button 
+              onClick={() => setUrls([...urls, ''])}
+              variant="outline"
+              className="w-full text-base"
+            >
+              <Globe className="mr-2 h-5 w-5" />
+              Add Another URL
+            </Button>
+          </div>
+
+          {/* File Upload */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Upload Files</label>
+            <Button 
+              onClick={() => document.getElementById('file-upload')?.click()}
+              variant="outline"
+              className="w-full text-base"
+            >
+              <FileUp className="mr-2 h-5 w-5" />
+              Choose Files
+            </Button>
+            <input
+              id="file-upload"
+              type="file"
+              multiple
+              className="hidden"
+              onChange={handleFileUpload}
+            />
           </div>
         </div>
       </div>
     </div>
   );
-};
+}
 

@@ -37,24 +37,13 @@ export function CustomizationTab({ chatbotId }: CustomizationTabProps) {
   const embedCode = `<script>
   (function () {
     const botConfig = {
-      botId: "${chatbotId}",
-      color: "${color}",
-      title: "Support Bot",
-      welcomeMessage: "${welcomeMessage}",
-      buttonAlign: "${buttonAlignment}",
-      buttonText: ${showButtonText ? `"${buttonText}"` : 'null'},
-      height: "${chatHeight}",
-      width: "${chatWidth}",
-      apiUrl: window.location.protocol + "//" + window.location.host
+      botId: "${chatbotId}",color: "${color}",title: "Support Bot",welcomeMessage: "${welcomeMessage}",buttonAlign: "${buttonAlignment}",buttonText: ${showButtonText ? `"${buttonText}"` : 'null'},height: "${chatHeight}",width: "${chatWidth}",apiUrl: window.location.protocol + "//" + window.location.host
     };
     const script = document.createElement("script");
     script.src = "https://cloud-ide-shas.s3.us-east-1.amazonaws.com/docBot/chat.js";
     script.async = true;
     script.onload = () => {
-      if (window.DocsBotAI) {
-        window.DocsBotAI.init(botConfig);
-      }
-    };
+      if (window.DocsBotAI) {window.DocsBotAI.init(botConfig);}};
     document.head.appendChild(script);
   })();
 </script>
@@ -97,9 +86,19 @@ export function CustomizationTab({ chatbotId }: CustomizationTabProps) {
       language={language}
     >
       {({ className, style, tokens, getLineProps, getTokenProps }) => (
-        <pre className="p-3 rounded-lg overflow-x-auto text-xs" style={style}>
+        <pre 
+          className="p-3 rounded-lg text-xs overflow-x-auto whitespace-pre" 
+          style={{ 
+            ...style,
+            maxWidth: '100%' // Ensure pre doesn't exceed container
+          }}
+        >
           {tokens.map((line, i) => (
-            <div key={i} {...getLineProps({ line })}>
+            <div 
+              key={i} 
+              {...getLineProps({ line })}
+              className="whitespace-pre" // Prevent line wrapping
+            >
               <span className="select-none opacity-50 mr-4">{i + 1}</span>
               {line.map((token, key) => (
                 <span key={key} {...getTokenProps({ token })} />
@@ -113,13 +112,16 @@ export function CustomizationTab({ chatbotId }: CustomizationTabProps) {
 
   return (
     <div className="flex gap-4">
-      {/* Main Content */}
       <div className="flex-1 space-y-4">
         {/* Embed Code Section */}
         <div className="space-y-2">
           <h2 className="text-base font-semibold">Chat Widget Embed Code</h2>
-          <div className="relative">
-            {renderCode(embedCode, 'javascript')}
+          
+          {/* Script Code Block */}
+          <div className="relative border rounded-lg max-w-[1000px]"> {/* Fixed width container */}
+            <div className="overflow-x-auto"> {/* Scrollable wrapper */}
+              {renderCode(embedCode, 'javascript')}
+            </div>
             <Button
               size="sm"
               variant="ghost"
@@ -129,8 +131,12 @@ export function CustomizationTab({ chatbotId }: CustomizationTabProps) {
               <CopyIcon className="w-4 h-4" />
             </Button>
           </div>
-          <div className="relative">
-            {renderCode(iframeCode, 'html')}
+
+          {/* iFrame Code Block */}
+          <div className="relative border rounded-lg max-w-[1000px]"> {/* Fixed width container */}
+            <div className="overflow-x-auto"> {/* Scrollable wrapper */}
+              {renderCode(iframeCode, 'html')}
+            </div>
             <Button
               size="sm"
               variant="ghost"

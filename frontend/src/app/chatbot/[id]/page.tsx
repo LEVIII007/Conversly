@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Sidebar } from '@/components/chatbot/Sidebar';
@@ -16,6 +16,7 @@ import { fetchChatBot } from '@/lib/queries';
 
 export default function ChatbotCustomizationPage() {
   const { id } = useParams();
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [chatbotData, setChatbotData] = useState<any>(null);
   const { toast } = useToast();
@@ -42,6 +43,18 @@ export default function ChatbotCustomizationPage() {
 
     fetchChatbotData();
   }, [id]);
+
+  const handleSaveChanges = () => {
+    toast({
+      title: "Changes Saved",
+      description: "Your chatbot configuration has been saved successfully.",
+      variant: "default",
+    });
+  };
+
+  const handleTestChat = () => {
+    router.push(`/chat/${id}`);
+  };
 
   if (isLoading) {
     return <div>Loading...</div>; // Replace with proper loading component
@@ -88,8 +101,19 @@ export default function ChatbotCustomizationPage() {
 
         <footer className="border-t border-gray-200 dark:border-gray-800 p-4">
           <div className="flex justify-end space-x-4">
-            <Button variant="outline">Test Chatbot</Button>
-            <Button>Save Changes</Button>
+            <Button 
+              onClick={handleTestChat}
+              variant="outline"
+              className="text-base"
+            >
+              Test Chatbot
+            </Button>
+            <Button 
+              onClick={handleSaveChanges}
+              className="text-base"
+            >
+              Save Changes
+            </Button>
           </div>
         </footer>
       </div>
