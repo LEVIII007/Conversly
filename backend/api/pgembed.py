@@ -5,7 +5,7 @@ import dotenv
 import psycopg2
 from psycopg2.extras import execute_values
 from splitter import get_text_splitter
-
+from gemini_embedder import clean_text
 dotenv.load_dotenv()
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
@@ -71,12 +71,14 @@ async def embed(content, chatbotID, userId, topic, content_type="text/plain"):
             chunks = get_text_splitter(content_type, content)
         
         print(f"Generated {len(chunks)} chunks")
+
+        cleaned_chunks = clean_text(chunks)
         
         # Generate embeddings
-        embeddings = get_embeddings_from_gemini(chunks)
+        embeddings = get_embeddings_from_gemini(cleaned_chunks)
         
         return {
-            'chunks': chunks,
+            'chunks': cleaned_chunks,
             'embeddings': embeddings,
             'topic': topic
         }

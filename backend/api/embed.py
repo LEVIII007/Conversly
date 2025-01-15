@@ -22,7 +22,7 @@ def ensure_index(index_name):
     if not pc.has_index(index_name):
         pc.create_index(
             name=index_name,
-            dimension=1024,  # Ensure this matches the embedding model output dimension
+            dimension=1024,  
             metric="cosine",
             spec=ServerlessSpec(
                 cloud='aws',

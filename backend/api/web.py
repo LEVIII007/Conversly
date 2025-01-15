@@ -1,6 +1,7 @@
 from crawl4ai import AsyncWebCrawler, CrawlerRunConfig
 from crawl4ai.markdown_generation_strategy import DefaultMarkdownGenerator
 from fastapi import HTTPException
+from crawl4ai.content_filter_strategy import PruningContentFilter
 
 async def fetch_urls(urls: list[str]) -> list[str]:
     if not urls:
@@ -9,11 +10,8 @@ async def fetch_urls(urls: list[str]) -> list[str]:
     try:
         config = CrawlerRunConfig(
             markdown_generator=DefaultMarkdownGenerator(
-                options={
-                    "ignore_links": True,
-                    "escape_html": False,
-                    "body_width": 80
-                }
+                content_filter=PruningContentFilter(threshold=0.6),
+            options={"ignore_links": True, "body_width": 1000, "escape_html": True, "skip_internal_links": True}
             )
         )
         
@@ -23,7 +21,8 @@ async def fetch_urls(urls: list[str]) -> list[str]:
                 try:
                     result = await crawler.arun(url, config=config)
                     if result.success:
-                        contents.append(result.markdown)
+                        md_object = result.markdown_v2
+                        contents.append(md_object.fit_markdown)
                     else:
                         print(f"Failed to crawl {url}: {result.error_message}")
                         contents.append("")
