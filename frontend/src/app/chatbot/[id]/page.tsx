@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Sidebar } from '@/components/chatbot/Sidebar';
 import { DataSourcesTab } from '@/components/chatbot/tabs/DataSourcesTab';
 import { SystemPromptTab } from '@/components/chatbot/tabs/SystemPromptTab';
 import { CustomizationTab } from '@/components/chatbot/tabs/CustomizationTab';
@@ -62,7 +61,6 @@ export default function ChatbotCustomizationPage() {
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
-      <Sidebar />
       
       <div className="flex-1 flex flex-col overflow-hidden">
         <ChatbotHeader chatbot={chatbotData} />

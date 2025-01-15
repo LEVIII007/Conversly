@@ -18,17 +18,30 @@ export default function Header() {
   const { theme, toggleTheme } = useTheme();
   const { data: session } = useSession();
   const [mounted, setMounted] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
     setMounted(true);
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  if (!mounted) {
-    return null; // Prevent rendering until the component has mounted
-  }
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  if (!mounted) return null;
 
   return (
-    <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-200 ${
+      isScrolled ? 'bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-sm' : 'bg-transparent'
+    }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           {/* Logo */}
@@ -36,10 +49,38 @@ export default function Header() {
             href="/"
             className="flex-shrink-0 flex items-center hover:opacity-80 transition-opacity"
           >
-            <h1 className="text-xl font-bold text-indigo-600 dark:text-indigo-400">
-              ChatbotAI
+            <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400">
+              Conversly AI
             </h1>
           </Link>
+
+          {/* Navigation Links */}
+          <nav className="hidden md:flex items-center space-x-8">
+            <button
+              onClick={() => scrollToSection('features')}
+              className="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+            >
+              Features
+            </button>
+            <button
+              onClick={() => scrollToSection('pricing')}
+              className="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+            >
+              Pricing
+            </button>
+            <button
+              onClick={() => scrollToSection('faq')}
+              className="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+            >
+              FAQ
+            </button>
+            <Link
+              href="/docs"
+              className="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+            >
+              Docs
+            </Link>
+          </nav>
 
           {/* Right Section */}
           <div className="flex items-center space-x-4">
@@ -47,12 +88,13 @@ export default function Header() {
             <Button
               onClick={toggleTheme}
               variant="ghost"
-              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              size="icon"
+              className="rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
             >
               {theme === 'dark' ? (
-                <Sun className="h-5 w-5 text-gray-600 dark:text-gray-300" />
+                <Sun className="h-5 w-5" />
               ) : (
-                <Moon className="h-5 w-5 text-gray-600 dark:text-gray-300" />
+                <Moon className="h-5 w-5" />
               )}
             </Button>
 
@@ -67,10 +109,9 @@ export default function Header() {
                         {session.user?.name?.[0] || 'U'}
                       </AvatarFallback>
                     </Avatar>
-                    <span className="absolute inset-0 rounded-full shadow-[0_0_0_2px] shadow-primary" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+                <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuItem asChild>
                     <Link href="/profile" className="flex items-center">
                       <User className="mr-2 h-4 w-4" />
@@ -84,7 +125,12 @@ export default function Header() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button onClick={() => signIn('google')}>Sign In</Button>
+              <Button 
+                onClick={() => signIn('google')}
+                className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-full px-6"
+              >
+                Sign In
+              </Button>
             )}
           </div>
         </div>

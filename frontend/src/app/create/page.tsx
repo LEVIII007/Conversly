@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { createChatBot } from '@/lib/process-data1';
 import { SignInDialog } from '@/components/auth/SignInDialog';
 import { useAuthGuard } from '@/hooks/use-auth-guard';
+import { Bot } from 'lucide-react';
 
 export default function CreatePage() {
   const router = useRouter();
@@ -50,64 +51,87 @@ export default function CreatePage() {
   };
 
   return (
-    <>
-      <SignInDialog isOpen={showSignIn} onClose={closeSignIn} />
-      <div className="min-h-screen bg-background">
-        <div className="flex-1 flex flex-col items-center">
-          <div className="w-full max-w-4xl px-4 py-8 md:px-8">
-            <form onSubmit={handleSubmit} className="space-y-8 bg-card rounded-lg border p-6">
-              <div className="space-y-6">
-                <h2 className="text-2xl font-bold">Create New Chatbot</h2>
-                
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Name</label>
-                    <Input
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="Enter chatbot name"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Description</label>
-                    <Textarea
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      placeholder="Describe your chatbot's purpose"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium mb-1">System Prompt</label>
-                    <Textarea
-                      value={systemPrompt}
-                      onChange={(e) => setSystemPrompt(e.target.value)}
-                      placeholder="Define how your chatbot should behave"
-                      required
-                      className="min-h-[150px]"
-                    />
-                    <p className="mt-2 text-sm text-muted-foreground">
-                      This prompt defines your chatbot's personality and behavior. Be specific about its role, expertise, and how it should interact.
-                    </p>
-                  </div>
-                </div>
-
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={isLoading}
-                >
-                  {isLoading ? 'Creating...' : 'Create Chatbot'}
-                </Button>
-              </div>
-            </form>
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+      <div className="flex-1 flex flex-col items-center py-16">
+        <div className="w-full max-w-3xl px-4">
+          {/* Header */}
+          <div className="text-center mb-10">
+            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Bot className="w-8 h-8 text-primary" />
+            </div>
+            <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-indigo-600">
+              Create Your AI Assistant
+            </h1>
+            <p className="mt-3 text-muted-foreground text-lg">
+              Design your perfect chatbot in minutes
+            </p>
           </div>
+
+          {/* Form Card */}
+          <form 
+            onSubmit={handleSubmit} 
+            className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 shadow-2xl p-8 space-y-8 relative overflow-hidden"
+          >
+            {/* Background decoration */}
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent" />
+            
+            {/* Content */}
+            <div className="relative space-y-6">
+              <div>
+                <label className="block text-sm font-medium mb-2 text-foreground/80">
+                  Name
+                </label>
+                <Input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Enter a name for your chatbot"
+                  className="bg-background/50 backdrop-blur-sm border-border/50"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2 text-foreground/80">
+                  Description
+                </label>
+                <Textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Describe what your chatbot will help with"
+                  className="bg-background/50 backdrop-blur-sm border-border/50"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2 text-foreground/80">
+                  System Prompt
+                </label>
+                <Textarea
+                  value={systemPrompt}
+                  onChange={(e) => setSystemPrompt(e.target.value)}
+                  placeholder="Define your chatbot's personality and behavior"
+                  className="min-h-[150px] bg-background/50 backdrop-blur-sm border-border/50"
+                  required
+                />
+                <p className="mt-2 text-sm text-muted-foreground">
+                  This prompt shapes your chatbot's personality and expertise. Be specific about its role and how it should interact.
+                </p>
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full h-12 text-lg font-medium bg-gradient-to-r from-primary to-indigo-600 hover:from-primary/90 hover:to-indigo-600/90 shadow-lg hover:shadow-xl transition-all duration-200"
+                disabled={isLoading}
+              >
+                {isLoading ? 'Creating...' : 'Create Chatbot'}
+              </Button>
+            </div>
+          </form>
         </div>
       </div>
-    </>
+      <SignInDialog isOpen={showSignIn} onClose={closeSignIn} />
+    </div>
   );
 }
 

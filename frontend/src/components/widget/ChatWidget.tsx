@@ -25,7 +25,7 @@ export function ChatWidget({
   color = '#569CCE',
   title = 'AI Assistant',
   welcomeMessage = 'Hi! How can I help you today? 👋',
-  buttonAlign = 'right',
+  buttonAlign = 'left',
   buttonText = null,
 }: ChatWidgetProps) {
   const [isOpen, setIsOpen] = useState(false);

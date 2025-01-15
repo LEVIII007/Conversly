@@ -29,7 +29,7 @@ export function SignInDialog({ isOpen, onClose }: SignInDialogProps) {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px] p-0 overflow-hidden">
         <DialogHeader>
-          <DialogTitle className="sr-only">Sign in to ChatbotAI</DialogTitle>
+          <DialogTitle className="sr-only">Sign in to Conversly</DialogTitle>
         </DialogHeader>
         <AnimatePresence>
           <div className="relative">
@@ -52,9 +52,9 @@ export function SignInDialog({ isOpen, onClose }: SignInDialogProps) {
               <div className="mx-auto w-12 h-12 mb-4 text-primary">
                 <Bot size={48} />
               </div>
-              <h2 className="text-2xl font-semibold mb-2">Welcome to ChatbotAI</h2>
+              <h2 className="text-2xl font-semibold mb-2">Welcome to Conversly</h2>
               <p className="text-muted-foreground">
-                Empowering Your Conversations with AI
+                Building Smarter Conversations
               </p>
             </motion.div>
 
@@ -71,24 +71,24 @@ export function SignInDialog({ isOpen, onClose }: SignInDialogProps) {
               {/* Marketing Points */}
               <div className="space-y-4 pt-4 border-t">
                 <p className="text-sm text-muted-foreground text-center">
-                  Join thousands of businesses using ChatbotAI
+                  Join innovative teams using Conversly
                 </p>
                 <div className="grid grid-cols-2 gap-4">
                   <MarketingPoint
-                    title="Custom AI Chatbots"
-                    description="Train on your data"
+                    title="AI-Powered Chats"
+                    description="Smart conversations"
                   />
                   <MarketingPoint
-                    title="Easy Integration"
-                    description="One line of code"
+                    title="Quick Setup"
+                    description="Ready in minutes"
                   />
                   <MarketingPoint
-                    title="Advanced Analytics"
-                    description="Track performance"
+                    title="Deep Insights"
+                    description="Understand users"
                   />
                   <MarketingPoint
-                    title="24/7 Support"
-                    description="Always available"
+                    title="Custom Training"
+                    description="Your data, your way"
                   />
                 </div>
               </div>
