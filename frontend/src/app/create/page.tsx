@@ -33,18 +33,27 @@ export default function CreatePage() {
         System_Prompt: systemPrompt,
       });
 
-      toast({
-        title: 'Success',
-        description: 'Chatbot created successfully!',
-      });
-
-      router.push(`/chatbot/${response.chatbot.id}`);
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to create chatbot',
-        variant: 'destructive',
-      });
+      if (response.processingStatus === 'success') {
+        toast({
+          title: 'Success',
+          description: 'Chatbot created successfully!',
+        });
+        router.push(`/chatbot/${response.chatbot.id}`);
+      }
+    } catch (error: any) {
+      if (error instanceof Error && error.message.includes('maximum number of chatbots')) {
+        toast({
+          title: 'Error',
+          description: 'You have reached the maximum number of chatbots allowed.',
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Error',
+          description: error instanceof Error ? error.message : 'Failed to create chatbot',
+          variant: 'destructive',
+        });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -52,8 +61,10 @@ export default function CreatePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
-      <div className="flex-1 flex flex-col items-center py-16">
+      <div className="flex-1 flex flex-col items-center py-16"> 
         <div className="w-full max-w-3xl px-4">
+        {/* Added space above the form */}
+        <div className="mb-12"></div> {/* Added empty div for spacing */}
           {/* Header */}
           <div className="text-center mb-10">
             <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">

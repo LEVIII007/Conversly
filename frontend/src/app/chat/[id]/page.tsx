@@ -6,11 +6,18 @@ import { Textarea } from '@/components/ui/textarea';
 import { useChat } from 'ai/react';
 import { useParams } from 'next/navigation';
 
+
+
 export default function ChatPage() {
   const { id } = useParams();
+  const [tone, setTone] = useState('friendly');
+  const [prompt, setPrompt] = useState('');
   const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
+    maxToolRoundtrips: 5,
     body: {
       chatbotID: id,
+      tone,
+      prompt,
     },
   });
 

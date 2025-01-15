@@ -9,7 +9,7 @@ console.log("DATABASE_URL:", process.env.DATABASE_URL);
 
 // Initialize PostgreSQL connection pool
 const pool = new Pool({
-  connectionString: "postgresql://neondb_owner:igJqdQcAs8G6@ep-broad-cell-a10ico6t-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require", // Replace with your database connection string
+  connectionString: process.env.DATABASE_URL,
   max: 5,
 });
 
@@ -41,23 +41,13 @@ export async function searchDocumentation(
     FROM "embeddings"
     WHERE "chatbotid" = $1
     ORDER BY embedding <=> '[${embedding}]'
-    LIMIT 1;
+    LIMIT 2;
   `;
 
   // console.log("Formatted embedding:", formattedEmbedding);
 
 
     const client = await pool.connect();
-
-    const queryResponse = await client.query(
-      `SELECT text
-      FROM "embeddings"
-      WHERE "chatbotid" = $1`,
-      [chatbotID]
-    );
-
-    console.log("Query response:", queryResponse);
-
 
 
     if (!client) {
@@ -66,7 +56,7 @@ export async function searchDocumentation(
     console.log("Connected to database!");
     console.log("Query:", query);
     try {
-      const res = await client.query(query, [5]);
+      const res = await client.query(query, [chatbotID]);
 
 
       console.log("Query result:", res);

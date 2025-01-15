@@ -8,7 +8,7 @@ export default function ChatLayout({ children }: { children: ReactNode }) {
   const { toast } = useToast();
 
   const handleAddknowledge = async (websiteUrls: string[], files: File[]) => {
-    // ... existing knowledge handling code
+    
   };
 
   return (

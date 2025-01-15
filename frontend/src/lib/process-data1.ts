@@ -2,6 +2,7 @@
 
 import { prisma } from '../../prisma';
 import { auth } from '../../auth';
+import { redirect } from 'next/navigation';
 
 interface Document {
   type: 'pdf' | 'txt' | 'xml' | 'csv' | 'json' | 'mdx';
@@ -33,6 +34,27 @@ export async function createChatBot({
   const session = await auth();
 
   try {
+    // Check if the user already has 5 chatbots
+    let userChatbotsCount = 0;
+    try {
+      userChatbotsCount = await prisma.chatBot.count({
+        where: {
+          userId: session?.user?.id,
+        },
+      });
+    } catch (error) {
+      console.error("Error counting chatbots:", error);
+      // Handle the error appropriately, e.g., throw a more specific error or set a default value.
+      // For now, we'll log the error and continue.  A better approach would be to
+      // return a more informative error message to the client.
+      return redirect('/profile');
+    }
+
+    if (userChatbotsCount >= 1) {
+      // Show a toast message and redirect to the profile page
+      throw new Error('You have reached the maximum number of chatbots allowed.');
+    }
+
     // Ensure the user is authenticated
     if (!session || !session?.user?.id) {
       throw new Error('User is not authenticated.');
@@ -52,8 +74,14 @@ export async function createChatBot({
 
   }
   catch (error: any) {
-    console.error('Error creating chatbot:', error.message);
-    throw new Error(`Error creating chatbot: ${error.message}`);
+    if (error.message === 'You have reached the maximum number of chatbots allowed.') {
+      // Show a toast message
+      console.error('Error creating chatbot:', error.message);
+      throw new Error('You have reached the maximum number of chatbots allowed.');
+    } else {
+      console.error('Error creating chatbot:', error.message);
+      throw new Error(`Error creating chatbot: ${error.message}`);
+    }
   }
 }
 
@@ -67,9 +95,9 @@ interface addKnowledge {
 
 export async function addKnowledge({
   chatbotID,
-  website_URL = [], // Default to an empty array
-  documents = [], // Default to an empty array
-  qandaData = [], // Default to an empty array
+  website_URL = [],
+  documents = [],
+  qandaData = [],
 }: addKnowledge) {
   const session = await auth();
 
@@ -77,6 +105,17 @@ export async function addKnowledge({
     // Ensure the user is authenticated
     if (!session || !session?.user?.id) {
       throw new Error('User is not authenticated.');
+    }
+
+    // Check if the user has exceeded the maximum number of data sources
+    const existingSourcesCount = await prisma.dataSource.count({
+      where: {
+        chatbotId: parseInt(chatbotID),
+      },
+    });
+
+    if (existingSourcesCount + website_URL.length + documents.length + qandaData.length > 2) {
+      throw new Error('You have reached the maximum number of data sources allowed for this chatbot.');
     }
 
     // Prepare FormData for the backend request
@@ -149,8 +188,13 @@ export async function addKnowledge({
 
     return { chatbotID, processingStatus: 'success' };
   } catch (error: any) {
-    console.error('Error creating chatbot:', error.message);
-    throw new Error(`Error creating chatbot: ${error.message}`);
+    if (error.message.includes('maximum number of data sources')) {
+      console.error('Error adding knowledge:', error.message);
+      throw new Error('You have reached the maximum number of data sources allowed for this chatbot.');
+    } else {
+      console.error('Error adding knowledge:', error.message);
+      throw new Error(`Error adding knowledge: ${error.message}`);
+    }
   }
 }
 

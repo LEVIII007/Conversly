@@ -174,12 +174,20 @@ export function DataSourcesTab({ chatbotId }: { chatbotId: string }) {
       // Reset after successful upload
       setPendingSources([]);
     } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to add data sources',
-        variant: 'destructive',
-      });
-      console.error('Error adding sources:', error);
+      if (error instanceof Error && error.message.includes('maximum number of data sources')) {
+        toast({
+          title: 'Error',
+          description: 'You have reached the maximum number of data sources allowed for this chatbot in the free tier.  Only 2 data sources are allowed.',
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Error',
+          description: 'Failed to add data sources',
+          variant: 'destructive',
+        });
+        console.error('Error adding sources:', error);
+      }
     } finally {
       setIsLoading(false);
     }

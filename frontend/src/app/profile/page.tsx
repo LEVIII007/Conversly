@@ -88,7 +88,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 py-16">
       <div className="max-w-6xl mx-auto p-6 space-y-10">
         {/* Profile Header */}
         <div className="bg-gradient-to-r from-card/80 to-card/50 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-border/50">
