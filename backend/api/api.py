@@ -8,8 +8,12 @@ from web import fetch_urls
 from doc import process_documents
 from typing import Optional
 from fastapi.middleware.cors import CORSMiddleware
+# from mangum import Mangum
+
 
 app = FastAPI()
+
+# handler = Mangum(app)
 
 # Add CORS middleware
 app.add_middleware(
