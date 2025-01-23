@@ -1,0 +1,17 @@
+# "org" ensures this Service is used with the correct Serverless Framework Access Key.
+org: zsecure
+# "service" is the name of this project. This will also be added to your AWS resource names.
+service: doc-bot-api
+
+frameworkVersion: "4"
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: ap-southeast-1
+
+functions:
+  api:
+    handler: dist/handler.handler
+    events:
+      - httpApi: "*"

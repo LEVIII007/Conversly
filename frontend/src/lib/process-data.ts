@@ -11,7 +11,7 @@ interface ChatBot {
   documents: Array<{ type: 'pdf' | 'txt'; content: File }>;
 }
 
-const SERVER_URL = 'http://localhost:8000';
+const SERVER_URL = 'http://localhost:3000';
 
 export async function createChatBot({
   name,
@@ -98,7 +98,7 @@ export async function addKnowledge({
 
     // Prepare FormData for the backend request
     const formData = new FormData();
-    formData.append('userId', session.user.id.toString());
+    // formData.append('userId', session.user.id.toString());
     formData.append('chatbotID', chatbotID);
     formData.append('websiteURL', JSON.stringify(website_URL)); // Backend will parse this JSON
 
@@ -109,10 +109,11 @@ export async function addKnowledge({
     qandaData.forEach((qa, index) => {
       formData.append('qandaData', JSON.stringify(qa));
     });
-
+    console.log(formData);
     // Send the request to the backend for processing
     const response = await fetch(`${SERVER_URL}/process`, {
       method: 'POST',
+      
       body: formData,
     });
 

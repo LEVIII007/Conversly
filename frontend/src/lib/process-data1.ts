@@ -24,7 +24,7 @@ interface ChatBot {
   otherSources?: { type: string; name: string }[]; // Optional
 }
 
-const SERVER_URL = 'http://localhost:8000';
+const SERVER_URL = 'http://localhost:3000';
 
 export async function createChatBot({
   name,
@@ -173,6 +173,7 @@ export async function addKnowledge({
       formData.append('qandaData', JSON.stringify(qandaData));
     }
 
+    console.log(formData);
     // Send the request to the backend for processing
     const response = await fetch(`${SERVER_URL}/process`, {
       method: 'POST',

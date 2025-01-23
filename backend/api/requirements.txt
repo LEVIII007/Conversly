@@ -90,6 +90,7 @@ PyPDF2==3.0.1
 pytest==8.3.4
 pytest-mockito==0.0.4
 python-dotenv==1.0.1
+python-multipart==0.0.20
 PyYAML==6.0.2
 rank-bm25==0.2.2
 referencing==0.36.1

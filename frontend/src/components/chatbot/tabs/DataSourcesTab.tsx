@@ -11,7 +11,7 @@ import {
   Briefcase, Cloud, Mail, AlertCircle, Lock, Plus, X
 } from 'lucide-react';
 import { QADialog } from '@/components/chatbot/QADialog';
-import { addKnowledge } from "@/lib/process-data";
+import { addKnowledge } from "@/lib/process-data1";
 import { useToast } from "@/hooks/use-toast";
 
 const DATA_SOURCES = {
