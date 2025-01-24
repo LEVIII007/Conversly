@@ -68,8 +68,9 @@ export async function responseHandler(req: Request, res: Response) {
            2. Enter your email address and follow the instructions.
            3. Check your email for the reset link.
            \`\`\`
+           [SPECIAL INSTURCTIONS FROM USER] : ${prompt}
         `,
-      prompt : prompt,
+      prompt : message,
       tools: {
         getInformation: tool({
           description: 'Get the information from the knowledge base for the given prompt',
@@ -84,13 +85,11 @@ export async function responseHandler(req: Request, res: Response) {
           },
         }),
       },
-      maxSteps: 5,
-      onStepFinish: step => {
-        // You can log steps or send them as events if needed
-        console.log(JSON.stringify(step, null, 2));
-      },
+      maxSteps: 2,
     });
-    return result.text;
+    console.log("++++++++++++++++result++++++++++++++++++++");
+    // console.log(result);
+    return res.json({ answer : result.text });
 
   } catch (error) {
     console.error('Error in response handler:', error);

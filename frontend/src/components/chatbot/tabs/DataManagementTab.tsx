@@ -30,7 +30,7 @@ export function DataManagementTab({ chatbotId }: { chatbotId: string }) {
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
-  
+
 
   useEffect(() => {
     loadDataSources();
@@ -133,3 +133,4 @@ export function DataManagementTab({ chatbotId }: { chatbotId: string }) {
     </div>
   );
 } 
+

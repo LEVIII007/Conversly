@@ -11,6 +11,12 @@
           fontSize: '14px',
           height: '500px',
           width: '350px',
+          starter_questions : [
+            "What is the purpose of this website?",
+            "How do I get started?",
+            "What are the system requirements?",
+            "How do I install the software?",
+          ],
           ...config
         };
         this.isOpen = false;
@@ -187,6 +193,40 @@
             border-radius: 50%;
             animation: typing 1.4s infinite;
           }
+
+          .starter-questions {
+            margin: 15px 0;
+            padding: 0 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+          }
+        
+          .starter-question {
+            cursor: pointer;
+            background-color: ${this.config.darkMode ? '#2d2d2d' : 'white'};
+            color: ${this.config.color};
+            padding: 12px 16px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            border: 1px solid ${this.config.color}20;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            font-size: 0.9em;
+            line-height: 1.4;
+            text-align: left;
+            max-width: 85%;
+          }
+          
+          .starter-question:hover {
+            background-color: ${this.config.color}10;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+          }
+          
+          .starter-question:active {
+            transform: translateY(0px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+          }
           
           .docsbot-typing-dot:nth-child(2) { animation-delay: 0.2s; }
           .docsbot-typing-dot:nth-child(3) { animation-delay: 0.4s; }
@@ -207,7 +247,23 @@
         this.createButton();
         this.createChatBox();
       }
-  
+      
+      renderStarterQuestions() {
+        const starterQuestionsContainer = document.createElement('div');
+        starterQuestionsContainer.className = 'starter-questions';
+        this.config.starter_questions.forEach(question => {
+          const questionElement = document.createElement('div');
+          questionElement.className = 'starter-question';
+          questionElement.textContent = question;
+          questionElement.addEventListener('click', () => {
+            const inputBox = document.querySelector('.docsbot-input');
+            inputBox.value = question;
+          });
+          starterQuestionsContainer.appendChild(questionElement);
+        });
+        return starterQuestionsContainer;
+      }
+
       createButton() {
         const button = document.createElement('button');
         button.className = 'docsbot-button';
@@ -227,6 +283,18 @@
         button.onclick = () => this.toggleChat();
         document.body.appendChild(button);
         this.button = button;
+      }
+
+      renderMarkdown(markdownText) {
+        return marked(markdownText);
+      }
+
+      handleServerResponse(response) {
+        const messagesContainer = document.getElementById('chatMessages');
+        const messageElement = document.createElement('div');
+        messageElement.className = 'docsbot-message';
+        messageElement.innerHTML = this.renderMarkdown(response);
+        messagesContainer.appendChild(messageElement);
       }
   
       createChatBox() {
@@ -286,6 +354,13 @@
         document.body.appendChild(chatBox);
         this.chatBox = chatBox;
 
+        // Get the messages container
+        const messagesContainer = chatBox.querySelector('#chatMessages');
+        
+        // Add starter questions
+        const starterQuestions = this.renderStarterQuestions();
+        messagesContainer.appendChild(starterQuestions);
+
         // Add welcome message
         this.addMessage('assistant', this.config.welcomeMessage);
 
@@ -331,14 +406,13 @@
         this.chatBox.querySelector('#chatMessages').appendChild(typingDiv);
 
         try {
-          const response = await fetch(`${this.config.apiUrl}/chat`, {
+          const response = await fetch(`${this.config.apiUrl}/response`, {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'X-API-Key': this.config.botId
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
-              question: message 
+              message: message,
+              chatbotId: this.config.chatbotId || 4,
+              prompt: this.config.prompt || "act like a helpful assistant"
             })
           });
 

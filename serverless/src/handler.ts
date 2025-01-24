@@ -8,7 +8,7 @@ const app = express();
 app.use(express.json());
 
 
-const port = 3000;
+const port = 3001;
 
 app.use(cors({
   origin: '*',
@@ -23,9 +23,9 @@ app.get('/', (req, res) => {
 app.post('/process', ...processHandler);
 
 app.post('/response', responseHandler);
-// app.listen(port, () => {
-//   console.log(`Server is running at http://localhost:${port}`);
-// });
+app.listen(port, () => {
+  console.log(`Server is running at http://localhost:${port}`);
+});
 
 
-export const handler = serverless(app);
+// export const handler = serverless(app);
