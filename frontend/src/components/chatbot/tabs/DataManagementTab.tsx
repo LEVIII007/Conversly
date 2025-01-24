@@ -30,6 +30,8 @@ export function DataManagementTab({ chatbotId }: { chatbotId: string }) {
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
+  
+
   useEffect(() => {
     loadDataSources();
   }, [chatbotId]);
@@ -38,7 +40,7 @@ export function DataManagementTab({ chatbotId }: { chatbotId: string }) {
     try {
       const data = await fetchDataSources(Number(chatbotId));
       const grouped = data.reduce((acc, source) => {
-        const category = ['Website', 'Document', 'QandA'].includes(source.type) ? source.type : 'Other';
+        const category = ['Website', 'Document', 'QandA', 'CSV'].includes(source.type) ? source.type : 'Other';
         if (source.createdAt) {
           acc[category as keyof GroupedSources].push({
             ...source,
@@ -83,6 +85,7 @@ export function DataManagementTab({ chatbotId }: { chatbotId: string }) {
       case 'Website': return <Globe className="w-5 h-5" />;
       case 'Document': return <File className="w-5 h-5" />;
       case 'QandA': return <MessageSquare className="w-5 h-5" />;
+      case 'CSV': return <File className="w-5 h-5" />;
       default: return <Database className="w-5 h-5" />;
     }
   };

@@ -170,6 +170,7 @@ export const deleteKnowledge = async (id: number, topic: string) => {
 
 // Fetch all data sources
 export const fetchDataSources = async (id: number) => {
+  console.log("Fetching data sources for chatbot:", id);
   try {
     const dataSources = await prisma.dataSource.findMany({
       where: {
@@ -183,7 +184,7 @@ export const fetchDataSources = async (id: number) => {
         createdAt: true,
       },
     });
-
+    console.log(dataSources);
     return dataSources;
   } catch (error) {
     console.error('Error fetching data sources:', error);
