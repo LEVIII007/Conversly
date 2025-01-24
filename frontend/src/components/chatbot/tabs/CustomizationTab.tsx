@@ -4,10 +4,11 @@ import { ChromePicker } from 'react-color';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Bot, MessageCircle, HelpCircle, MessageSquare, BrainCircuit, CopyIcon, Copy, Minus } from 'lucide-react';
+import { Bot, MessageCircle, HelpCircle, MessageSquare, BrainCircuit, CopyIcon, Copy, Minus, Upload } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { ChatbotPreview } from '@/components/chatbot/ChatbotPreview';
 import { Highlight, themes } from 'prism-react-renderer';
+// import { Switch } from "@/components/ui/switch";
 
 interface CustomizationTabProps {
   chatbotId: string;
@@ -21,10 +22,20 @@ export function CustomizationTab({ chatbotId }: CustomizationTabProps) {
   const [buttonAlignment, setButtonAlignment] = useState<'left' | 'right'>('right');
   const [showButtonText, setShowButtonText] = useState(false);
   const [buttonText, setButtonText] = useState('Chat with us');
+  const [widgetButtonText, setWidgetButtonText] = useState('Chat with us');
   const [domains, setDomains] = useState(['']);
   const [welcomeMessage, setWelcomeMessage] = useState('Hi! How can I help you today? 👋');
   const [chatHeight, setChatHeight] = useState('500px');
   const [chatWidth, setChatWidth] = useState('350px');
+  const [displayStyle, setDisplayStyle] = useState<'corner' | 'overlay'>('corner');
+  const [customIcon, setCustomIcon] = useState<string | null>(null);
+  const [starterQuestions, setStarterQuestions] = useState<string[]>([
+    "What is this about?",
+    "How do I get started?",
+    "",
+    ""
+  ]);
+  const [widgetHeader, setWidgetHeader] = useState('Support Bot');
 
   const icons = [
     { id: 'chat', component: <MessageCircle className="w-6 h-6" /> },
@@ -37,7 +48,19 @@ export function CustomizationTab({ chatbotId }: CustomizationTabProps) {
   const embedCode = `<script>
   (function () {
     const botConfig = {
-      botId: "${chatbotId}",color: "${color}",title: "Support Bot",welcomeMessage: "${welcomeMessage}",buttonAlign: "${buttonAlignment}",buttonText: ${showButtonText ? `"${buttonText}"` : 'null'},height: "${chatHeight}",width: "${chatWidth}",apiUrl: window.location.protocol + "//" + window.location.host
+      botId: "${chatbotId}",
+      color: "${color}",
+      title: "Support Bot",
+      welcomeMessage: "${welcomeMessage}",
+      headerText: "${widgetHeader}",
+      apiUrl : "https://my0jhajg7c.execute-api.ap-southeast-1.amazonaws.com",
+      buttonAlign: "${buttonAlignment}",
+      buttonText: "${widgetButtonText}",
+      height: "${chatHeight}",
+      width: "${chatWidth}",
+      displayStyle: "${displayStyle}",
+      customIcon: ${customIcon ? `"${customIcon}"` : 'null'},
+      starter_questions: ${JSON.stringify(starterQuestions.filter(q => q))},
     };
     const script = document.createElement("script");
     script.src = "https://cloud-ide-shas.s3.us-east-1.amazonaws.com/docBot/chat.js";
@@ -47,6 +70,7 @@ export function CustomizationTab({ chatbotId }: CustomizationTabProps) {
     document.head.appendChild(script);
   })();
 </script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 `;
 
   const iframeCode = `<iframe
@@ -109,6 +133,19 @@ export function CustomizationTab({ chatbotId }: CustomizationTabProps) {
       )}
     </Highlight>
   );
+
+  // Function to handle image upload and convert to base64
+  const handleIconUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        setCustomIcon(base64String);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   return (
     <div className="flex gap-4">
@@ -244,6 +281,28 @@ export function CustomizationTab({ chatbotId }: CustomizationTabProps) {
             />
           </div>
 
+           {/* Header Message */}
+           <div className="space-y-1">
+            <label className="block text-xs font-medium">Header Text</label>
+            <Textarea
+              value={widgetHeader}
+              onChange={(e) => setWidgetHeader(e.target.value)}
+              placeholder="Enter the Title of chatbot users will see"
+              className="h-8 text-sm"
+            />
+          </div>
+
+          {/* Widget Button Text */}
+          <div className="space-y-1">
+            <label className="block text-xs font-medium">Widget Button Text</label>
+            <Input
+              value={widgetButtonText}
+              onChange={(e) => setWidgetButtonText(e.target.value)}
+              placeholder="Chat with us"
+              className="h-8 text-sm"
+            />
+          </div>
+
           {/* Allowed Domains */}
           <div className="space-y-1">
             <label className="block text-xs font-medium">Allowed Domains</label>
@@ -301,19 +360,102 @@ export function CustomizationTab({ chatbotId }: CustomizationTabProps) {
               </div>
             </div>
           </div>
+
+          {/* Display Style Selection */}
+          <div className="space-y-1">
+            <label className="block text-xs font-medium">Widget Display Style</label>
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                variant={displayStyle === 'corner' ? 'default' : 'outline'}
+                onClick={() => setDisplayStyle('corner')}
+              >
+                Corner
+              </Button>
+              <Button
+                size="sm"
+                variant={displayStyle === 'overlay' ? 'default' : 'outline'}
+                onClick={() => setDisplayStyle('overlay')}
+              >
+                Overlay
+              </Button>
+            </div>
+          </div>
+
+          {/* Custom Icon Upload */}
+          <div className="space-y-1">
+            <label className="block text-xs font-medium">Custom Icon</label>
+            <div className="flex items-center gap-2">
+              <div className="relative">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleIconUpload}
+                  className="hidden"
+                  id="icon-upload"
+                />
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => document.getElementById('icon-upload')?.click()}
+                >
+                  <Upload className="w-4 h-4 mr-2" />
+                  Upload Icon
+                </Button>
+              </div>
+              {customIcon && (
+                <div className="w-8 h-8 rounded-full overflow-hidden">
+                  <img src={customIcon} alt="Custom icon" className="w-full h-full object-cover" />
+                </div>
+              )}
+              {customIcon && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setCustomIcon(null)}
+                >
+                  Remove
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {/* Starter Questions */}
+          <div className="space-y-1">
+            <label className="block text-xs font-medium">Starter Questions (up to 4)</label>
+            {starterQuestions.map((question, index) => (
+              <div key={index} className="flex gap-2">
+                <Input
+                  value={question}
+                  onChange={(e) => {
+                    const newQuestions = [...starterQuestions];
+                    newQuestions[index] = e.target.value;
+                    setStarterQuestions(newQuestions);
+                  }}
+                  placeholder={`Starter question ${index + 1}`}
+                  className="h-8 text-sm"
+                />
+              </div>
+            ))}
+          </div>
+
         </div>
       </div>
 
       {/* Preview Section - Fixed width */}
-      <div className="w-[350px] h-[500px] space-y-2">
+      <div className="w-[450px] h-[600px] space-y-2">
         <h2 className="text-base font-semibold">Preview</h2>
         <ChatbotPreview
           color={color}
           selectedIcon={icons.find((icon) => icon.id === selectedIcon)?.component}
           buttonAlignment={buttonAlignment}
           showButtonText={showButtonText}
-          buttonText={buttonText}
+          buttonText={widgetButtonText}
           welcomeMessage={welcomeMessage}
+          displayStyle={displayStyle}
+          customIcon={customIcon}
+          starterQuestions={starterQuestions}
+          HeaderText={widgetHeader}
         />
         
         {/* Widget Button Preview */}

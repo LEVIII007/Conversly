@@ -53,32 +53,32 @@
   <p>This is a simple webpage to demonstrate the chat widget.</p>
 
   <script>
-    const botConfig = {
-      botId: "4", 
-      color: "#569CCE",
-      title: "Support Bot",
-      welcomeMessage: "Hi! How can I help you today? 👋",
-      buttonAlign: "right",
-      buttonText: "Chat",
-      apiUrl: "http://localhost:3001",
-      darkMode: false,
-      fontSize: "14px",
-      height: "500px",
-      width: "450px"
-    };
-
-    // Dynamically load the chat widget script from S3
-    const script = document.createElement("script");
-    // script.src = "https://cloud-ide-shas.s3.us-east-1.amazonaws.com/docBot/chat.js"; // Replace with the S3 URL
-    script.src = "./chat.js"; // Replace with the S3 URL
-    script.async = true;
-    script.onload = () => {
-      if (window.DocsBotAI) {
-        window.DocsBotAI.init(botConfig);
-      }
-    };
-    document.head.appendChild(script);
+    (function () {
+      const botConfig = {
+        botId: "4",
+        color: "#569CCE",
+        title: "Support Bot",
+        welcomeMessage: "Hi! How can I help you today? 👋",
+        headerText: "Support Bot",
+        apiUrl : "https://my0jhajg7c.execute-api.ap-southeast-1.amazonaws.com",
+        buttonAlign: "right",
+        buttonText: "Chat with us",
+        height: "500px",
+        width: "350px",
+        displayStyle: "corner",
+        customIcon: null,
+        starter_questions: ["What is this about?","How do I get started?"],
+      };
+      const script = document.createElement("script");
+      // script.src = "https://cloud-ide-shas.s3.us-east-1.amazonaws.com/docBot/chat.js";
+      script.src = "./chat.js";
+      script.async = true;
+      script.onload = () => {
+        if (window.DocsBotAI) {window.DocsBotAI.init(botConfig);}};
+      document.head.appendChild(script);
+    })();
   </script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  
 </body>
 </html>

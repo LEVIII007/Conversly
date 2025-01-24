@@ -11,6 +11,7 @@
           fontSize: '14px',
           height: '500px',
           width: '350px',
+          displayStyle: 'overlay',
           starter_questions : [
             "What is the purpose of this website?",
             "How do I get started?",
@@ -235,6 +236,56 @@
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-4px); }
           }
+
+          .docsbot-chat.overlay-style {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.95);
+            opacity: 0;
+            z-index: 10000;
+            width: 80%;
+            max-width: 800px;
+            height: 80vh;
+            max-height: 700px;
+            border-radius: 12px;
+            box-shadow: 0 5px 40px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+          }
+
+          .docsbot-chat.overlay-style.open {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+          }
+
+          .docsbot-overlay-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            z-index: 9999;
+            transition: opacity 0.3s ease;
+            display: none;
+          }
+
+          .docsbot-overlay-backdrop.open {
+            opacity: 1;
+          }
+
+          .docsbot-button.center-button {
+            left: 50%;
+            transform: translateX(-50%);
+          }
+
+          @media (max-width: 768px) {
+            .docsbot-chat.overlay-style {
+              width: 90%;
+              height: 90vh;
+            }
+          }
         `;
 
         const styleSheet = document.createElement('style');
@@ -268,17 +319,32 @@
         const button = document.createElement('button');
         button.className = 'docsbot-button';
         button.style.position = 'fixed';
-        button.style[this.config.buttonAlign] = '20px';
-        button.style.bottom = '20px';
+        
+        if (this.config.buttonAlign === 'center') {
+          button.classList.add('center-button');
+          button.style.bottom = '20px';
+        } else {
+          button.style[this.config.buttonAlign] = '20px';
+          button.style.bottom = '20px';
+        }
+        
         button.style.backgroundColor = this.config.color;
         
-        // Add icon and text
-        button.innerHTML = `
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-          </svg>
-          ${this.config.buttonText ? `<span>${this.config.buttonText}</span>` : ''}
-        `;
+        // Handle custom icon
+        if (this.config.customIcon) {
+          button.innerHTML = `
+            <img src="${this.config.customIcon}" alt="Chat" class="w-6 h-6" />
+            ${this.config.buttonText ? `<span>${this.config.buttonText}</span>` : ''}
+          `;
+        } else {
+          // Default icon HTML
+          button.innerHTML = `
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+            ${this.config.buttonText ? `<span>${this.config.buttonText}</span>` : ''}
+          `;
+        }
         
         button.onclick = () => this.toggleChat();
         document.body.appendChild(button);
@@ -299,14 +365,27 @@
   
       createChatBox() {
         const chatBox = document.createElement('div');
-        chatBox.className = 'docsbot-chat';
-        chatBox.style.position = 'fixed';
-        chatBox.style[this.config.buttonAlign] = '20px';
-        chatBox.style.bottom = '80px';
-        chatBox.style.width = this.config.width;
-        chatBox.style.height = this.config.height;
-        chatBox.style.display = 'none';
+        chatBox.className = `docsbot-chat ${this.config.displayStyle === 'overlay' ? 'overlay-style' : ''}`;
         
+        if (this.config.displayStyle === 'corner') {
+          chatBox.style.position = 'fixed';
+          chatBox.style[this.config.buttonAlign] = '20px';
+          chatBox.style.bottom = '80px';
+          chatBox.style.width = this.config.width;
+          chatBox.style.height = this.config.height;
+        }
+        
+        chatBox.style.display = 'none';
+
+        // Create backdrop for overlay style
+        if (this.config.displayStyle === 'overlay') {
+          const backdrop = document.createElement('div');
+          backdrop.className = 'docsbot-overlay-backdrop';
+          backdrop.onclick = () => this.toggleChat();
+          document.body.appendChild(backdrop);
+          this.backdrop = backdrop;
+        }
+
         chatBox.innerHTML = `
           <div class="docsbot-header" style="background-color: ${this.config.color}">
             <div class="docsbot-header-title">
@@ -375,6 +454,13 @@
       toggleChat() {
         this.isOpen = !this.isOpen;
         this.chatBox.classList.toggle('open');
+        
+        if (this.config.displayStyle === 'overlay') {
+          this.backdrop.style.display = this.isOpen ? 'block' : 'none';
+          this.backdrop.classList.toggle('open');
+          document.body.style.overflow = this.isOpen ? 'hidden' : '';
+        }
+        
         this.chatBox.style.display = this.isOpen ? 'flex' : 'none';
       }
   
@@ -411,8 +497,8 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
               message: message,
-              chatbotId: this.config.chatbotId || 4,
-              prompt: this.config.prompt || "act like a helpful assistant"
+              chatbotId: this.config.botId,
+              prompt: this.config.prompt || "be a helpful assistant"
             })
           });
 
