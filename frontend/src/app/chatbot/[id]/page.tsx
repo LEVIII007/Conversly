@@ -12,6 +12,7 @@ import { SettingsTab } from '@/components/chatbot/tabs/SettingsTab';
 import { ChatbotHeader } from '@/components/chatbot/ChatbotHeader';
 import { useToast } from '@/hooks/use-toast';
 import { fetchChatBot } from '@/lib/queries';
+import { AnalyticsTab } from '@/components/chatbot/tabs/AnalyticsTab';
 
 export default function ChatbotCustomizationPage() {
   const { id } = useParams();
@@ -66,32 +67,36 @@ export default function ChatbotCustomizationPage() {
         <ChatbotHeader chatbot={chatbotData} />
         
         <main className="flex-1 overflow-y-auto p-6">
-          <Tabs defaultValue="data-sources" className="w-full">
-            <TabsList className="mb-6">
-              <TabsTrigger value="data-sources">Data Sources</TabsTrigger>
-              <TabsTrigger value="system-prompt">System Prompt</TabsTrigger>
-              <TabsTrigger value="customization">Customization</TabsTrigger>
-              <TabsTrigger value="data-management">Data Management</TabsTrigger>
+          <Tabs defaultValue="data" className="w-full">
+            <TabsList className="grid w-full grid-cols-6 gap-2">
+              <TabsTrigger value="data" className="text-sm">Data Sources</TabsTrigger>
+              <TabsTrigger value="data-management" className="text-sm">Data Management</TabsTrigger>
+              <TabsTrigger value="customize" className="text-sm">Customize</TabsTrigger>
+              <TabsTrigger value="system">System Prompt</TabsTrigger>
+              <TabsTrigger value="analytics">Analytics</TabsTrigger>
               <TabsTrigger value="settings">Settings</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="data-sources">
+            <TabsContent value="data" className="border rounded-lg">
               <DataSourcesTab chatbotId={id?.toString() ?? ''} />
             </TabsContent>
 
-            <TabsContent value="system-prompt">
-              <SystemPromptTab chatbotId={id?.toString() ?? ''} System_Prompt={chatbotData.System_Prompt} />
-            </TabsContent>
-
-            <TabsContent value="customization">
-              <CustomizationTab chatbotId={id?.toString() ?? ''} />
-            </TabsContent>
-
-            <TabsContent value="data-management">
+            <TabsContent value="data-management" className="border rounded-lg">
               <DataManagementTab chatbotId={id?.toString() ?? ''} />
             </TabsContent>
 
-            <TabsContent value="settings">
+            <TabsContent value="customize" className="border rounded-lg">
+              <CustomizationTab chatbotId={id?.toString() ?? ''} />
+            </TabsContent>
+
+            <TabsContent value="system" className="border rounded-lg">
+              <SystemPromptTab chatbotId={id?.toString() ?? ''} System_Prompt={chatbotData.System_Prompt} />
+            </TabsContent>
+
+            <TabsContent value="analytics" className="border rounded-lg">
+              <AnalyticsTab chatbotId={id?.toString() ?? ''} />
+            </TabsContent>
+            <TabsContent value="settings" className="border rounded-lg">
               <SettingsTab chatbotId={id?.toString() ?? ''} chatbot={chatbotData} />
             </TabsContent>
           </Tabs>
