@@ -142,6 +142,12 @@ export async function searchDocumentation(
       return "No matching documentation found.";
     }
 
+    // Extract topics from the results
+    const topics = results.map(row => row.topic);
+
+    // Update analytics with the found topics
+    await updateAnalytics(chatbotId, topics);
+
     // Format the context string
     let contextString = "\n\nRelevant Context:\n";
     results.forEach((row, idx) => {
@@ -158,3 +164,42 @@ export async function searchDocumentation(
   }
 } 
 
+
+export const updateAnalytics = async (chatbotId: number, topics: string[]) => {
+  const client = await pool.connect();
+
+  try {
+    await client.query('BEGIN');
+
+    // Construct parameterized query for citations
+    const values = topics.map((topic, index) => `($1, $${index + 2}, 1)`).join(','); // Add `1` for initial count
+    const queryText = `
+      INSERT INTO analytics (chatbotid, topic, count, responses)
+      VALUES ${values}
+      ON CONFLICT (chatbotid, topic) 
+      DO UPDATE 
+      SET 
+        count = analytics.count + EXCLUDED.count, 
+        responses = analytics.responses + 1;
+    `;
+
+    // Execute the query with parameters
+    await client.query(queryText, [chatbotId, ...topics]);
+
+    // Increment the overall responses count (optional if needed globally, not per topic)
+    await client.query(
+      `UPDATE analytics 
+       SET responses = responses + 1 
+       WHERE chatbotid = $1`,
+      [chatbotId]
+    );
+
+    await client.query('COMMIT');
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Error updating analytics:', error);
+    throw error;
+  } finally {
+    client.release();
+  }
+};

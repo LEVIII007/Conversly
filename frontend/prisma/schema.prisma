@@ -89,6 +89,7 @@ model ChatBot {
   updatedAt     DateTime?    @default(now()) @db.Timestamptz(6)
   DataSource    DataSource[]
   embeddings    embeddings[]
+  Analytics     analytics[]
 }
 
 model embeddings {
@@ -117,3 +118,15 @@ model DataSource {
 }
 
 // type in datadource can be 'Website', 'Document', 'QandA', 'Notion', 'WordPress', 'CodeFile', 'GitHub', 'Other')
+model analytics {
+  id        Int       @id @default(autoincrement())
+  chatbotid Int
+  responses Int?      @default(0)
+  likes     Int?      @default(0)
+  dislikes  Int?      @default(0)
+  citations Json?     @default("{}")
+  createdat DateTime? @default(now()) @db.Timestamptz(6)
+  updatedat DateTime? @default(now()) @db.Timestamptz(6)
+  ChatBot   ChatBot   @relation(fields: [chatbotid], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_chatbot")
+}
+
