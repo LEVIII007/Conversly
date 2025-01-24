@@ -10,7 +10,7 @@ export function ChatWidget() {
         color: "#569CCE",
         title: "DocsBot Support",
         welcomeMessage: "👋 Hi! I'm your DocsBot assistant. How can I help you today?",
-        buttonAlign: "right" as const,
+        buttonAlign: "left" as const,
         buttonText: "Chat with us",
         height: "500px",
         width: "350px",

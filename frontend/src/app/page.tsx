@@ -6,6 +6,7 @@ import { useEffect } from 'react';
 import { BackgroundLines } from "@/components/ui/background-lines";
 import { Button } from "@/components/ui/button";
 import { BackgroundGradient } from "@/components/ui/background-grad";
+import Header from '@/components/Header';
 
 const features = [
   {
@@ -161,6 +162,8 @@ export default function Home() {
   }, []);
 
   return (
+    <div>
+      <Header />
     <div className="space-y-32 pb-20">
       {/* Hero Section */}
       <BackgroundLines className="flex items-center justify-center min-h-[90vh] relative">
@@ -433,6 +436,7 @@ export default function Home() {
           </div>
         </div>
       </footer>
+    </div>
     </div>
   );
 }
