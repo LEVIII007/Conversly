@@ -6,6 +6,7 @@ import {bulkSaveEmbeddings, bulkSaveDataSources } from '../lib/db.js';
 import { ProcessRequestBody } from '../lib/types.js';
 import multer from 'multer';
 import { Request } from 'express';
+import { processMultipleCSVs } from '../lib/special-csv.js';
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -28,92 +29,6 @@ async function readFileContent(file: Express.Multer.File): Promise<string> {
 }
 
 
-// async function processDocument(
-//   file: File,
-//   chatbotId: number
-// ): Promise<void> {
-//   try {
-//     // Read file content
-//     const content = await readFileContent(file);
-    
-//     // Split into chunks using semantic chunking for documents
-//     const chunks = await splitDocument(
-//       content,
-//       'semantic',
-//       { source: file.name, type: 'document' }
-//     );
-    
-//     // Generate embeddings for each chunk
-//     const texts = chunks.map(chunk => chunk.text);
-//     const embeddings = await generateEmbeddings(texts);
-    
-//     // Save embeddings to database
-//     await Promise.all(
-//       chunks.map((chunk, index) =>
-//         saveEmbeddings(
-//           chatbotId,
-//           file.name,
-//           chunk.text,
-//           embeddings[index]
-//         )
-//       )
-//     );
-    
-//     // Save document source
-//     await saveDataSource(
-//       chatbotId,
-//       'Document',
-//       file.name,
-//       { type: getContentType(file.name) }
-//     );
-//   } catch (error) {
-//     console.error('Error processing document:', error);
-//     throw error;
-//   }
-// }
-
-// async function processWebsiteContent(
-//   url: string,
-//   content: string,
-//   chatbotId: number
-// ): Promise<void> {
-//   try {
-//     // Split content into chunks using semantic chunking
-//     const chunks = await splitDocument(
-//       content,
-//       'semantic',
-//       { source: url, type: 'website' }
-//     );
-    
-//     // Generate embeddings for chunks
-//     const texts = chunks.map(chunk => chunk.text);
-//     const embeddings = await generateEmbeddings(texts);
-    
-//     // Save embeddings
-//     await Promise.all(
-//       chunks.map((chunk, index) =>
-//         saveEmbeddings(
-//           chatbotId,
-//           url,
-//           chunk.text,
-//           embeddings[index]
-//         )
-//       )
-//     );
-    
-//     // Save website source
-//     await saveDataSource(
-//       chatbotId,
-//       'Website',
-//       url,
-//       { url }
-//     );
-//   } catch (error) {
-//     console.error('Error processing website:', error);
-//     throw error;
-//   }
-// }
-
 export const processHandler = [
   upload.array('documents'),
   async (req: Request, res: Response) => {
@@ -122,13 +37,15 @@ export const processHandler = [
       const chatbotID = req.body.chatbotID;
       const websiteURL = JSON.parse(req.body.websiteURL || '[]');
       const qandaData = JSON.parse(req.body.qandaData || '[]');
-      const documents = (req.files as Express.Multer.File[] || []);
+      const documents = (req.files?.['documents'] as Express.Multer.File[] || []);
+      const csvFiles = (req.files?.['csvFiles'] as Express.Multer.File[] || []);
 
       console.log('Received data:', {
         chatbotID,
         websiteURL,
         qandaData,
-        documents: documents.map(f => f.originalname)
+        documents: documents.map(f => f.originalname),
+        csvFiles: csvFiles.map(f => f.originalname)
       });
 
       const chatbotId = parseInt(chatbotID);
@@ -203,7 +120,22 @@ export const processHandler = [
         dataSourcesToSave.push({
           type: 'QandA',
           name: 'Q&A Pairs',
-          sourceDetails: { count: qandaData.length }
+          sourceDetails: { question: qandaData.map((qa: { question: string }) => qa.question) }
+        });
+      }
+
+      // Process CSV files
+      if (csvFiles.length > 0) {
+        const qnaPairs = await processMultipleCSVs(csvFiles);
+        allChunks.push(...qnaPairs.map(qna => ({
+          text: `${qna.question}\n${qna.answer}`,
+          source: qna.question
+        })));
+
+        dataSourcesToSave.push({
+          type: 'QandA',
+          name: 'Q&A Pairs',
+          sourceDetails: { question: qnaPairs.map(qna => qna.question) }
         });
       }
 

@@ -14,6 +14,11 @@ interface QandA {
   answer: string;
 }
 
+interface CSV {
+  type: 'csv';
+  content: File;
+}
+
 interface ChatBot {
   name: string;
   description: string;
@@ -21,6 +26,7 @@ interface ChatBot {
   website_URL?: string[]; // Optional
   documents?: Document[]; // Optional
   QandA?: QandA[]; // Optional
+  CSV? : CSV[]; // Optional
   otherSources?: { type: string; name: string }[]; // Optional
 }
 
@@ -91,6 +97,7 @@ interface addKnowledge {
   website_URL?: string[];
   documents?: Array<{ type: 'pdf' | 'txt'; content: File }>;
   qandaData?: Array<{ question: string; answer: string }>;
+  CSV?: Array<{ type: 'csv'; content: File }>;
 }
 
 export async function addKnowledge({
@@ -98,6 +105,7 @@ export async function addKnowledge({
   website_URL = [],
   documents = [],
   qandaData = [],
+  CSV = [],
 }: addKnowledge) {
   const session = await auth();
 
@@ -123,42 +131,59 @@ export async function addKnowledge({
     formData.append('userId', session.user.id.toString());
     formData.append('chatbotID', chatbotID);
 
+    const dataSources = [];
+
     if (website_URL.length > 0) {
-      await prisma.dataSource.createMany({
-        data: website_URL.map(url => ({
-          chatbotId: parseInt(chatbotID),
-          type: 'Website',
-          name: url,
-          sourceDetails: { url }
-        }))
-      });
+      dataSources.push(...website_URL.map(url => ({
+      chatbotId: parseInt(chatbotID),
+      type: 'Website',
+      name: url,
+      sourceDetails: { url }
+      })));
     }
 
     if (documents.length > 0) {
-      await prisma.dataSource.createMany({
-        data: documents.map((doc, index) => ({
-          chatbotId: parseInt(chatbotID),
-          type: 'Document',
-          name: doc.content.name,
-          sourceDetails: { type: doc.type }
-        }))
-      });
+      dataSources.push(...documents.map(doc => ({
+      chatbotId: parseInt(chatbotID),
+      type: 'Document',
+      name: doc.content.name,
+      sourceDetails: { type: doc.type }
+      })));
     }
 
     if (qandaData.length > 0) {
-      await prisma.dataSource.create({
-        data: {
-          chatbotId: parseInt(chatbotID),
-          type: 'QandA',
-          name: qandaData.map(qanda => qanda.question).join(', '),
-          sourceDetails: { count: qandaData.length }
-        }
+      dataSources.push({
+      chatbotId: parseInt(chatbotID),
+      type: 'QandA',
+      name: qandaData.map(qanda => qanda.question).join(', '),
+      sourceDetails: { count: qandaData.length }
+      });
+    }
+
+    if(CSV.length > 0) {
+      dataSources.push(...CSV.map(csv => ({
+      chatbotId: parseInt(chatbotID),
+      type: 'CSV',
+      name: csv.content.name,
+      sourceDetails: { type: csv.type }
+      })));
+    }
+
+    if (dataSources.length > 0) {
+      await prisma.dataSource.createMany({
+      data: dataSources
       });
     }
 
     // Add website URLs if they exist
     if (website_URL.length > 0) {
       formData.append('websiteURL', JSON.stringify(website_URL)); // Backend will parse this JSON
+    }
+
+    if(CSV.length > 0) {
+      CSV.forEach((csv, index) => {
+        formData.append('CSV', csv.content, csv.content.name);
+      });
     }
 
     // Add documents if they exist

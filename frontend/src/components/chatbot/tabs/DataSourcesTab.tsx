@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { 
   Globe, FileText, Database, MessageSquare, 
-  Briefcase, Cloud, Mail, AlertCircle, Lock, Plus, X
+  Briefcase, Cloud, Mail, AlertCircle, Lock, Plus, X ,
 } from 'lucide-react';
 import { QADialog } from '@/components/chatbot/QADialog';
 import { addKnowledge } from "@/lib/process-data1";
@@ -36,6 +36,13 @@ const DATA_SOURCES = {
       description: 'Answer questions from the content of Notion pages',
       icon: Database,
       available: false
+    },
+    {
+      id : "CSV",
+      name : "CSV",
+      description : "Upload the QnA in bult in form of specially formatted csv file",
+      icon : FileText,
+      available : true
     }
   ],
   web: [
@@ -95,7 +102,7 @@ interface QAPair {
 }
 
 interface PendingSource {
-  type: 'Website' | 'Document' | 'QandA';
+  type: 'Website' | 'Document' | 'QandA' | 'CSV';
   name: string;
   content?: File | string;
 }
@@ -116,6 +123,17 @@ export function DataSourcesTab({ chatbotId }: { chatbotId: string }) {
       }]);
     }
   };
+
+  const handleAddCsv = (files: FileList) => {
+    const file = files[0];
+    if (file) {
+      setPendingSources(prev => [...prev, { 
+        type: 'CSV',
+        name: file.name,
+        content: file
+      }]);
+    }
+  }
 
   const handleAddURL = (url: string) => {
     if (url.trim()) {
@@ -157,6 +175,13 @@ export function DataSourcesTab({ chatbotId }: { chatbotId: string }) {
         .map(source => ({
           question: source.name,
           answer: source.content as string
+        }));
+
+      const csvData = pendingSources
+        .filter(source => source.type === 'CSV')
+        .map(source => ({
+          type: (source.content as File).type.includes('csv') ? 'csv' as const : 'txt' as const,
+          content: source.content as File,
         }));
 
       await addKnowledge({
@@ -271,6 +296,36 @@ export function DataSourcesTab({ chatbotId }: { chatbotId: string }) {
                           </Button>
                         </div>
                       )}
+
+                      {source.id === 'CSV' && source.available && (
+                        <div className="mt-4">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="w-full relative"
+                            onClick={() => document.getElementById(`CSV-${source.id}`)?.click()}
+                          >
+                            <FileText className="w-4 h-4 mr-2" />
+                            Upload CSV
+                            <input
+                              id={`CSV-${source.id}`}
+                              type="file"
+                              className="hidden"
+                              accept=".csv"
+                              onChange={(e) => {
+                                if (e.target.files?.length) {
+                                  handleAddFile(e.target.files);
+                                }
+                              }}
+                            />
+                          </Button>
+                          <div className="flex items-start gap-2 mt-2 text-xs text-muted-foreground">
+                            <AlertCircle className="w-3 h-3 mt-0.5" />
+                            <span>Supports .csv files with 2 columns : Q, A</span>
+                          </div>
+                        </div>
+                      )}
+
 
                       {source.id === 'url' && source.available && (
                         <div className="mt-4 space-y-2">
