@@ -1,4 +1,5 @@
 /backend/venv/
+/backend/myenv/
 /frontend/node_modules/
 /.env
 /frontend/.next
