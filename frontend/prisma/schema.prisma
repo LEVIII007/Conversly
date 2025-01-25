@@ -74,6 +74,7 @@ model User {
   sessions      Session[]
   // Optional for WebAuthn support
   Authenticator Authenticator[]
+  subscribedusers subscribedusers[]
  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -130,3 +131,30 @@ model analytics {
   ChatBot   ChatBot   @relation(fields: [chatbotid], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_chatbot")
 }
 
+model subscriptionplans {
+  planid          Int               @id @default(autoincrement())
+  planname        String            @db.VarChar(255)
+  isactive        Boolean?          @default(true)
+  durationindays  Int
+  createdat       DateTime?         @default(now()) @db.Timestamp(6)
+  updatedat       DateTime?         @default(now()) @db.Timestamp(6)
+  pricemonthly    Decimal           @db.Decimal(10, 2)
+  priceannually   Decimal           @db.Decimal(10, 2)
+  subscribedusers subscribedusers[]
+}
+
+model subscribedusers {
+  subscriptionid    Int               @id @default(autoincrement())
+  userid            String            @db.VarChar(255)
+  planid            Int
+  startdate         DateTime?         @default(now()) @db.Timestamp(6)
+  expirydate        DateTime          @db.Timestamp(6)
+  isactive          Boolean?          @default(true)
+  autorenew         Boolean?          @default(false)
+  createdat         DateTime?         @default(now()) @db.Timestamp(6)
+  updatedat         DateTime?         @default(now()) @db.Timestamp(6)
+  subscriptionplans subscriptionplans @relation(fields: [planid], references: [planid], onDelete: Cascade, onUpdate: NoAction, map: "fk_plan")
+  User              User              @relation(fields: [userid], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_user")
+
+  @@index([userid], map: "idx_user_id")
+}

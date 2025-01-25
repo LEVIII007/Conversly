@@ -15,7 +15,9 @@ model ChatBot {
   System_Prompt String
   createdAt     DateTime?    @default(now()) @db.Timestamptz(6)
   updatedAt     DateTime?    @default(now()) @db.Timestamptz(6)
+  api_key       String?      @db.VarChar(255)
   DataSource    DataSource[]
+  analytics     analytics[]
   embeddings    embeddings[]
 }
 
@@ -76,16 +78,17 @@ model Session {
 }
 
 model User {
-  id            String          @id
-  name          String?
-  email         String          @unique
-  emailVerified DateTime?
-  image         String?
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime
-  Account       Account[]
-  Authenticator Authenticator[]
-  Session       Session[]
+  id              String            @id
+  name            String?
+  email           String            @unique
+  emailVerified   DateTime?
+  image           String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime
+  Account         Account[]
+  Authenticator   Authenticator[]
+  Session         Session[]
+  subscribedusers subscribedusers[]
 }
 
 model VerificationToken {
@@ -106,4 +109,44 @@ model DataSource {
   updatedAt     DateTime? @default(now()) @db.Timestamptz(6)
   name          String    @db.VarChar
   ChatBot       ChatBot   @relation(fields: [chatbotId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_chatbot")
+}
+
+model analytics {
+  id        Int       @id @default(autoincrement())
+  chatbotid Int
+  responses Int?      @default(0)
+  likes     Int?      @default(0)
+  dislikes  Int?      @default(0)
+  citations Json?     @default("{}")
+  createdat DateTime? @default(now()) @db.Timestamptz(6)
+  updatedat DateTime? @default(now()) @db.Timestamptz(6)
+  ChatBot   ChatBot   @relation(fields: [chatbotid], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_chatbot")
+}
+
+model subscriptionplans {
+  planid          Int               @id @default(autoincrement())
+  planname        String            @db.VarChar(255)
+  isactive        Boolean?          @default(true)
+  durationindays  Int
+  createdat       DateTime?         @default(now()) @db.Timestamp(6)
+  updatedat       DateTime?         @default(now()) @db.Timestamp(6)
+  pricemonthly    Decimal           @db.Decimal(10, 2)
+  priceannually   Decimal           @db.Decimal(10, 2)
+  subscribedusers subscribedusers[]
+}
+
+model subscribedusers {
+  subscriptionid    Int               @id @default(autoincrement())
+  userid            String            @db.VarChar(255)
+  planid            Int
+  startdate         DateTime?         @default(now()) @db.Timestamp(6)
+  expirydate        DateTime          @db.Timestamp(6)
+  isactive          Boolean?          @default(true)
+  autorenew         Boolean?          @default(false)
+  createdat         DateTime?         @default(now()) @db.Timestamp(6)
+  updatedat         DateTime?         @default(now()) @db.Timestamp(6)
+  subscriptionplans subscriptionplans @relation(fields: [planid], references: [planid], onDelete: Cascade, onUpdate: NoAction, map: "fk_plan")
+  User              User              @relation(fields: [userid], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_user")
+
+  @@index([userid], map: "idx_user_id")
 }

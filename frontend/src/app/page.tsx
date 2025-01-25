@@ -7,6 +7,8 @@ import { BackgroundLines } from "@/components/ui/background-lines";
 import { Button } from "@/components/ui/button";
 import { BackgroundGradient } from "@/components/ui/background-grad";
 import Header from '@/components/Header';
+import { useRouter } from 'next/navigation';
+
 
 const features = [
   {
@@ -135,6 +137,7 @@ const faqs = [
 ];
 
 export default function Home() {
+  const router = useRouter();
   useEffect(() => {
     // Initialize chat widget
     const script = document.createElement('script');
@@ -340,13 +343,14 @@ export default function Home() {
                   </li>
                 ))}
               </ul>
-              <button
-                className={`w-full rounded-full pl-4 pr-1 py-3 text-white flex items-center justify-center space-x-1 ${
-                  plan.popular ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-gray-800 hover:bg-gray-900'
-                } transition-colors duration-200 text-sm font-bold`}
-              >
-                <span>{plan.cta}</span>
-              </button>
+                <button
+                  onClick={() => router.push('/pricing')}
+                  className={`w-full rounded-full pl-4 pr-1 py-3 text-white flex items-center justify-center space-x-1 ${
+                    plan.popular ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-gray-800 hover:bg-gray-900'
+                  } transition-colors duration-200 text-sm font-bold`}
+                >
+                  <span>{plan.cta}</span>
+                </button>
             </BackgroundGradient>
           ))}
         </div>

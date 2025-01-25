@@ -215,3 +215,47 @@ export const updateAnalytics = async (chatbotId: number, topics: string[]) => {
     client.release();
   }
 };
+
+
+// model analytics {
+//   id        Int       @id @default(autoincrement())
+//   chatbotid Int
+//   responses Int?      @default(0)
+//   likes     Int?      @default(0)
+//   dislikes  Int?      @default(0)
+//   citations Json?     @default("{}")
+//   createdat DateTime? @default(now()) @db.Timestamptz(6)
+//   updatedat DateTime? @default(now()) @db.Timestamptz(6)
+//   ChatBot   ChatBot   @relation(fields: [chatbotid], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_chatbot")
+// }
+
+
+
+export async function updatelikeDislike(chatbotId: number, like: boolean) {
+  const client = await pool.connect();
+
+  try {
+    await client.query('BEGIN');
+
+    // Update likes or dislikes in one query
+    await client.query(
+      `
+      INSERT INTO analytics (chatbotid, likes, dislikes)
+      VALUES ($1, $2, $3)
+      ON CONFLICT (chatbotid)
+      DO UPDATE SET 
+        likes = analytics.likes + EXCLUDED.likes,
+        dislikes = analytics.dislikes + EXCLUDED.dislikes
+      `,
+      [chatbotId, like ? 1 : 0, like ? 0 : 1]
+    );
+
+    await client.query('COMMIT');
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Error updating likes/dislikes:', error);
+    throw error;
+  } finally {
+    client.release();
+  }
+}
