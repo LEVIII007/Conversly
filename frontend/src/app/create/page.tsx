@@ -10,6 +10,7 @@ import { createChatBot } from '@/lib/process-data1';
 import { SignInDialog } from '@/components/auth/SignInDialog';
 import { useAuthGuard } from '@/hooks/use-auth-guard';
 import { Bot } from 'lucide-react';
+import UpperHeader from '@/components/upperHeader';
 
 export default function CreatePage() {
   const router = useRouter();
@@ -61,6 +62,7 @@ export default function CreatePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+      <UpperHeader />
       <div className="flex-1 flex flex-col items-center py-16"> 
         <div className="w-full max-w-3xl px-4">
         {/* Added space above the form */}

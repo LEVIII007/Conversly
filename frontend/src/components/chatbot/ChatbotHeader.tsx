@@ -17,9 +17,12 @@ export function ChatbotHeader({ chatbot }: ChatbotHeaderProps) {
             <h1 className="text-xl font-semibold">{chatbot?.name}</h1>
             <p className="text-sm text-gray-500 dark:text-gray-400">ID: {chatbot?.id}</p>
           </div>
-          <Badge variant={chatbot?.active ? 'success' : 'secondary'}>
-            {chatbot?.active ? 'Active' : 'Inactive'}
-          </Badge>
+            <Badge variant="success">
+            <span className="flex items-center">
+              <span className="inline-block w-2 h-2 mr-2 bg-green-500 rounded-full"></span>
+              Active
+            </span>
+            </Badge>
         </div>
 
         <nav className="flex items-center space-x-4">
