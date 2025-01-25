@@ -69,7 +69,7 @@ export async function bulkSaveEmbeddings(
 export async function bulkSaveDataSources(
   sources: Array<{
     chatbotId: number,
-    type: 'Website' | 'Document' | 'QandA',
+    type: 'Website' | 'Document' | 'QandA' | 'CSV',
     name: string,
     sourceDetails: any
   }>

@@ -2,7 +2,10 @@
 
 import { prisma } from '../../prisma';
 import { auth } from '../../auth';
+import dotenv from 'dotenv';
 import { redirect } from 'next/navigation';
+
+dotenv.config();
 
 interface Document {
   type: 'pdf' | 'txt' | 'xml' | 'csv' | 'json' | 'mdx';
@@ -30,8 +33,7 @@ interface ChatBot {
   otherSources?: { type: string; name: string }[]; // Optional
 }
 
-const SERVER_URL = 'http://localhost:3000';
-
+const SERVER_URL = process.env.API_SERVER_URL ?? 'http://localhost:3001';
 export async function createChatBot({
   name,
   description,
@@ -133,47 +135,47 @@ export async function addKnowledge({
 
     const dataSources = [];
 
-    if (website_URL.length > 0) {
-      dataSources.push(...website_URL.map(url => ({
-      chatbotId: parseInt(chatbotID),
-      type: 'Website',
-      name: url,
-      sourceDetails: { url }
-      })));
-    }
+    // if (website_URL.length > 0) {
+    //   dataSources.push(...website_URL.map(url => ({
+    //   chatbotId: parseInt(chatbotID),
+    //   type: 'Website',
+    //   name: url,
+    //   sourceDetails: { url }
+    //   })));
+    // }
 
-    if (documents.length > 0) {
-      dataSources.push(...documents.map(doc => ({
-      chatbotId: parseInt(chatbotID),
-      type: 'Document',
-      name: doc.content.name,
-      sourceDetails: { type: doc.type }
-      })));
-    }
+    // if (documents.length > 0) {
+    //   dataSources.push(...documents.map(doc => ({
+    //   chatbotId: parseInt(chatbotID),
+    //   type: 'Document',
+    //   name: doc.content.name,
+    //   sourceDetails: { type: doc.type }
+    //   })));
+    // }
 
-    if (qandaData.length > 0) {
-      dataSources.push({
-      chatbotId: parseInt(chatbotID),
-      type: 'QandA',
-      name: qandaData.map(qanda => qanda.question).join(', '),
-      sourceDetails: { count: qandaData.length }
-      });
-    }
+    // if (qandaData.length > 0) {
+    //   dataSources.push({
+    //   chatbotId: parseInt(chatbotID),
+    //   type: 'QandA',
+    //   name: qandaData.map(qanda => qanda.question).join(', '),
+    //   sourceDetails: { count: qandaData.length }
+    //   });
+    // }
 
-    if(CSV.length > 0) {
-      dataSources.push(...CSV.map(csv => ({
-      chatbotId: parseInt(chatbotID),
-      type: 'CSV',
-      name: csv.content.name,
-      sourceDetails: { type: csv.type }
-      })));
-    }
+    // if(CSV.length > 0) {
+    //   dataSources.push(...CSV.map(csv => ({
+    //   chatbotId: parseInt(chatbotID),
+    //   type: 'CSV',
+    //   name: csv.content.name,
+    //   sourceDetails: { type: csv.type }
+    //   })));
+    // }
 
-    if (dataSources.length > 0) {
-      await prisma.dataSource.createMany({
-      data: dataSources
-      });
-    }
+    // if (dataSources.length > 0) {
+    //   await prisma.dataSource.createMany({
+    //   data: dataSources
+    //   });
+    // }
 
     // Add website URLs if they exist
     if (website_URL.length > 0) {
@@ -182,7 +184,7 @@ export async function addKnowledge({
 
     if(CSV.length > 0) {
       CSV.forEach((csv, index) => {
-        formData.append('CSV', csv.content, csv.content.name);
+        formData.append('csvFiles', csv.content, csv.content.name);
       });
     }
 

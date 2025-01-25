@@ -30,7 +30,7 @@ async function readFileContent(file: Express.Multer.File): Promise<string> {
 
 
 export const processHandler = [
-  upload.array('documents'),
+  upload.fields([{ name: 'documents' }, { name: 'CSV' }]),
   async (req: Request, res: Response) => {
     try {
       const userID = req.body.userId;
@@ -153,17 +153,17 @@ export const processHandler = [
           embedding: embeddings[i]
         }));
 
-        // // Prepare data sources for bulk insert
-        // const dataSourcesData = dataSourcesToSave.map(source => ({
-        //   chatbotId,
-        //   type: source.type as "Website" | "QandA" | "Document",
-        //   name: source.name,
-        //   sourceDetails: source.sourceDetails
-        // }));
+        // Prepare data sources for bulk insert
+        const dataSourcesData = dataSourcesToSave.map(source => ({
+          chatbotId,
+          type: source.type as "Website" | "QandA" | "Document" | "CSV",
+          name: source.name,
+          sourceDetails: source.sourceDetails
+        }));
 
         // Perform bulk inserts
         await bulkSaveEmbeddings(embeddingsData);
-        // await bulkSaveDataSources(dataSourcesData);
+        await bulkSaveDataSources(dataSourcesData);
         
         return res.status(200).json({ status: 'success' });
       }
