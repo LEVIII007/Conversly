@@ -171,27 +171,39 @@ export const updateAnalytics = async (chatbotId: number, topics: string[]) => {
   try {
     await client.query('BEGIN');
 
-    // Construct parameterized query for citations
-    const values = topics.map((topic, index) => `($1, $${index + 2}, 1)`).join(','); // Add `1` for initial count
-    const queryText = `
-      INSERT INTO analytics (chatbotid, topic, count, responses)
-      VALUES ${values}
-      ON CONFLICT (chatbotid, topic) 
+    // Fetch the current citations for the given chatbotId
+    const { rows } = await client.query(
+      `SELECT citations FROM analytics WHERE chatbotid = $1 FOR UPDATE`,
+      [chatbotId]
+    );
+
+    // Parse the current citations (if any) or initialize as an empty object
+    let currentCitations = rows.length > 0 && rows[0].citations ? rows[0].citations : {};
+    if (typeof currentCitations === 'string') {
+      currentCitations = JSON.parse(currentCitations); // Handle stringified JSON (PostgreSQL might return this)
+    }
+
+    // Update citations with new topics
+    topics.forEach((topic) => {
+      if (currentCitations[topic]) {
+        currentCitations[topic] += 1; // Increment count if the topic exists
+      } else {
+        currentCitations[topic] = 1; // Add the topic with count = 1
+      }
+    });
+
+    // Update the `citations` column and increment `responses`
+    await client.query(
+      `
+      INSERT INTO analytics (chatbotid, citations, responses)
+      VALUES ($1, $2, 1)
+      ON CONFLICT (chatbotid) 
       DO UPDATE 
       SET 
-        count = analytics.count + EXCLUDED.count, 
-        responses = analytics.responses + 1;
-    `;
-
-    // Execute the query with parameters
-    await client.query(queryText, [chatbotId, ...topics]);
-
-    // Increment the overall responses count (optional if needed globally, not per topic)
-    await client.query(
-      `UPDATE analytics 
-       SET responses = responses + 1 
-       WHERE chatbotid = $1`,
-      [chatbotId]
+        citations = $2::jsonb,
+        responses = analytics.responses + 1
+      `,
+      [chatbotId, JSON.stringify(currentCitations)]
     );
 
     await client.query('COMMIT');

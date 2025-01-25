@@ -216,3 +216,28 @@ export async function updateSystemPrompt(id: number, systemPrompt: string) {
     throw error;
   }
 }
+
+
+
+
+export async function getAnalytics(chatbotid: number) {
+  try {
+    // Fetch analytics records for the given chatbotId
+    const analytics = await prisma.analytics.findMany({
+      where: { chatbotid },
+      select: {
+        responses: true,
+        likes: true,
+        dislikes: true,
+        citations: true,
+      },
+    });
+
+    // Check if data exists, return empty array if none found
+    return analytics && analytics.length > 0 ? analytics[0] : {responses: 0, likes: 0, dislikes: 0, citations: {}};
+  } catch (error) {
+    console.error('Error fetching analytics:', error);
+    return null; // Return null on error
+  }
+}
+
