@@ -9,6 +9,7 @@ import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { getChatBots, DeleteChatBot } from '@/lib/queries';
 import { Button } from '@/components/ui/button';
+import  UpperHeader from '@/components/upperHeader';
 
 interface ChatBot {
   name: string;
@@ -89,6 +90,7 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 py-16">
+      <UpperHeader />
       <div className="max-w-6xl mx-auto p-6 space-y-10">
         {/* Profile Header */}
         <div className="bg-gradient-to-r from-card/80 to-card/50 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-border/50">
@@ -135,57 +137,57 @@ export default function ProfilePage() {
               className="group bg-card/50 hover:bg-card/80 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-border/50 transition-all duration-200"
             >
               <div className="flex justify-between items-start">
-          <div className="flex items-start gap-4">
-            <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center mt-1">
-              <MessageCircle className="w-5 h-5 text-primary" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-lg">{bot.name}</h3>
-              <p className="text-muted-foreground text-sm">{bot.description}</p>
-              <div className="flex items-center gap-4 mt-4">
-                <div className="flex items-center text-sm text-muted-foreground">
-            <Calendar className="w-4 h-4 mr-1" />
-            {new Date(bot.createdAt!).toLocaleDateString()}
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center mt-1">
+                    <MessageCircle className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg">{bot.name}</h3>
+                    <p className="text-muted-foreground text-sm">{bot.description}</p>
+                    <div className="flex items-center gap-4 mt-4">
+                      <div className="flex items-center text-sm text-muted-foreground">
+                        <Calendar className="w-4 h-4 mr-1" />
+                        {new Date(bot.createdAt!).toLocaleDateString()}
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          </div>
 
-          <div className="relative">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={(e) => {
-                e.preventDefault();
-                toggleDropdown(bot.id);
-              }}
-              className="hover:bg-primary/10"
-            >
-              <MoreVertical className="w-5 h-5" />
-            </Button>
-            
-            {openDropdown === bot.id && (
-              <div className="absolute right-0 mt-2 w-48 bg-card rounded-lg shadow-xl border border-border/50 py-1 z-10">
-                <Link 
-            href={`/chatbot/${bot.id}`}
-            className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-primary/10 transition-colors"
-                >
-            <Settings className="w-4 h-4" />
-            Configure
-                </Link>
-                <button
-            onClick={(e) => {
-              e.preventDefault();
-              handleDeleteBot(bot.id);
-            }}
-            className="flex items-center gap-2 px-4 py-2 text-sm text-red-500 hover:bg-red-500/10 w-full transition-colors"
-                >
-            <Trash2 className="w-4 h-4" />
-            Delete
-                </button>
-              </div>
-            )}
-          </div>
+                <div className="relative">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      toggleDropdown(bot.id);
+                    }}
+                    className="hover:bg-primary/10"
+                  >
+                    <MoreVertical className="w-5 h-5" />
+                  </Button>
+                  
+                  {openDropdown === bot.id && (
+                    <div className="absolute right-0 mt-2 w-48 bg-card rounded-lg shadow-xl border border-border/50 py-1 z-10">
+                      <Link 
+                        href={`/chatbot/${bot.id}`}
+                        className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-primary/10 transition-colors"
+                      >
+                        <Settings className="w-4 h-4" />
+                        Configure
+                      </Link>
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleDeleteBot(bot.id);
+                        }}
+                        className="flex items-center gap-2 px-4 py-2 text-sm text-red-500 hover:bg-red-500/10 w-full transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        Delete
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             </Link>
           ))}
@@ -207,4 +209,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-

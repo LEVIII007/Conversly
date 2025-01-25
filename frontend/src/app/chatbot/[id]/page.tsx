@@ -13,6 +13,7 @@ import { ChatbotHeader } from '@/components/chatbot/ChatbotHeader';
 import { useToast } from '@/hooks/use-toast';
 import { fetchChatBot } from '@/lib/queries';
 import { AnalyticsTab } from '@/components/chatbot/tabs/AnalyticsTab';
+import UpperHeader from '@/components/upperHeader';
 
 export default function ChatbotCustomizationPage() {
   const { id } = useParams();
@@ -61,12 +62,12 @@ export default function ChatbotCustomizationPage() {
   }
 
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900">
+      <UpperHeader />
+      <div className="flex-1 flex flex-col overflow-hidden mt-16">
+      <ChatbotHeader chatbot={chatbotData} />
       
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <ChatbotHeader chatbot={chatbotData} />
-        
-        <main className="flex-1 overflow-y-auto p-6">
+      <main className="flex-1 overflow-y-auto p-6">
           <Tabs defaultValue="data" className="w-full">
             <TabsList className="grid w-full grid-cols-6 gap-2">
               <TabsTrigger value="data" className="text-sm">Data Sources</TabsTrigger>
