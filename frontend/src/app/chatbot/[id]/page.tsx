@@ -121,6 +121,6 @@ export default function ChatbotCustomizationPage() {
           </div>
         </footer>
       </div>
-    </div>
+      </div>
   );
 } 

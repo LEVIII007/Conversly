@@ -93,7 +93,7 @@ export async function bulkSaveDataSources(
     ]);
 
     const queryText = `
-      INSERT INTO "DataSource" (chatbotId, type, name, sourceDetails)
+      INSERT INTO "DataSource" ("chatbotId", type, name, "sourceDetails")
       VALUES ${values}
     `;
     
