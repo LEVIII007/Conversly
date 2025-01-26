@@ -43,23 +43,13 @@ export async function createChatBot({
 
   try {
     // Check if the user already has 5 chatbots
-    let userChatbotsCount = 0;
-    try {
-      userChatbotsCount = await prisma.chatBot.count({
-        where: {
-          userId: session?.user?.id,
-        },
-      });
-    } catch (error) {
-      console.error("Error counting chatbots:", error);
-      // Handle the error appropriately, e.g., throw a more specific error or set a default value.
-      // For now, we'll log the error and continue.  A better approach would be to
-      // return a more informative error message to the client.
-      return redirect('/profile');
-    }
+    const userChatbotsCount = await prisma.chatBot.count({
+      where: {
+        userId: session?.user?.id,
+      },
+    });
 
     if (userChatbotsCount >= 1) {
-      // Show a toast message and redirect to the profile page
       throw new Error('You have reached the maximum number of chatbots allowed.');
     }
 
@@ -68,22 +58,35 @@ export async function createChatBot({
       throw new Error('User is not authenticated.');
     }
 
-    // Step 1: Create the chatbot in the database
-    const chatbot = await prisma.chatBot.create({
-      data: {
-        name,
-        description,
-        System_Prompt,
-        userId: session.user.id,
-      },
+    // Step 1: Create the chatbot and analytics row in a transaction
+    const result = await prisma.$transaction(async (prisma) => {
+      // Create the chatbot
+      const chatbot = await prisma.chatBot.create({
+        data: {
+          name,
+          description,
+          System_Prompt,
+          userId: session?.user?.id as string,
+        },
+      });
+
+      // Initialize the analytics row for the chatbot
+      const analytics = await prisma.analytics.create({
+        data: {
+          chatbotid: chatbot.id, // Link to the newly created chatbot
+          responses: 0,
+          likes: 0,
+          dislikes: 0,
+          citations: {},
+        },
+      });
+
+      return { chatbot, analytics };
     });
 
-    return { chatbot, processingStatus: 'success' };
-
-  }
-  catch (error: any) {
+    return { chatbot: result.chatbot, processingStatus: 'success' };
+  } catch (error: any) {
     if (error.message === 'You have reached the maximum number of chatbots allowed.') {
-      // Show a toast message
       console.error('Error creating chatbot:', error.message);
       throw new Error('You have reached the maximum number of chatbots allowed.');
     } else {
@@ -206,7 +209,6 @@ export async function addKnowledge({
       method: 'POST',
       body: formData,
     });
-
     if (!response.ok) {
       const errorDetails = await response.json();
       throw new Error(

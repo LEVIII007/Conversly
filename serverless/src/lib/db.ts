@@ -20,13 +20,108 @@ export async function query(text: string, params?: any[]) {
   }
 }
 
-export async function bulkSaveEmbeddings(
+// export async function bulkSaveEmbeddings(
+//   embeddings: Array<{
+//     userId: number,
+//     chatbotId: number,
+//     topic: string,
+//     text: string,
+//     embedding: number[]
+//   }>
+// ) {
+//   const client = await pool.connect();
+
+//   try {
+//     await client.query('BEGIN');
+
+//     // Construct parameterized query
+//     const values: any[] = [];
+//     const valueClauses = embeddings.map((item, index) => {
+//       const baseIndex = index * 5;
+//       values.push(
+//         item.userId,
+//         item.chatbotId,
+//         item.topic,
+//         item.text,
+//         JSON.stringify(item.embedding) // Convert the array to a JSON string
+//       );
+//       return `($${baseIndex + 1}, $${baseIndex + 2}, $${baseIndex + 3}, $${baseIndex + 4}, $${baseIndex + 5})`;
+//     });
+
+//     const queryText = `
+//       INSERT INTO embeddings ("userId", "chatbotid", "topic", "text", "embedding")
+//       VALUES ${valueClauses.join(',')}
+//     `;
+
+//     // Execute the query with parameters
+//     await client.query(queryText, values);
+//     await client.query('COMMIT');
+//   } catch (error) {
+//     await client.query('ROLLBACK');
+//     console.error('Error bulk saving embeddings:', error);
+//     throw error;
+//   } finally {
+//     client.release();
+//   }
+// }
+
+// // Bulk save data sources to database
+// export async function bulkSaveDataSources(
+//   sources: Array<{
+//     chatbotId: number,
+//     type: 'Website' | 'Document' | 'QandA' | 'CSV',
+//     name: string,
+//     sourceDetails: any
+//   }>
+// ) {
+//   const client = await pool.connect();
+  
+//   try {
+//     await client.query('BEGIN');
+
+//     // Create values string for bulk insert
+//     const values = sources.map((item, index) => 
+//       `($${index * 4 + 1}, $${index * 4 + 2}, $${index * 4 + 3}, $${index * 4 + 4})`
+//     ).join(',');
+
+//     // Flatten parameters array
+//     const params = sources.flatMap(item => [
+//       item.chatbotId,
+//       item.type,
+//       item.name,
+//       item.sourceDetails
+//     ]);
+
+//     const queryText = `
+//       INSERT INTO "DataSource" ("chatbotId", type, name, "sourceDetails")
+//       VALUES ${values}
+//     `;
+    
+//     await client.query(queryText, params);
+//     await client.query('COMMIT');
+
+//   } catch (error) {
+//     await client.query('ROLLBACK');
+//     console.error('Error bulk saving data sources:', error);
+//     throw error;
+//   } finally {
+//     client.release();
+//   }
+// }
+
+export async function bulkSaveEmbeddingsAndDataSources(
   embeddings: Array<{
-    userId: number,
-    chatbotId: number,
-    topic: string,
-    text: string,
-    embedding: number[]
+    userId: number;
+    chatbotId: number;
+    topic: string;
+    text: string;
+    embedding: number[];
+  }>,
+  sources: Array<{
+    chatbotId: number;
+    type: 'Website' | 'Document' | 'QandA' | 'CSV';
+    name: string;
+    sourceDetails: any;
   }>
 ) {
   const client = await pool.connect();
@@ -34,11 +129,11 @@ export async function bulkSaveEmbeddings(
   try {
     await client.query('BEGIN');
 
-    // Construct parameterized query
-    const values: any[] = [];
-    const valueClauses = embeddings.map((item, index) => {
+    // Step 1: Bulk save embeddings
+    const embeddingValues: any[] = [];
+    const embeddingValueClauses = embeddings.map((item, index) => {
       const baseIndex = index * 5;
-      values.push(
+      embeddingValues.push(
         item.userId,
         item.chatbotId,
         item.topic,
@@ -48,63 +143,41 @@ export async function bulkSaveEmbeddings(
       return `($${baseIndex + 1}, $${baseIndex + 2}, $${baseIndex + 3}, $${baseIndex + 4}, $${baseIndex + 5})`;
     });
 
-    const queryText = `
+    const embeddingsQueryText = `
       INSERT INTO embeddings ("userId", "chatbotid", "topic", "text", "embedding")
-      VALUES ${valueClauses.join(',')}
+      VALUES ${embeddingValueClauses.join(',')}
     `;
 
-    // Execute the query with parameters
-    await client.query(queryText, values);
-    await client.query('COMMIT');
-  } catch (error) {
-    await client.query('ROLLBACK');
-    console.error('Error bulk saving embeddings:', error);
-    throw error;
-  } finally {
-    client.release();
-  }
-}
+    await client.query(embeddingsQueryText, embeddingValues);
 
-// Bulk save data sources to database
-export async function bulkSaveDataSources(
-  sources: Array<{
-    chatbotId: number,
-    type: 'Website' | 'Document' | 'QandA' | 'CSV',
-    name: string,
-    sourceDetails: any
-  }>
-) {
-  const client = await pool.connect();
-  
-  try {
-    await client.query('BEGIN');
-
-    // Create values string for bulk insert
-    const values = sources.map((item, index) => 
+    // Step 2: Bulk save data sources
+    const sourceValues = sources.map((item, index) => 
       `($${index * 4 + 1}, $${index * 4 + 2}, $${index * 4 + 3}, $${index * 4 + 4})`
     ).join(',');
 
-    // Flatten parameters array
-    const params = sources.flatMap(item => [
+    const sourceParams = sources.flatMap(item => [
       item.chatbotId,
       item.type,
       item.name,
       item.sourceDetails
     ]);
 
-    const queryText = `
+    const sourcesQueryText = `
       INSERT INTO "DataSource" ("chatbotId", type, name, "sourceDetails")
-      VALUES ${values}
+      VALUES ${sourceValues}
     `;
-    
-    await client.query(queryText, params);
-    await client.query('COMMIT');
 
+    await client.query(sourcesQueryText, sourceParams);
+
+    // Commit the transaction
+    await client.query('COMMIT');
   } catch (error) {
+    // Rollback the transaction on error
     await client.query('ROLLBACK');
-    console.error('Error bulk saving data sources:', error);
+    console.error('Error in bulk save transaction:', error);
     throw error;
   } finally {
+    // Release the client back to the pool
     client.release();
   }
 }
@@ -122,17 +195,22 @@ export async function searchDocumentation(
   try {
     // Get embedding for the search query
     const genAI = new GoogleGenerativeAI(config.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "embedding-001" });
+    const model = genAI.getGenerativeModel({ model: "text-embedding-004" });
+    // const googleai = new GoogleGenerativeAI(process.env.API_KEY as string).getGenerativeModel({
+    //   model: "text-embedding-004",
+    // });
     const result = await model.embedContent(prompt);
     const queryEmbedding = result.embedding.values;
 
-    // Query to find similar content using vector similarity
+    console.log(prompt)
+    console.log(queryEmbedding)
+
     const queryText = `
       SELECT topic, text
       FROM embeddings 
       WHERE chatbotid = $1
       ORDER BY embedding <=> '[${queryEmbedding}]'
-      LIMIT $3;
+      LIMIT $2;
     `;
 
     const response = await query(queryText, [chatbotId, limit]);
@@ -195,13 +273,12 @@ export const updateAnalytics = async (chatbotId: number, topics: string[]) => {
     // Update the `citations` column and increment `responses`
     await client.query(
       `
-      INSERT INTO analytics (chatbotid, citations, responses)
+      INSERT INTO analytics (chatbotid, citations)
       VALUES ($1, $2, 1)
       ON CONFLICT (chatbotid) 
       DO UPDATE 
       SET 
         citations = $2::jsonb,
-        responses = analytics.responses + 1
       `,
       [chatbotId, JSON.stringify(currentCitations)]
     );
@@ -216,18 +293,6 @@ export const updateAnalytics = async (chatbotId: number, topics: string[]) => {
   }
 };
 
-
-// model analytics {
-//   id        Int       @id @default(autoincrement())
-//   chatbotid Int
-//   responses Int?      @default(0)
-//   likes     Int?      @default(0)
-//   dislikes  Int?      @default(0)
-//   citations Json?     @default("{}")
-//   createdat DateTime? @default(now()) @db.Timestamptz(6)
-//   updatedat DateTime? @default(now()) @db.Timestamptz(6)
-//   ChatBot   ChatBot   @relation(fields: [chatbotid], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_chatbot")
-// }
 
 
 
@@ -259,3 +324,27 @@ export async function updatelikeDislike(chatbotId: number, like: boolean) {
     client.release();
   }
 }
+
+
+export async function updateResponse(chatbotId) {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+  await client.query(
+    `
+    UPDATE analytics
+    SET responses = responses + 1
+    WHERE chatbotid = $1
+    `,
+    [chatbotId]
+  );
+  await client.query('COMMIT');
+    } catch (error) {
+  await client.query('ROLLBACK');
+  console.error('Error updating response count:', error);
+  throw error;
+    } finally {
+  client.release();
+    }
+  }

@@ -3,6 +3,7 @@ import {processHandler} from './handlers/process.js';
 import {responseHandler} from './handlers/response.js';
 import cors from 'cors';
 import serverless from 'serverless-http';
+import { feedbackHandler } from './handlers/feedback.js';
 
 const app = express();
 app.use(express.json());
@@ -21,6 +22,8 @@ app.get('/', (req, res) => {
 });
 
 app.post('/process', ...processHandler);
+
+app.post('/feedback', feedbackHandler);
 
 app.post('/response', responseHandler);
 app.listen(port, () => {

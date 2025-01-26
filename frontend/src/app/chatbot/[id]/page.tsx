@@ -87,7 +87,7 @@ export default function ChatbotCustomizationPage() {
             </TabsContent>
 
             <TabsContent value="customize" className="border rounded-lg">
-              <CustomizationTab chatbotId={id?.toString() ?? ''} />
+              <CustomizationTab chatbotId={id?.toString() ?? ''} prompt={chatbotData.System_Prompt} />
             </TabsContent>
 
             <TabsContent value="system" className="border rounded-lg">

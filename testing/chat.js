@@ -37,7 +37,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            padding: 12px 20px;
+            padding: 20px 20px;
             border: none;
             border-radius: 100px;
             cursor: pointer;
@@ -286,6 +286,42 @@
               height: 90vh;
             }
           }
+
+          .docsbot-feedback-buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.docsbot-feedback-like,
+.docsbot-feedback-dislike {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  color: #666; /* Default color */
+}
+
+.docsbot-feedback-like:hover {
+  color: #4CAF50; /* Green color on hover */
+}
+
+.docsbot-feedback-dislike:hover {
+  color: #F44336; /* Red color on hover */
+}
+
+.docsbot-feedback-like i,
+.docsbot-feedback-dislike i {
+  transition: transform 0.2s ease;
+}
+
+.docsbot-feedback-like:active i,
+.docsbot-feedback-dislike:active i {
+  transform: scale(1.2); /* Bounce effect */
+}
         `;
 
         const styleSheet = document.createElement('style');
@@ -464,13 +500,99 @@
         this.chatBox.style.display = this.isOpen ? 'flex' : 'none';
       }
   
+      // addMessage(role, content) {
+      //   const messagesDiv = this.chatBox.querySelector('#chatMessages');
+      //   const messageDiv = document.createElement('div');
+      //   messageDiv.className = `docsbot-message ${role}`;
+      //   messageDiv.textContent = content;
+      //   messagesDiv.appendChild(messageDiv);
+      //   messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      // }
       addMessage(role, content) {
         const messagesDiv = this.chatBox.querySelector('#chatMessages');
         const messageDiv = document.createElement('div');
         messageDiv.className = `docsbot-message ${role}`;
         messageDiv.textContent = content;
+      
+        // Add like/dislike buttons for assistant messages
+        if (role === 'assistant') {
+          const feedbackButtons = document.createElement('div');
+          feedbackButtons.className = 'docsbot-feedback-buttons';
+      
+          // Like button
+          const likeButton = document.createElement('button');
+          likeButton.className = 'docsbot-feedback-like';
+          likeButton.innerHTML = '<i class="far fa-thumbs-up"></i>'; // Font Awesome icon
+      
+          // Dislike button
+          const dislikeButton = document.createElement('button');
+          dislikeButton.className = 'docsbot-feedback-dislike';
+          dislikeButton.innerHTML = '<i class="far fa-thumbs-down"></i>'; // Font Awesome icon
+      
+          // Add event listeners for feedback buttons
+          likeButton.onclick = () => {
+            this.sendFeedback('like', content);
+            this.updateButtonState(likeButton, dislikeButton, 'like'); // Update button state
+          };
+      
+          dislikeButton.onclick = () => {
+            this.sendFeedback('dislike', content);
+            this.updateButtonState(dislikeButton, likeButton, 'dislike'); // Update button state
+          };
+      
+          feedbackButtons.appendChild(likeButton);
+          feedbackButtons.appendChild(dislikeButton);
+          messageDiv.appendChild(feedbackButtons);
+        }
+      
         messagesDiv.appendChild(messageDiv);
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      }
+      
+      // Function to update button state after feedback
+      updateButtonState(clickedButton, otherButton, type) {
+        // Change the clicked button's icon to a filled version
+        if (type === 'like') {
+          clickedButton.innerHTML = '<i class="fas fa-thumbs-up"></i>'; // Filled thumbs-up
+          clickedButton.style.color = '#4CAF50'; // Green color for like
+        } else {
+          clickedButton.innerHTML = '<i class="fas fa-thumbs-down"></i>'; // Filled thumbs-down
+          clickedButton.style.color = '#F44336'; // Red color for dislike
+        }
+      
+        // Reset the other button to its default state
+        otherButton.innerHTML = type === 'like' ? '<i class="far fa-thumbs-down"></i>' : '<i class="far fa-thumbs-up"></i>';
+        otherButton.style.color = ''; // Reset color
+      
+        // Add a small bounce animation
+        clickedButton.style.transform = 'scale(1.2)';
+        setTimeout(() => {
+          clickedButton.style.transform = 'scale(1)';
+        }, 200);
+      }
+      
+      
+
+      async sendFeedback(type, message) {
+        try {
+          const response = await fetch(`${this.config.apiUrl}/feedback`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              type: type, // 'like' or 'dislike'
+              chatbotId: this.config.botId,
+            }),
+          });
+      
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+      
+          const data = await response.json();
+          console.log('Feedback sent successfully:', data);
+        } catch (error) {
+          console.error('Error sending feedback:', error);
+        }
       }
   
       async sendMessage() {

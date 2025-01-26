@@ -12,11 +12,12 @@ import { Highlight, themes } from 'prism-react-renderer';
 
 interface CustomizationTabProps {
   chatbotId: string;
+  prompt : string
 }
 
-export function CustomizationTab({ chatbotId }: CustomizationTabProps) {
+export function CustomizationTab({ chatbotId, prompt }: CustomizationTabProps) {
   const { toast } = useToast();
-  const [color, setColor] = useState('#569CCE');
+  const [color, setColor] = useState('#0e4b75');
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [selectedIcon, setSelectedIcon] = useState<string>('chat');
   const [buttonAlignment, setButtonAlignment] = useState<'left' | 'right'>('right');
@@ -35,6 +36,7 @@ export function CustomizationTab({ chatbotId }: CustomizationTabProps) {
     "",
     ""
   ]);
+  const [promptscript, setPromptscript] = useState<string>(prompt);
   const [widgetHeader, setWidgetHeader] = useState('Support Bot');
 
   const icons = [
@@ -61,6 +63,7 @@ export function CustomizationTab({ chatbotId }: CustomizationTabProps) {
       displayStyle: "${displayStyle}",
       customIcon: ${customIcon ? `"${customIcon}"` : 'null'},
       starter_questions: ${JSON.stringify(starterQuestions.filter(q => q))},
+      prompt: "${promptscript}",
     };
     const script = document.createElement("script");
     script.src = "https://cloud-ide-shas.s3.us-east-1.amazonaws.com/docBot/chat.js";
@@ -74,10 +77,7 @@ export function CustomizationTab({ chatbotId }: CustomizationTabProps) {
 `;
 
   const iframeCode = `<iframe
-    src="https://yourdomain.com/chatbot/${chatbotId}"
-    width="100%"
-    height="600px"
-    frameborder="0"
+    COMING SOON!!
   ></iframe>`;
 
   const handleAddDomain = () => {
@@ -276,6 +276,17 @@ export function CustomizationTab({ chatbotId }: CustomizationTabProps) {
             <Textarea
               value={welcomeMessage}
               onChange={(e) => setWelcomeMessage(e.target.value)}
+              placeholder="Enter the first message users will see"
+              className="h-20 text-sm resize-none"
+            />
+          </div>
+
+          {/* Prompt Message */}
+          <div className="space-y-1">
+            <label className="block text-xs font-medium">System Prompt</label>
+            <Textarea
+              value={promptscript}
+              onChange={(e) => setPromptscript(e.target.value)}
               placeholder="Enter the first message users will see"
               className="h-20 text-sm resize-none"
             />

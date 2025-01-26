@@ -5,6 +5,7 @@ import HowItWorks from "@/components/landing/how-it-works"
 import PricingSection from "@/components/landing/pricing"
 import QuestionsSection from "@/components/landing/questions"
 import Footer from "@/components/landing/footer"
+import { TestimonialsSection }from "@/components/landing/testimonials"
 
 export default function landingPage() {
   return (
@@ -14,6 +15,7 @@ export default function landingPage() {
       <HowItWorks />
       <PricingSection />
       <QuestionsSection />
+      <TestimonialsSection />
       <Footer />
     </main>
   )

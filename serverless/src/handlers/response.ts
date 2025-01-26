@@ -2,12 +2,13 @@ import { Request, Response } from 'express';
 import { google } from '@ai-sdk/google';
 import { CoreMessage, generateText, tool } from 'ai';
 import { z } from 'zod';
-import { searchDocumentation } from '../lib/db.js';
+import { searchDocumentation, updateResponse } from '../lib/db.js';
 
 
 export async function responseHandler(req: Request, res: Response) {
   try {
     const { message, chatbotId, prompt } = req.body;
+    console.log(message)
 
     if (!message || !chatbotId) {
       return res.status(400).json({ error: 'Message and chatbotId are required' });
@@ -88,6 +89,7 @@ export async function responseHandler(req: Request, res: Response) {
       maxSteps: 2,
     });
     console.log("++++++++++++++++result++++++++++++++++++++");
+    await updateResponse(chatbotId);
     // console.log(result);
     return res.json({ answer : result.text });
 

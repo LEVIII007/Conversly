@@ -1,17 +1,19 @@
 'use client';
 import { useState, useEffect } from "react";
 import { useSession, signOut, signIn } from "next-auth/react";
-import { User, LogOut } from "lucide-react";
+import { User, LogOut, Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import Hero from "./hero";
+import { useTheme } from '@/hooks/useTheme';
 
 const NavbarHero = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { data: session } = useSession();
   const [mounted, setMounted] = useState(false);
+  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
     setMounted(true);
@@ -46,8 +48,22 @@ const NavbarHero = () => {
               <a href="#pricing" className="text-neutral-300 hover:text-white hover:scale-105 transition-all duration-300 font-medium">Pricing</a>
             </div>
 
+            
             {/* CTA Buttons */}
             <div className="hidden lg:flex lg:items-center lg:space-x-6">
+              {/* Theme Toggle */}
+            <Button
+              onClick={toggleTheme}
+              variant="ghost"
+              size="icon"
+              className="rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
+            >
+              {theme === 'dark' ? (
+                <Sun className="h-5 w-5" />
+              ) : (
+                <Moon className="h-5 w-5" />
+              )}
+            </Button>
               {session ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
