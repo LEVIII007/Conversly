@@ -7,25 +7,63 @@ import { Textarea } from './ui/textarea';
 import { Input } from './ui/input';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { updateSystemPrompt } from '@/lib/queries'; // Import your existing functions
-
-interface SidebarProps {
+import { z } from 'zod';
+import { urlSchema,fileSchema } from '@/lib/zod';
+export interface SidebarProps {
   onAddKnowledge: (urls: string[], files: File[]) => Promise<void>;
 }
+
 
 export function Sidebar({ onAddKnowledge }: SidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [systemPrompt, setSystemPrompt] = useState('');
   const [urls, setUrls] = useState(['']);
+  const [urlErrors, setUrlErrors] = useState<string[]>([]);
+  const [fileErrors, setFileErrors] = useState<string[]>([]);
   const { id } = useParams();
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      onAddKnowledge(urls, Array.from(e.target.files));
+      const files = Array.from(e.target.files);
+      const newFileErrors: string[] = [];
+
+      try {
+        fileSchema.parse(files); // Validate files with Zod
+      } catch (error) {
+        if (error instanceof z.ZodError) {
+          newFileErrors.push(error.errors.map((err) => err.message).join('\n'));
+        }
+      }
+
+      if (newFileErrors.length > 0) {
+        setFileErrors(newFileErrors); // Show error messages if validation fails
+      } else {
+        setFileErrors([]); // Clear error messages if validation passes
+        await onAddKnowledge(urls, files); // Pass valid files to the parent function
+      }
     }
   };
-  const handlePromptUpdate = async () => {
-    await updateSystemPrompt(Number(id), systemPrompt);
+
+  const handleAddURL = async () => {
+    const newUrlErrors: string[] = [];
+
+    urls.forEach((url) => {
+      try {
+        urlSchema.parse(url);
+      } catch (error) {
+        if (error instanceof z.ZodError) {
+          newUrlErrors.push(error.errors.map((err) => err.message).join('\n'));
+        }
+      }
+    });
+
+    if (newUrlErrors.length > 0) {
+      setUrlErrors(newUrlErrors);  // Show error messages if validation fails
+    } else {
+      setUrlErrors([]);  // Clear error messages if validation passes
+      await onAddKnowledge(urls, []); // Pass valid URLs to the parent function
+      setUrls(['']); // Reset URLs input to base state
+    }
   };
 
   return (
@@ -64,8 +102,14 @@ export function Sidebar({ onAddKnowledge }: SidebarProps) {
               className="h-32 text-base"
             />
             <Button 
-              onClick={handlePromptUpdate}
               className="w-full text-base"
+              onClick={async () => {
+                try {
+                  console.log('Updating prompt:', systemPrompt);
+                } catch (error) {
+                  console.error('Error updating prompt:', error);
+                }
+              }}
             >
               <Wand2 className="mr-2 h-5 w-5" />
               Update Prompt
@@ -88,6 +132,13 @@ export function Sidebar({ onAddKnowledge }: SidebarProps) {
                 className="text-base"
               />
             ))}
+            {urlErrors.length > 0 && (
+              <div className="text-sm text-red-600">
+                {urlErrors.map((error, idx) => (
+                  <p key={idx}>{error}</p>
+                ))}
+              </div>
+            )}
             <Button 
               onClick={() => setUrls([...urls, ''])}
               variant="outline"
@@ -96,15 +147,31 @@ export function Sidebar({ onAddKnowledge }: SidebarProps) {
               <Globe className="mr-2 h-5 w-5" />
               Add Another URL
             </Button>
+            <Button 
+              onClick={handleAddURL}
+              className="w-full text-base"
+              disabled={urlErrors.length > 0} // Disable Save button if there are errors
+            >
+              <Globe className="mr-2 h-5 w-5" />
+              Save URLs
+            </Button>
           </div>
 
           {/* File Upload */}
           <div className="space-y-2">
             <label className="text-sm font-medium">Upload Files</label>
+            {fileErrors.length > 0 && (
+              <div className="text-sm text-red-600">
+                {fileErrors.map((error, idx) => (
+                  <p key={idx}>{error}</p>
+                ))}
+              </div>
+            )}
             <Button 
               onClick={() => document.getElementById('file-upload')?.click()}
               variant="outline"
               className="w-full text-base"
+              disabled={fileErrors.length > 0} // Disable button if there are file errors
             >
               <FileUp className="mr-2 h-5 w-5" />
               Choose Files
@@ -122,4 +189,3 @@ export function Sidebar({ onAddKnowledge }: SidebarProps) {
     </div>
   );
 }
-

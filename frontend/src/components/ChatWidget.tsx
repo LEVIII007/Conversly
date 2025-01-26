@@ -1,8 +1,12 @@
 'use client';
-import { useEffect } from 'react';
+
+import { useEffect, useState } from 'react';
 import type { ChatbotConfig } from '@/types/global';
+import { promptSchema } from '@/lib/zod';
 
 export function ChatWidget() {
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
     const initializeBot = () => {
       const botConfig: ChatbotConfig = {
@@ -22,7 +26,20 @@ export function ChatWidget() {
       script.async = true;
       script.onload = () => {
         if (window.DocsBotAI) {
-          window.DocsBotAI.init(botConfig);
+          window.DocsBotAI.init({
+            ...botConfig,
+            onSend: (prompt: string) => {
+              // Validate the text prompt before sending
+              try {
+                promptSchema.safeParse(prompt);
+                setError(null); // Clear any existing errors
+                return true; // Allow sending the prompt
+              } catch (err: any) {
+                setError(err.errors[0].message); // Display the validation error
+                return false; // Block sending the prompt
+              }
+            }
+          });
         }
       };
       document.head.appendChild(script);
@@ -31,5 +48,9 @@ export function ChatWidget() {
     initializeBot();
   }, []);
 
-  return null;
-} 
+  return (
+    <div>
+      {error && <div style={{ color: 'red', margin: '10px 0' }}>{error}</div>}
+    </div>
+  );
+}

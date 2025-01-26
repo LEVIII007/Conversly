@@ -10,6 +10,7 @@ export interface ChatbotConfig {
   darkMode?: boolean;
   fontSize?: string;
   apiUrl?: string;
+  onSend?: (prompt: string) => boolean;
 }
 
 declare global {

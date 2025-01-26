@@ -13,7 +13,7 @@ import {
 import { QADialog } from '@/components/chatbot/QADialog';
 import { addKnowledge } from "@/lib/process-data1";
 import { useToast } from "@/hooks/use-toast";
-
+import { csv ,doc} from '@/lib/zod';
 const DATA_SOURCES = {
   productivity: [
     {
@@ -115,6 +115,11 @@ export function DataSourcesTab({ chatbotId }: { chatbotId: string }) {
 
   const handleAddFile = (files: FileList) => {
     const file = files[0];
+    const parsed = doc.safeParse(file);
+    if (!parsed.success) {
+      toast({ title: 'Invalid document file', description: 'The file format is not correct.' });
+      return;
+    }
     if (file) {
       setPendingSources(prev => [...prev, { 
         type: 'Document',
@@ -126,13 +131,16 @@ export function DataSourcesTab({ chatbotId }: { chatbotId: string }) {
 
   const handleAddCsv = (files: FileList) => {
     const file = files[0];
-    if (file) {
-      setPendingSources(prev => [...prev, { 
-        type: 'CSV',
-        name: file.name,
-        content: file
-      }]);
+    const parsed = csv.safeParse(file);
+    if (!parsed.success) {
+      toast({ title: 'Invalid document file', description: 'The file format is not correct.' });
+      return;
     }
+    setPendingSources(prev => [...prev, { 
+      type: 'CSV',
+      name: file.name,
+      content: file
+    }]);
   }
 
   const handleAddURL = (url: string) => {
@@ -184,7 +192,7 @@ export function DataSourcesTab({ chatbotId }: { chatbotId: string }) {
           content: source.content as File,
         }));
 
-      await addKnowledge({
+      await addKnowledge({ 
         chatbotID: chatbotId,
         website_URL: websiteURLs,
         documents,
@@ -314,7 +322,7 @@ export function DataSourcesTab({ chatbotId }: { chatbotId: string }) {
                               accept=".csv"
                               onChange={(e) => {
                                 if (e.target.files?.length) {
-                                  handleAddFile(e.target.files);
+                                  handleAddCsv(e.target.files);
                                 }
                               }}
                             />
