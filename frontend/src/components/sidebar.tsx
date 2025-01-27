@@ -26,20 +26,31 @@ export function Sidebar({ onAddKnowledge }: SidebarProps) {
     if (e.target.files) {
       const files = Array.from(e.target.files);
       const newFileErrors: string[] = [];
-
+  
       try {
-        fileSchema.parse(files); // Validate files with Zod
-      } catch (error) {
-        if (error instanceof z.ZodError) {
-          newFileErrors.push(error.errors.map((err) => err.message).join('\n'));
+        // Validate each file individually
+        files.forEach((file, index) => {
+          try {
+            fileSchema.parse([file]); // Validate a single file
+          } catch (error) {
+            if (error instanceof z.ZodError) {
+              // Add specific error messages for each file
+              newFileErrors.push(`File ${index + 1}: ${error.errors.map((err) => err.message).join(', ')}`);
+            }
+          }
+        });
+  
+        if (newFileErrors.length > 0) {
+          setFileErrors(newFileErrors); // Show error messages for invalid files
+          e.target.value = ''; // Clear the file input
+        } else {
+          setFileErrors([]); // Clear error messages if all files are valid
+          await onAddKnowledge(urls, files); // Pass valid files to the parent function
         }
-      }
-
-      if (newFileErrors.length > 0) {
-        setFileErrors(newFileErrors); // Show error messages if validation fails
-      } else {
-        setFileErrors([]); // Clear error messages if validation passes
-        await onAddKnowledge(urls, files); // Pass valid files to the parent function
+      } catch (error) {
+        console.error('Unexpected error during file validation:', error);
+        setFileErrors(['An unexpected error occurred. Please try again.']);
+        e.target.value = ''; // Clear the file input
       }
     }
   };

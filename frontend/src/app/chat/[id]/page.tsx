@@ -6,7 +6,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { useChat } from 'ai/react';
 import { useParams } from 'next/navigation';
 import { z } from 'zod';
-import { inputSchema,promptSchema  } from '@/lib/zod';
 
 export default function ChatPage() {
   const { id } = useParams();
@@ -34,21 +33,7 @@ export default function ChatPage() {
     setPrompt(e.target.value);
   };
 
-  const handleFormSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrors([]); // Reset errors before each submission
 
-    // Validate input and prompt with Zod
-    try {
-      inputSchema.parse(input);
-      promptSchema.parse(prompt); // Validate prompt if needed
-      handleSubmit();
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        setErrors(error.errors.map((err) => err.message));
-      }
-    }
-  };
 
   return (
     <div className="flex-1 flex flex-col h-screen bg-background">
@@ -79,7 +64,7 @@ export default function ChatPage() {
       {/* Input Area */}
       <div className="border-t border-border p-6 bg-card">
         <form 
-          onSubmit={handleFormSubmit} 
+          onSubmit={handleSubmit} 
           className="max-w-4xl mx-auto flex gap-4"
         >
           <Textarea

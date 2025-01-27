@@ -50,6 +50,8 @@ export default function PaymentCard({ planId, paymentAmount, planDetails }: Paym
       script.onerror = () => console.error("Failed to load Razorpay script");
     }
   }, []);
+  const key = process.env.RAZORPAY_KEY_ID;
+        console.log("Key:", key);
 
   const handlePayment = () => {
     startTransition(async () => {
@@ -85,20 +87,23 @@ export default function PaymentCard({ planId, paymentAmount, planDetails }: Paym
           description: "Order created successfully, please wait for payment.",
           className: "bg-green-400",
         });
+        console.log(key);
         const options = {
-          key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+          key: process.env.RAZORPAY_KEY_ID,
           amount: order.order?.amount,
           currency: order.order?.currency,
           name: "Conversly.AI",
           description: "Professional Plan",
           order_id: order.order?.id,
-          handler: async function (response: {
+          handler: async function (response : {
             razorpay_payment_id: string;
             razorpay_order_id: string;
-            razorpay_signature: string;
+            razorpay_signature: any;
           }) {
             console.log(response);
-            const verify = await verifyPayment(response.razorpay_order_id, 
+            const verify = await verifyPayment(
+
+                response.razorpay_order_id, 
                 response.razorpay_payment_id,
                 response.razorpay_signature,
                 planId, planDetails.isAnnual);

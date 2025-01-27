@@ -1,40 +1,33 @@
 import { z } from "zod";
 
-// 1. Validation for file uploads (e.g., CSV, TXT, PDF)
-export const fileUploadSchema = z.object({
-    file: z.custom<File>((value) => {
-      // Ensure it's a File object
-      if (!(value instanceof File)) {
-        return false;
+
+export const urlSchema = z.string().refine((value) => {
+    try {
+      new URL(value);
+      return true;
+    } catch {
+      return false;
+    }
+  }, { message: 'Invalid URL format.' });
+
+
+  export const fileSchema = z.array(
+    z.custom<File>((file) => {
+      const allowedTypes = ['text/plain', 'application/pdf', 'text/csv'];
+      const maxSizeInBytes = 2 * 1024 * 1024; // 2MB
+  
+      if (!allowedTypes.includes(file.type)) {
+        return false; // Invalid file type
       }
   
-      // Allowed file extensions
-      const allowedExtensions = ["csv", "txt", "pdf"];
-      const fileName = value.name.toLowerCase();
-      const fileExtension = fileName.split(".").pop();
+      if (file.size > maxSizeInBytes) {
+        return false; // File size exceeds limit
+      }
   
-      return allowedExtensions.includes(fileExtension || "");
-    }, { message: "Invalid file type. Only CSV, TXT, and PDF are allowed." }),
-  });
-
-
-  export const urlSchema = z.string().url({ message: 'Invalid URL format.' });
-export const fileSchema = z.array(
-    z.custom<File>((file) => {
-        const allowedTypes = ['text/plain', 'application/pdf', 'text/csv'];
-        const maxSizeInBytes = 2 * 1024 * 1024; // 2MB
-
-        if (!allowedTypes.includes(file.type)) {
-            return false;
-        }
-
-        if (file.size > maxSizeInBytes) {
-            return false;
-        }
-
-        return true;
-    }, { message: 'File type must be text, csv, or pdf and size must be less than 2MB.' })
-);
+      return true; // File is valid
+    }, { message: 'File type must be text, csv, or pdf, and size must be less than 2MB.' })
+  );
+  
 export const csv = z.object({
     file: z.custom<File>((value) => {
       // Ensure it's a File object
@@ -89,24 +82,58 @@ export const csv = z.object({
     }, { message: "Invalid file type or size. Only CSV files under 2MB are allowed." }),
   });
 
-// 3. Validation for text prompts
-export const inputSchema = z.string().min(1, { message: 'Message cannot be empty.' }); // Input validation
-export const promptSchema = z.string().min(5, { message: 'Prompt must be at least 5 characters long.' }); // Optional prompt validation
-
 export const chatbotSchema = z.object({
-    name: z
-      .string()
-      .min(3, 'Name must be at least 3 characters long')
-      .max(50, 'Name must be less than 50 characters')
-      .regex(/^[A-Za-z\s]+$/, 'Name cannot contain numbers or special characters'),
-    description: z
-      .string()
-      .min(10, 'Description must be at least 10 characters long')
-      .max(200, 'Description must be less than 200 characters')
-      .regex(/^[A-Za-z\s]+$/, 'Description cannot contain special characters'),
-    systemPrompt: z
-      .string()
-      .min(20, 'System Prompt must be at least 5 characters long')
-      .max(500, 'System Prompt must be less than 500 characters')
-      .regex(/^[A-Za-z\s]+$/, 'System Prompt cannot contain special characters'),
-  });
+  name: z
+    .string()
+    .min(3, 'Name must be at least 3 characters long')
+    .max(50, 'Name must be less than 50 characters')
+    .regex(/^[A-Za-z\s]+$/, 'Name cannot contain numbers or special characters'),
+  description: z
+    .string()
+    .min(10, 'Description must be at least 10 characters long')
+    .max(200, 'Description must be less than 200 characters')
+    .regex(/^[A-Za-z\s]+$/, 'Description cannot contain special characters'),
+  systemPrompt: z
+    .string()
+    .max(1000, 'System Prompt must be less than 1000 characters')
+    .refine((value) => {
+      // Define a list of harmful content patterns
+      const harmfulContentPatterns = [
+        /harmful/i,
+        /hateful/i,
+        /violent/i,
+        /abuse/i,
+        /assault/i,
+        /kill/i,
+        /murder/i,
+        /rape/i,
+        /suicide/i,
+        /terrorist/i,
+        /bomb/i,
+        /drugs?/i,
+        /weapon/i,
+        /fuck/i,
+        /shit/i,
+        /bitch/i,
+        /cunt/i,
+        /nigg/i, // Caution: This is a sensitive term
+        /whore/i,
+        /slut/i,
+        /porn/i,
+        /sexually/i,
+        /explicit/i,
+        /offensive/i,
+        /racist/i,
+        /sexist/i,
+        /discriminatory/i,
+      ];
+
+      // Check if the system prompt contains any harmful content
+      const containsHarmfulContent = harmfulContentPatterns.some((pattern) =>
+        pattern.test(value)
+      );
+
+      // Return false if harmful content is found
+      return !containsHarmfulContent;
+    }, { message: 'System Prompt contains harmful or inappropriate content' }),
+});

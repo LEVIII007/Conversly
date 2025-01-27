@@ -24,7 +24,7 @@ export default function CreatePage() {
   // Basic Info
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [systemPrompt, setSystemPrompt] = useState('');
+  const [systemPrompt, setSystemPrompt] = useState('you are a helpful assistant...');
 
   // Error state for form fields
   const [errors, setErrors] = useState<Record<string, string>>({});
