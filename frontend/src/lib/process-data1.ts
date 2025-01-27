@@ -138,48 +138,6 @@ export async function addKnowledge({
 
     const dataSources = [];
 
-    // if (website_URL.length > 0) {
-    //   dataSources.push(...website_URL.map(url => ({
-    //   chatbotId: parseInt(chatbotID),
-    //   type: 'Website',
-    //   name: url,
-    //   sourceDetails: { url }
-    //   })));
-    // }
-
-    // if (documents.length > 0) {
-    //   dataSources.push(...documents.map(doc => ({
-    //   chatbotId: parseInt(chatbotID),
-    //   type: 'Document',
-    //   name: doc.content.name,
-    //   sourceDetails: { type: doc.type }
-    //   })));
-    // }
-
-    // if (qandaData.length > 0) {
-    //   dataSources.push({
-    //   chatbotId: parseInt(chatbotID),
-    //   type: 'QandA',
-    //   name: qandaData.map(qanda => qanda.question).join(', '),
-    //   sourceDetails: { count: qandaData.length }
-    //   });
-    // }
-
-    // if(CSV.length > 0) {
-    //   dataSources.push(...CSV.map(csv => ({
-    //   chatbotId: parseInt(chatbotID),
-    //   type: 'CSV',
-    //   name: csv.content.name,
-    //   sourceDetails: { type: csv.type }
-    //   })));
-    // }
-
-    // if (dataSources.length > 0) {
-    //   await prisma.dataSource.createMany({
-    //   data: dataSources
-    //   });
-    // }
-
     // Add website URLs if they exist
     if (website_URL.length > 0) {
       formData.append('websiteURL', JSON.stringify(website_URL)); // Backend will parse this JSON
@@ -205,17 +163,11 @@ export async function addKnowledge({
 
     console.log(formData);
     // Send the request to the backend for processing
-    const response = await fetch(`${SERVER_URL}/process`, {
+    fetch(`${SERVER_URL}/process`, {
       method: 'POST',
       body: formData,
     });
-    if (!response.ok) {
-      const errorDetails = await response.json();
-      throw new Error(
-        `Failed to process chatbot data: ${errorDetails.detail || response.statusText}`
-      );
-    }
-
+    
     return { chatbotID, processingStatus: 'success' };
   } catch (error: any) {
     if (error.message.includes('maximum number of data sources')) {

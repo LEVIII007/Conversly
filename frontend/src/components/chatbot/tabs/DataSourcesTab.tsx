@@ -238,20 +238,30 @@ export function DataSourcesTab({ chatbotId }: { chatbotId: string }) {
           content: source.content as File,
         }));
 
-      await addKnowledge({ 
+     const result =  await addKnowledge({ 
         chatbotID: chatbotId,
         website_URL: websiteURLs,
         documents,
         qandaData,
       });
 
-      toast({
-        title: 'Success',
-        description: 'Data sources added successfully',
-      });
-
-      // Reset after successful upload
-      setPendingSources([]);
+      if (result.processingStatus === 'success') {
+        // Simulate a brief delay
+        setTimeout(() => {
+          toast({
+            title: 'Success',
+            description: 'Data sources added successfully. Data Source will be available shortly',
+          });
+          // Reset after successful upload
+          setPendingSources([]);
+        }, 5000); // Simulate 2 seconds of loading
+      } else {
+        toast({
+          title: 'Error',
+          description: 'Failed to add data sources',
+          variant: 'destructive',
+        });
+      }
     } catch (error) {
       if (error instanceof Error && error.message.includes('maximum number of data sources')) {
         toast({

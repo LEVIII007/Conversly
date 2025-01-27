@@ -5,6 +5,7 @@ import Header from '@/components/Header';
 import { AuthProvider } from '@/components/auth-provider';
 import type { ChatbotConfig } from '@/types/global';
 import { ChatWidget } from '@/components/ChatWidget';
+import {Toaster} from '@/components/ui/toaster';
 
 export default function RootLayout({
   children,
@@ -21,6 +22,7 @@ export default function RootLayout({
         <AuthProvider>
         <div className="min-h-screen bg-gray-50 dark:bg-gray-800">
           <main>{children}</main>
+          <Toaster />
         </div>
         </AuthProvider>
         <ChatWidget />

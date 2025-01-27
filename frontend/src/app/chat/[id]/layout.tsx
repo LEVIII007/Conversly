@@ -22,25 +22,44 @@ export default function ChatLayout({ children }: { children: ReactNode }) {
         content: file,
       }));
 
-      // Call addKnowledge function
-      const data = await addKnowledge({
+      const result =  await addKnowledge({ 
         chatbotID: id as string,
         website_URL: websiteUrls,
         documents,
-        qandaData: [],
+        qandaData : [],
       });
 
-      toast({
-        title: 'Success',
-        description: 'Knowledge successfully added!',
-      });
-    } catch (error: any) {
-      console.error('Error adding knowledge:', error.message);
-
-      toast({
-        title: 'Error',
-        description: 'Failed to add knowledge. Please try again.',
-      });
+      if (result.processingStatus === 'success') {
+        // Simulate a brief delay
+        setTimeout(() => {
+          toast({
+            title: 'Success',
+            description: 'Data sources added successfully. Data Source will be available shortly',
+          });
+          // Reset after successful upload
+        }, 4000); // Simulate 2 seconds of loading
+      } else {
+        toast({
+          title: 'Error',
+          description: 'Failed to add data sources',
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('maximum number of data sources')) {
+        toast({
+          title: 'Error',
+          description: 'You have reached the maximum number of data sources allowed for this chatbot in the free tier.  Only 2 data sources are allowed.',
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Error',
+          description: 'Failed to add data sources',
+          variant: 'destructive',
+        });
+        console.error('Error adding sources:', error);
+      }
     }
   };
 
