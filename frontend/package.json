@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --turbo",
     "build": "npx prisma generate && next build",
     "start": "next start"
   },
@@ -34,6 +34,7 @@
     "next": "^15.0.0",
     "next-auth": "^5.0.0-beta.25",
     "next-themes": "^0.4.4",
+    "papaparse": "^5.5.1",
     "pg": "^8.13.1",
     "prism-react-renderer": "^2.4.1",
     "razorpay": "^2.9.5",
@@ -50,6 +51,7 @@
   },
   "devDependencies": {
     "@types/node": "^20.11.24",
+    "@types/papaparse": "^5.3.15",
     "@types/pg": "^8.11.10",
     "@types/react": "^18.3.5",
     "@types/react-color": "^3.0.13",

@@ -13,7 +13,8 @@ import {
 import { QADialog } from '@/components/chatbot/QADialog';
 import { addKnowledge } from "@/lib/process-data1";
 import { useToast } from "@/hooks/use-toast";
-import { csv ,doc} from '@/lib/zod';
+import Papa from 'papaparse';
+import { documentSchema , csvSchema, urlSchema } from '@/lib/zod';
 const DATA_SOURCES = {
   productivity: [
     {
@@ -115,36 +116,81 @@ export function DataSourcesTab({ chatbotId }: { chatbotId: string }) {
 
   const handleAddFile = (files: FileList) => {
     const file = files[0];
-    const parsed = doc.safeParse(file);
+    if (!file) return;
+  
+    // Use Zod to validate file name and size
+    const parsed = documentSchema.safeParse({ name: file.name, size: file.size });
     if (!parsed.success) {
-      toast({ title: 'Invalid document file', description: 'The file format is not correct.' });
+      toast({
+        title: 'Invalid document file',
+        description: parsed.error.errors[0].message, // Show detailed error
+      });
       return;
     }
-    if (file) {
-      setPendingSources(prev => [...prev, { 
-        type: 'Document',
-        name: file.name,
-        content: file
-      }]);
-    }
+  
+    // If valid, add to pending sources
+    setPendingSources((prev) => [
+      ...prev,
+      { type: 'Document', name: file.name, content: file },
+    ]);
   };
 
   const handleAddCsv = (files: FileList) => {
     const file = files[0];
-    const parsed = csv.safeParse(file);
+    if (!file) return;
+  
+    // Step 1: Validate file type and size
+    const parsed = csvSchema.safeParse({ name: file.name, size: file.size });
     if (!parsed.success) {
-      toast({ title: 'Invalid document file', description: 'The file format is not correct.' });
+      toast({
+        title: 'Invalid CSV file',
+        description: parsed.error.errors[0].message,
+      });
       return;
     }
-    setPendingSources(prev => [...prev, { 
-      type: 'CSV',
-      name: file.name,
-      content: file
-    }]);
-  }
+  
+    // Step 2: Parse the CSV and validate columns
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: (results) => {
+        const data = results.data;
+        const headers = results.meta.fields;
+  
+        // Ensure required columns are present
+        if (!headers?.includes('Q') || !headers.includes('A')) {
+          toast({
+            title: 'Invalid CSV format',
+            description: 'CSV file must contain "Q" and "A" columns.',
+          });
+          return;
+        }
+  
+        // If valid, add to pending sources
+        setPendingSources((prev) => [
+          ...prev,
+          { type: 'CSV', name: file.name, content: file },
+        ]);
+      },
+      error: (error) => {
+        toast({
+          title: 'Error parsing CSV',
+          description: error.message,
+        });
+      },
+    });
+  };
 
   const handleAddURL = (url: string) => {
     if (url.trim()) {
+      const parsed = urlSchema.safeParse(url);
+      if(!parsed.success) {
+        toast({
+          title: 'Invalid URL',
+          description: parsed.error.errors[0].message,
+        });
+        return;
+      }
       setPendingSources(prev => [...prev, { 
         type: 'Website',
         name: url.trim()

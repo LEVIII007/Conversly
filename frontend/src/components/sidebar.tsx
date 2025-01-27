@@ -8,7 +8,7 @@ import { Input } from './ui/input';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { z } from 'zod';
-import { urlSchema,fileSchema } from '@/lib/zod';
+import { urlSchema, documentSchema, chatbotSchema } from '@/lib/zod';
 export interface SidebarProps {
   onAddKnowledge: (urls: string[], files: File[]) => Promise<void>;
 }
@@ -31,7 +31,11 @@ export function Sidebar({ onAddKnowledge }: SidebarProps) {
         // Validate each file individually
         files.forEach((file, index) => {
           try {
-            fileSchema.parse([file]); // Validate a single file
+            // Validate the file against the documentSchema
+            documentSchema.parse({
+              name: file.name,
+              size: file.size,
+            });
           } catch (error) {
             if (error instanceof z.ZodError) {
               // Add specific error messages for each file
@@ -54,12 +58,12 @@ export function Sidebar({ onAddKnowledge }: SidebarProps) {
       }
     }
   };
-
   const handleAddURL = async () => {
     const newUrlErrors: string[] = [];
-
+  
     urls.forEach((url) => {
       try {
+        // Validate the URL against the urlSchema
         urlSchema.parse(url);
       } catch (error) {
         if (error instanceof z.ZodError) {
@@ -67,7 +71,7 @@ export function Sidebar({ onAddKnowledge }: SidebarProps) {
         }
       }
     });
-
+  
     if (newUrlErrors.length > 0) {
       setUrlErrors(newUrlErrors);  // Show error messages if validation fails
     } else {

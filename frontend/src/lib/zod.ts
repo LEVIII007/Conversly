@@ -1,5 +1,15 @@
 import { z } from "zod";
 
+export const csvSchema = z.object({
+  name: z.string().regex(/\.csv$/i, 'Invalid file type. Only CSV files are allowed.'), // Ensure it's a CSV
+  size: z.number().max(5 * 1024 * 1024, 'File size exceeds the 5MB limit.'), // Maximum size of 5MB
+});
+
+export const documentSchema = z.object({
+  name: z.string().regex(/\.(pdf|docx|txt)$/i, 'Invalid file type. Only PDF, DOCX, or TXT files are allowed.'), // Allowed file types
+  size: z.number().max(10 * 1024 * 1024, 'File size exceeds the 10MB limit.') // Maximum size of 10MB
+});
+
 
 export const urlSchema = z.string().refine((value) => {
     try {
@@ -9,24 +19,6 @@ export const urlSchema = z.string().refine((value) => {
       return false;
     }
   }, { message: 'Invalid URL format.' });
-
-
-  export const fileSchema = z.array(
-    z.custom<File>((file) => {
-      const allowedTypes = ['text/plain', 'application/pdf', 'text/csv'];
-      const maxSizeInBytes = 2 * 1024 * 1024; // 2MB
-  
-      if (!allowedTypes.includes(file.type)) {
-        return false; // Invalid file type
-      }
-  
-      if (file.size > maxSizeInBytes) {
-        return false; // File size exceeds limit
-      }
-  
-      return true; // File is valid
-    }, { message: 'File type must be text, csv, or pdf, and size must be less than 2MB.' })
-  );
   
 export const csv = z.object({
     file: z.custom<File>((value) => {
