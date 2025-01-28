@@ -11,7 +11,7 @@ export function ChatWidget() {
 
   useEffect(() => {
     const botConfig: ChatbotConfig = {
-      botId: "1",
+      botId: "7",
       color: "#569CCE",
       title: "DocsBot Support",
       apiUrl: process.env.API_SERVER_URL,
