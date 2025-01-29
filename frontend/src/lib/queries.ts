@@ -24,6 +24,15 @@ export async function fetchChatBot(id: number) {
   }
 }
 
+export async function AuthStatus() {
+  const session = await auth();
+  if(session) {
+    return {isLoggedIn: true};
+  } else {
+    return {isLoggedIn: false};
+  }
+}
+
 // Get all chatbots for the profile page
 export async function getChatBots() {
   const session = await auth();

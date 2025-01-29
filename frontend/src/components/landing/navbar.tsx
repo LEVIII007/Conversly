@@ -92,7 +92,7 @@ const NavbarHero = () => {
                   Signin
                 </Button>
               )}
-              <a href="#" className="bg-indigo-600 text-white px-6 py-2.5 rounded-lg hover:bg-indigo-500 hover:scale-105 transition-all duration-300 font-semibold shadow-lg shadow-indigo-500/25">Get Kortex Free</a>
+              {/* <a href="#" className="bg-indigo-600 text-white px-6 py-2.5 rounded-lg hover:bg-indigo-500 hover:scale-105 transition-all duration-300 font-semibold shadow-lg shadow-indigo-500/25">Get Kortex Free</a> */}
             </div>
 
             {/* Mobile menu button */}
@@ -124,9 +124,6 @@ const NavbarHero = () => {
             <a href="#features" className="block px-4 py-3 text-neutral-300 hover:text-white hover:bg-neutral-800/50 rounded-lg transition-all duration-300">Features</a>
             <a href="#pricing" className="block px-4 py-3 text-neutral-300 hover:text-white hover:bg-neutral-800/50 rounded-lg transition-all duration-300">Pricing</a>
             <a href="#" className="block px-4 py-3 text-neutral-300 hover:text-white hover:bg-neutral-800/50 rounded-lg transition-all duration-300">Signin</a>
-            <a href="#" className="block px-4 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 transition-all duration-300 text-center font-semibold shadow-lg shadow-indigo-500/25">
-              Get Kortex Free
-            </a>
           </div>
         )}
       </nav>

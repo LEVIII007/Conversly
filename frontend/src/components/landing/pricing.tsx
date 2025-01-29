@@ -1,53 +1,9 @@
 import { Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link";
+import { pricingPlans } from "@/lib/pricing-constants";
 
-const plans = [
-  {
-    name: "Free",
-    price: "$0",
-    period: "/month",
-    features: [
-      "1 Chatbot",
-      "1,000 messages/month",
-      "Basic customization",
-      "Community support",
-      "limited Data Sources",
-      "Limited Embedding",
-    ],
-    cta: "Get Started",
-    popular: false,
-  },
-  {
-    name: "Pro",
-    price: "$29",
-    period: "/month",
-    features: [
-      "Unlimited chatbots",
-      "Unlimited messages",
-      "Advanced customization",
-      "Priority support",
-      "Custom branding",
-      "Analytics dashboard",
-    ],
-    cta: "Start Free Trial",
-    popular: true,
-  },
-  {
-    name: "Enterprise",
-    price: "Custom",
-    features: [
-      "Everything in Pro",
-      "Custom integrations",
-      "Dedicated support",
-      "SLA guarantee",
-      "Custom AI training",
-      "Unlimited Data Sources",
-    ],
-    cta: "Contact Sales",
-    popular: false,
-  },
-]
+
 
 export default function PricingSection() {
   return (
@@ -58,7 +14,7 @@ export default function PricingSection() {
           <p className="text-xl text-neutral-300">Choose the plan that's right for your business</p>
         </div>
         <div className="grid md:grid-cols-3 gap-8">
-          {plans.map((plan, index) => (
+          {pricingPlans.map((plan, index) => (
             <div
               key={index}
               className={`bg-neutral-800 rounded-lg p-8 shadow-lg ${
@@ -72,8 +28,8 @@ export default function PricingSection() {
               )}
               <h3 className="text-2xl font-bold text-white mb-4">{plan.name}</h3>
               <div className="mb-6">
-                <span className="text-4xl font-bold text-white">{plan.price}</span>
-                {plan.period && <span className="text-neutral-300">{plan.period}</span>}
+                <span className="text-4xl font-bold text-white">{plan.priceMonthly}</span>
+                <span className="text-neutral-300">/month</span>
               </div>
               <ul className="mb-8 space-y-2">
                 {plan.features.map((feature, idx) => (
@@ -87,7 +43,7 @@ export default function PricingSection() {
             href="/pricing"
             className="w-full block bg-indigo-600 hover:bg-indigo-500 text-center text-white py-2 px-4 rounded"
           >
-            {plan.cta}
+            {plan.popular ? "Get Started" : "Learn More"}
           </Link>
             </div>
           ))}

@@ -57,6 +57,14 @@ export default function PaymentCard({ planId, paymentAmount, planDetails }: Paym
     startTransition(async () => {
         console.log("Payment started");
       try {
+        if(!session) {
+            toast({
+                title: "Error",
+                description: "User not Logged in.",
+                variant: "destructive",
+              });
+              return router.push("/");
+        }
         const order = await createOrder(planId, paymentAmount,  planDetails.isAnnual);
         if (!order.success) {
           if (order.message === "User already subscribed") {
@@ -89,7 +97,7 @@ export default function PaymentCard({ planId, paymentAmount, planDetails }: Paym
         });
         console.log(key);
         const options = {
-          key: process.env.RAZORPAY_KEY_ID,
+          key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
           amount: order.order?.amount,
           currency: order.order?.currency,
           name: "Conversly.AI",
@@ -102,7 +110,7 @@ export default function PaymentCard({ planId, paymentAmount, planDetails }: Paym
           }) {
             console.log(response);
             const verify = await verifyPayment(
-
+              
                 response.razorpay_order_id, 
                 response.razorpay_payment_id,
                 response.razorpay_signature,

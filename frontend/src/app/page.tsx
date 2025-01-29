@@ -6,14 +6,18 @@ import PricingSection from "@/components/landing/pricing"
 import QuestionsSection from "@/components/landing/questions"
 import Footer from "@/components/landing/footer"
 import { TestimonialsSection }from "@/components/landing/testimonials"
+import Scalability from "@/components/landing/stats"
+import RelatedArticles from "@/components/landing/blogs"
 
 export default function landingPage() {
   return (
     <main className="min-h-screen bg-background">
       <Navbar />
       <FeaturesSection />
+      <Scalability />
       <HowItWorks />
       <PricingSection />
+      <RelatedArticles />
       <QuestionsSection />
       <TestimonialsSection />
       <Footer />

@@ -5,8 +5,8 @@ export const pricingPlans = [
       id: '4', // Plan ID
       name: 'Basic Plan',
       description: 'Ideal for small teams just getting started.',
-      priceMonthly: 1.99,
-      priceAnnually: 19.99,
+      priceMonthly: 149.99,
+      priceAnnually: 1499.99,
       features: [
         '3 Chatbots',
         'Basic Analytics',

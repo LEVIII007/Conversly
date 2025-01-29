@@ -1,20 +1,18 @@
 'use client';
-import { useState } from 'react';
+import { useState} from 'react';
 import { Message } from '@/components/chat/Message';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useChat } from 'ai/react';
 import { useParams } from 'next/navigation';
-import { z } from 'zod';
+
+
 
 export default function ChatPage() {
   const { id } = useParams();
   const [tone, setTone] = useState('friendly');
   const [prompt, setPrompt] = useState('');
-  const [input, setInput] = useState('');
-  const [errors, setErrors] = useState<string[]>([]);
-
-  const { messages, isLoading, handleSubmit } = useChat({
+  const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
     maxToolRoundtrips: 5,
     body: {
       chatbotID: id,
@@ -22,18 +20,6 @@ export default function ChatPage() {
       prompt,
     },
   });
-
-
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setInput(e.target.value);
-  };
-
-  const handlePromptChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setPrompt(e.target.value);
-  };
-
-
 
   return (
     <div className="flex-1 flex flex-col h-screen bg-background">
@@ -64,7 +50,7 @@ export default function ChatPage() {
       {/* Input Area */}
       <div className="border-t border-border p-6 bg-card">
         <form 
-          onSubmit={handleSubmit} 
+          onSubmit={handleSubmit}
           className="max-w-4xl mx-auto flex gap-4"
         >
           <Textarea
@@ -82,14 +68,6 @@ export default function ChatPage() {
             Send
           </Button>
         </form>
-        {/* Display errors if validation fails */}
-        {errors.length > 0 && (
-          <div className="mt-4 text-red-600 text-sm">
-            {errors.map((error, idx) => (
-              <p key={idx}>{error}</p>
-            ))}
-          </div>
-        )}
       </div>
     </div>
   );

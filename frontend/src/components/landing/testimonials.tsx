@@ -4,8 +4,8 @@ import { Star } from "lucide-react"
 
 const testimonials = [
   {
-    name: "Sarah Chen",
-    role: "Product Lead at Stripe",
+    name: "Shiddhesh Srirame",
+    role: "Code2Tech Founder",
     quote:
       "ConverslyAI has transformed how our team manages customer inquiries. The chatbot is intuitive, and the customization options help us maintain our brand voice.",
     initials: "S",
@@ -13,8 +13,8 @@ const testimonials = [
     textColor: "text-purple-500",
   },
   {
-    name: "Mark Williams",
-    role: "Engineering Director at Netflix",
+    name: "Raghvendra Singh",
+    role: "Git Buddy Founder",
     quote:
       "The efficiency gains we've seen since implementing ConverslyAI are remarkable. It's become an essential tool for our customer support workflow.",
     initials: "M",
@@ -22,8 +22,8 @@ const testimonials = [
     textColor: "text-blue-500",
   },
   {
-    name: "Alex Rodriguez",
-    role: "CTO at Dropbox",
+    name: "Nenavath Chandra",
+    role: "TechSavvy Founder",
     quote:
       "ConverslyAI's approach to AI-powered chatbots is refreshingly modern. The integration was smooth, and the results have been impressive.",
     initials: "A",
