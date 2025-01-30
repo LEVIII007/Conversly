@@ -4,13 +4,13 @@ import React, { useEffect, useRef } from "react"
 
 const articles = [
   {
-    id: 1,
+    id: 'how?',
     emoji: "🤖",
     category: ["AI", "Technology"],
     categoryColors: ["bg-blue-500/20 text-blue-400", "bg-purple-500/20 text-purple-400"],
     title: "The Future of AI in Customer Service: 2025 and Beyond",
     description: "Discover how AI is revolutionizing customer service and what to expect in the coming years.",
-    link: "#",
+    link: "/blog/how",
   },
   {
     id: 2,
