@@ -13,13 +13,13 @@ const articles = [
     link: "/blog/how",
   },
   {
-    id: 2,
+    id: 'creating-your-first-chatbot',
     emoji: "💡",
     category: ["Business", "ROI"],
     categoryColors: ["bg-green-500/20 text-green-400", "bg-yellow-500/20 text-yellow-400"],
     title: "Maximizing ROI with AI Chatbot Implementation",
     description: "Learn how businesses are achieving significant returns on their AI chatbot investments.",
-    link: "#",
+    link: "/blog/creating-your-first-chatbot",
   },
   {
     id: 3,
