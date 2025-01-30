@@ -33,6 +33,22 @@ export async function AuthStatus() {
   }
 }
 
+export async function getUserIdbyChatbotId(chatbotId: number) {
+  try {
+    const chatbot = await prisma.chatBot.findUnique({
+      where: { id: chatbotId },
+      select: {
+        userId: true
+      }
+    });
+
+    return chatbot?.userId;
+  } catch (error) {
+    console.error('Error fetching chatbot:', error);
+    return null;
+  }
+}
+
 // Get all chatbots for the profile page
 export async function getChatBots() {
   const session = await auth();

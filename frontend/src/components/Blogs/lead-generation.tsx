@@ -77,7 +77,14 @@ const Funnel = () => (
   </div>
 );
 
-const Metric = ({ title, value, color, desc }) => (
+interface MetricProps {
+  title: string;
+  value: string;
+  color: string;
+  desc: string;
+}
+
+const Metric = ({ title, value, color, desc }: MetricProps) => (
   <div className="bg-neutral-800 rounded-xl p-6">
     <div className="flex items-center justify-between mb-4">
       <h3 className="text-xl font-semibold">{title}</h3>

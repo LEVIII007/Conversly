@@ -13,6 +13,7 @@ import { Bot } from "lucide-react"
 import UpperHeader from "@/components/upperHeader"
 import { chatbotSchema } from "@/lib/zod"
 import { PromptGeneratorForm } from "@/components/PromptGeneratorForm"
+import { generatePrompt } from "@/lib/prompt-generation"
 // Zod schema for validation
 
 export default function CreatePage() {
@@ -25,6 +26,7 @@ export default function CreatePage() {
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
   const [systemPrompt, setSystemPrompt] = useState("you are a helpful assistant...")
+  const [promptIdeas, setPromptIdeas] = useState<string>("write a prompt for a customer support bot for a restaurent website...")
 
   // Error state for form fields
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -37,6 +39,27 @@ export default function CreatePage() {
       ...prevErrors,
       [fieldName]: result.success ? "" : result.error.errors[0].message,
     }))
+  }
+
+  const handleGeneratePrompt = async () => {
+    try {
+      const generatedPrompt = await generatePrompt(description)
+      if(!generatedPrompt) {
+        toast({
+          title: "Error",
+          description: "Failed to generate prompt",
+          variant: "destructive",
+        })
+        return;
+      }
+        setSystemPrompt(generatedPrompt)
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to generate prompt",
+        variant: "destructive",
+      })
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -166,7 +189,10 @@ export default function CreatePage() {
                   should interact.
                 </p>
               </div>
-              <PromptGeneratorForm />
+              <PromptGeneratorForm onGenerate={async (promptIdea: string) => {
+                // Handle the generated prompt idea
+                setSystemPrompt(promptIdea)
+              }} />
 
               <Button
                 type="submit"
