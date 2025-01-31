@@ -10,6 +10,8 @@ export interface ChatbotConfig {
   darkMode?: boolean;
   fontSize?: string;
   apiUrl?: string;
+  starter_questions : string[];
+  prompt : string;
   onSend?: (prompt: string) => boolean;
 }
 

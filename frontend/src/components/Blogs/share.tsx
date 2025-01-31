@@ -3,14 +3,17 @@
 import React from "react";
 
 const ShareButtons = () => {
+  const pageUrl = encodeURIComponent(window.location.href);
+  const pageTitle = encodeURIComponent(document.title || "Check this out!");
+
+  const twitterShareUrl = `https://twitter.com/intent/tweet?url=${pageUrl}&text=${pageTitle}`;
+  const linkedInShareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${pageUrl}`;
+  const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${pageUrl}`;
+
   const copyPageUrl = () => {
     navigator.clipboard.writeText(window.location.href)
-      .then(() => {
-        alert("Link copied to clipboard!");
-      })
-      .catch(err => {
-        console.error("Failed to copy link: ", err);
-      });
+      .then(() => alert("Link copied to clipboard!"))
+      .catch(err => console.error("Failed to copy link: ", err));
   };
 
   return (
@@ -20,17 +23,20 @@ const ShareButtons = () => {
           <h3 className="text-xl font-semibold text-neutral-900 mb-2">Share this article</h3>
           <div className="flex flex-wrap justify-center gap-4">
             {/* Twitter Share */}
-            <a href="#" className="flex items-center gap-2 px-6 py-3 bg-[#1DA1F2] text-white rounded-lg hover:bg-opacity-90 transition-all">
+            <a href={twitterShareUrl} target="_blank" rel="noopener noreferrer"
+              className="flex items-center gap-2 px-6 py-3 bg-[#1DA1F2] text-white rounded-lg hover:bg-opacity-90 transition-all">
               <span>Twitter</span>
             </a>
             
             {/* LinkedIn Share */}
-            <a href="#" className="flex items-center gap-2 px-6 py-3 bg-[#0A66C2] text-white rounded-lg hover:bg-opacity-90 transition-all">
+            <a href={linkedInShareUrl} target="_blank" rel="noopener noreferrer"
+              className="flex items-center gap-2 px-6 py-3 bg-[#0A66C2] text-white rounded-lg hover:bg-opacity-90 transition-all">
               <span>LinkedIn</span>
             </a>
             
             {/* Facebook Share */}
-            <a href="#" className="flex items-center gap-2 px-6 py-3 bg-[#1877F2] text-white rounded-lg hover:bg-opacity-90 transition-all">
+            <a href={facebookShareUrl} target="_blank" rel="noopener noreferrer"
+              className="flex items-center gap-2 px-6 py-3 bg-[#1877F2] text-white rounded-lg hover:bg-opacity-90 transition-all">
               <span>Facebook</span>
             </a>
             

@@ -11,7 +11,7 @@ export function ChatWidget() {
 
   useEffect(() => {
     const botConfig: ChatbotConfig = {
-      botId: "7",
+      botId: "10",
       color: "#569CCE",
       title: "DocsBot Support",
       apiUrl: process.env.API_SERVER_URL,
@@ -20,7 +20,9 @@ export function ChatWidget() {
       buttonText: "Chat with us",
       height: "500px",
       width: "350px",
+      starter_questions : ["What platforms does Conversly.ai integrate with?", "How do I embed a chatbot on my website?", "How does Conversly.ai work?"]
     };
+
     const script = document.createElement("script");
     script.src = "https://cloud-ide-shas.s3.us-east-1.amazonaws.com/docBot/chat1.js";
     script.async = true;
