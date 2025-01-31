@@ -96,8 +96,8 @@ export default function PaymentCard({ planId, paymentAmount, planDetails }: Paym
             })
           },
           prefill: {
-            name: session?.user?.name,
-            email: session?.user?.email,
+            name: "User Name",
+            email: "example@gmai.com",
           },
           theme: {
             color: "#3399cc",

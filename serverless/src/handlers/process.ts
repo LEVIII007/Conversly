@@ -31,7 +31,7 @@ async function readFileContent(file: Express.Multer.File): Promise<string> {
 
 
 export const processHandler = [
-  upload.fields([{ name: 'documents' }, { name: 'CSV' }]),
+  upload.fields([{ name: 'documents' }, { name: 'csvFiles' }]),
   async (req: Request, res: Response) => {
     try {
       const userID = req.body.userId;
@@ -125,7 +125,7 @@ export const processHandler = [
       
         // Add to dataSourcesToSave
         dataSourcesToSave.push({
-          type: 'CSV',
+          type: 'QandA',
           name: csvFile.originalname,
           sourceDetails: { question: qnaPairs.map((qna) => qna.question) },
         });

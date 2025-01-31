@@ -8,6 +8,10 @@ export async function fetchChatBot(id: number) {
   try {
     const chatbot = await prisma.chatBot.findUnique({
       where: { id },
+      select : {
+        System_Prompt : true,
+        name : true,
+      }
     });
 
     if (!chatbot) {
@@ -49,6 +53,75 @@ export async function getUserIdbyChatbotId(chatbotId: number) {
   }
 }
 
+export async function getChatbotWithOwnership(chatbotId: number) {
+  console.log("Fetching chatbot with ownership:", chatbotId);
+  try {
+    const session = await auth();
+    const chatbot = await prisma.chatBot.findUnique({
+      where: { id: chatbotId },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        System_Prompt: true,
+        createdAt: true,
+        userId: true,
+      }
+    });
+
+    if (!chatbot) {
+      return { status: "error", message: "Chatbot not found" };
+    }
+
+    if (chatbot.userId !== session?.user?.id) {
+      return { status: "error", message: "Unauthorized" };
+    }
+
+    const dataSources = await prisma.dataSource.findMany({
+      where: { chatbotId },
+      select: {
+        id: true,
+        type: true,
+        name: true,
+        sourceDetails: true,
+        createdAt: true,
+      },
+    });
+
+    return { status: "success", data: { chatbot, dataSources } };
+  } catch (error: unknown) {
+    console.error("Error fetching chatbot:", error);
+    return {
+      status: "error",
+      message: error instanceof Error ? error.message : "An unknown error occurred",
+    };
+  }
+}
+
+
+export async function validateChatbotOwnership(chatbotId: number) {
+  try {
+    const session = await auth();
+    if(!session){
+      return { data: false };
+    }
+    const chatbot = await prisma.chatBot.findUnique({
+      where: { id: chatbotId },
+      select: {
+        id: true,
+        System_Prompt: true,
+        name: true,
+        userId: true
+      }
+    });
+
+    return { data: chatbot, authorized : chatbot?.userId === session?.user?.id };
+  } catch (error) {
+    console.error('Error fetching chatbot:', error);
+    return { data: false };
+  }
+}
+
 // Get all chatbots for the profile page
 export async function getChatBots() {
   const session = await auth();
@@ -66,6 +139,7 @@ export async function getChatBots() {
         name: true,
         description: true,
         createdAt: true,
+        userId: true,
       },
     });
 

@@ -1,20 +1,20 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { 
-  Globe, FileText, Database, MessageSquare, 
-  Briefcase, Cloud, Mail, AlertCircle, Lock, Plus, X ,
+import {
+  Globe, FileText, Database, MessageSquare,
+  Briefcase, Cloud, Mail, AlertCircle, Lock, Plus, X,
 } from 'lucide-react';
 import { QADialog } from '@/components/chatbot/QADialog';
 import { addKnowledge } from "@/lib/process-data1";
 import { useToast } from "@/hooks/use-toast";
 import Papa from 'papaparse';
-import { documentSchema , csvSchema, urlSchema } from '@/lib/zod';
+import { documentSchema, csvSchema, urlSchema } from '@/lib/zod';
 const DATA_SOURCES = {
   productivity: [
     {
@@ -39,11 +39,11 @@ const DATA_SOURCES = {
       available: false
     },
     {
-      id : "CSV",
-      name : "CSV",
-      description : "Upload the QnA in bult in form of specially formatted csv file",
-      icon : FileText,
-      available : true
+      id: "CSV",
+      name: "CSV",
+      description: "Upload the QnA in bult in form of specially formatted csv file",
+      icon: FileText,
+      available: true
     }
   ],
   web: [
@@ -103,6 +103,7 @@ interface QAPair {
 }
 
 interface PendingSource {
+  id: string;
   type: 'Website' | 'Document' | 'QandA' | 'CSV';
   name: string;
   content?: File | string;
@@ -117,28 +118,38 @@ export function DataSourcesTab({ chatbotId }: { chatbotId: string }) {
   const handleAddFile = (files: FileList) => {
     const file = files[0];
     if (!file) return;
-  
-    // Use Zod to validate file name and size
+
+    // Validate file name and size
     const parsed = documentSchema.safeParse({ name: file.name, size: file.size });
     if (!parsed.success) {
       toast({
         title: 'Invalid document file',
-        description: parsed.error.errors[0].message, // Show detailed error
+        description: parsed.error.errors[0].message,
       });
       return;
     }
-  
-    // If valid, add to pending sources
+
+    // Add to pending sources
     setPendingSources((prev) => [
       ...prev,
-      { type: 'Document', name: file.name, content: file },
+      { type: 'Document', name: file.name, content: file, id: Date.now().toString() },
     ]);
+
+    // Reset file input value
+    const fileInput = document.getElementById(`file-upload-document`) as HTMLInputElement;
+    if (fileInput) {
+      fileInput.value = '';
+    }
   };
 
+
   const handleAddCsv = (files: FileList) => {
+    console.log("files", files);
     const file = files[0];
     if (!file) return;
-  
+
+    console.log("name", file.name)
+
     // Step 1: Validate file type and size
     const parsed = csvSchema.safeParse({ name: file.name, size: file.size });
     if (!parsed.success) {
@@ -148,7 +159,7 @@ export function DataSourcesTab({ chatbotId }: { chatbotId: string }) {
       });
       return;
     }
-  
+
     // Step 2: Parse the CSV and validate columns
     Papa.parse(file, {
       header: true,
@@ -156,7 +167,7 @@ export function DataSourcesTab({ chatbotId }: { chatbotId: string }) {
       complete: (results) => {
         const data = results.data;
         const headers = results.meta.fields;
-  
+
         // Ensure required columns are present
         if (!headers?.includes('Q') || !headers.includes('A')) {
           toast({
@@ -165,12 +176,17 @@ export function DataSourcesTab({ chatbotId }: { chatbotId: string }) {
           });
           return;
         }
-  
+
         // If valid, add to pending sources
         setPendingSources((prev) => [
           ...prev,
-          { type: 'CSV', name: file.name, content: file },
+          { type: 'CSV', name: file.name, content: file, id: Date.now().toString() },
         ]);
+
+        const fileInput = document.querySelector('CSV-file-upload') as HTMLInputElement;
+        if (fileInput) {
+          fileInput.value = ''; // Reset the file input
+        }
       },
       error: (error) => {
         toast({
@@ -184,22 +200,24 @@ export function DataSourcesTab({ chatbotId }: { chatbotId: string }) {
   const handleAddURL = (url: string) => {
     if (url.trim()) {
       const parsed = urlSchema.safeParse(url);
-      if(!parsed.success) {
+      if (!parsed.success) {
         toast({
           title: 'Invalid URL',
           description: parsed.error.errors[0].message,
         });
         return;
       }
-      setPendingSources(prev => [...prev, { 
+      setPendingSources(prev => [...prev, {
         type: 'Website',
-        name: url.trim()
+        name: url.trim(),
+        id: Date.now().toString()
       }]);
     }
   };
 
   const handleAddQA = (question: string, answer: string) => {
     setPendingSources(prev => [...prev, {
+      id: Date.now().toString(),
       type: 'QandA',
       name: question,
       content: answer
@@ -234,15 +252,18 @@ export function DataSourcesTab({ chatbotId }: { chatbotId: string }) {
       const csvData = pendingSources
         .filter(source => source.type === 'CSV')
         .map(source => ({
-          type: (source.content as File).type.includes('csv') ? 'csv' as const : 'txt' as const,
+          type: 'csv' as const, // Explicitly set type as 'csv'
           content: source.content as File,
         }));
 
-     const result =  await addKnowledge({ 
+      console.log("csvData", csvData);
+
+      const result = await addKnowledge({
         chatbotID: chatbotId,
         website_URL: websiteURLs,
         documents,
         qandaData,
+        CSV: csvData
       });
 
       if (result.processingStatus === 'success') {
@@ -282,6 +303,10 @@ export function DataSourcesTab({ chatbotId }: { chatbotId: string }) {
     }
   };
 
+  useEffect(() => {
+    console.log('Component re-rendered');
+  }, [pendingSources]);
+
   return (
     <div className="space-y-6">
       <Tabs defaultValue="productivity" className="w-full">
@@ -298,12 +323,10 @@ export function DataSourcesTab({ chatbotId }: { chatbotId: string }) {
               {sources.map((source) => (
                 <Card key={source.id} className="p-4">
                   <div className="flex items-start gap-4">
-                    <div className={`p-2 rounded-lg ${
-                      source.available ? 'bg-primary/10' : 'bg-muted'
-                    }`}>
-                      <source.icon className={`w-5 h-5 ${
-                        source.available ? 'text-primary' : 'text-muted-foreground'
-                      }`} />
+                    <div className={`p-2 rounded-lg ${source.available ? 'bg-primary/10' : 'bg-muted'
+                      }`}>
+                      <source.icon className={`w-5 h-5 ${source.available ? 'text-primary' : 'text-muted-foreground'
+                        }`} />
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
@@ -317,19 +340,19 @@ export function DataSourcesTab({ chatbotId }: { chatbotId: string }) {
                       <p className="text-sm text-muted-foreground mt-1">
                         {source.description}
                       </p>
-                      
+
                       {source.id === 'document' && source.available && (
                         <div className="mt-4">
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
+                          <Button
+                            variant="outline"
+                            size="sm"
                             className="w-full relative"
-                            onClick={() => document.getElementById(`file-upload-${source.id}`)?.click()}
+                            onClick={() => document.getElementById(`file-upload-document`)?.click()}
                           >
                             <FileText className="w-4 h-4 mr-2" />
                             Upload Document
                             <input
-                              id={`file-upload-${source.id}`}
+                              id="file-upload-document"
                               type="file"
                               className="hidden"
                               accept=".pdf,.docx,.txt,.md"
@@ -339,6 +362,7 @@ export function DataSourcesTab({ chatbotId }: { chatbotId: string }) {
                                 }
                               }}
                             />
+
                           </Button>
                           <div className="flex items-start gap-2 mt-2 text-xs text-muted-foreground">
                             <AlertCircle className="w-3 h-3 mt-0.5" />
@@ -349,8 +373,8 @@ export function DataSourcesTab({ chatbotId }: { chatbotId: string }) {
 
                       {source.id === 'qa' && source.available && (
                         <div className="mt-4">
-                          <Button 
-                            size="sm" 
+                          <Button
+                            size="sm"
                             variant="outline"
                             className="w-full"
                             onClick={() => setShowQADialog(true)}
@@ -363,16 +387,16 @@ export function DataSourcesTab({ chatbotId }: { chatbotId: string }) {
 
                       {source.id === 'CSV' && source.available && (
                         <div className="mt-4">
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
+                          <Button
+                            variant="outline"
+                            size="sm"
                             className="w-full relative"
-                            onClick={() => document.getElementById(`CSV-${source.id}`)?.click()}
+                            onClick={() => document.getElementById(`CSV-file-upload`)?.click()}
                           >
                             <FileText className="w-4 h-4 mr-2" />
                             Upload CSV
                             <input
-                              id={`CSV-${source.id}`}
+                              id={`CSV-file-upload`}
                               type="file"
                               className="hidden"
                               accept=".csv"
@@ -393,7 +417,7 @@ export function DataSourcesTab({ chatbotId }: { chatbotId: string }) {
 
                       {source.id === 'url' && source.available && (
                         <div className="mt-4 space-y-2">
-                          <Input 
+                          <Input
                             placeholder="Enter website URL"
                             onKeyDown={e => {
                               if (e.key === 'Enter') {
@@ -406,9 +430,9 @@ export function DataSourcesTab({ chatbotId }: { chatbotId: string }) {
                       )}
 
                       {!source.available && (
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
+                        <Button
+                          variant="outline"
+                          size="sm"
                           className="mt-4"
                           disabled
                         >
@@ -450,6 +474,12 @@ export function DataSourcesTab({ chatbotId }: { chatbotId: string }) {
                       <span>{source.name}</span>
                     </>
                   )}
+                  {source.type === 'CSV' && (
+                    <>
+                      <MessageSquare className="w-4 h-4" />
+                      <span>{source.name}</span>
+                    </>
+                  )}
                 </div>
                 <Button
                   variant="ghost"
@@ -461,7 +491,7 @@ export function DataSourcesTab({ chatbotId }: { chatbotId: string }) {
               </div>
             ))}
           </div>
-          <Button 
+          <Button
             onClick={handleSaveAllSources}
             className="w-full mt-4"
             disabled={isLoading}
@@ -471,7 +501,7 @@ export function DataSourcesTab({ chatbotId }: { chatbotId: string }) {
         </Card>
       )}
 
-      <QADialog 
+      <QADialog
         isOpen={showQADialog}
         onClose={() => setShowQADialog(false)}
         onSubmit={handleAddQA}

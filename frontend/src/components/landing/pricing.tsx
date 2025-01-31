@@ -40,7 +40,7 @@ export default function PricingSection() {
                 ))}
               </ul>
               <Link
-            href="/pricing"
+            href="/pricing?plan=monthly"
             className="w-full block bg-indigo-600 hover:bg-indigo-500 text-center text-white py-2 px-4 rounded"
           >
             {plan.popular ? "Get Started" : "Learn More"}

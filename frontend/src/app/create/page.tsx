@@ -9,11 +9,13 @@ import { useToast } from "@/hooks/use-toast"
 import { createChatBot } from "@/lib/process-data1"
 import { SignInDialog } from "@/components/auth/SignInDialog"
 import { useAuthGuard } from "@/hooks/use-auth-guard"
-import { Bot } from "lucide-react"
+import { Bot, Sparkles } from "lucide-react"
 import UpperHeader from "@/components/upperHeader"
 import { chatbotSchema } from "@/lib/zod"
-import { PromptGeneratorForm } from "@/components/PromptGeneratorForm"
 import { generatePrompt } from "@/lib/prompt-generation"
+import { PromptGeneratorForm } from "@/components/PromptGeneratorForm"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { useSession } from "next-auth/react"
 // Zod schema for validation
 
 export default function CreatePage() {
@@ -21,12 +23,13 @@ export default function CreatePage() {
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
   const { showSignIn, closeSignIn } = useAuthGuard()
+  const { data: session } = useSession()
 
   // Basic Info
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
   const [systemPrompt, setSystemPrompt] = useState("you are a helpful assistant...")
-  const [promptIdeas, setPromptIdeas] = useState<string>("write a prompt for a customer support bot for a restaurent website...")
+  const [isPromptDialogOpen, setIsPromptDialogOpen] = useState(false)
 
   // Error state for form fields
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -39,27 +42,6 @@ export default function CreatePage() {
       ...prevErrors,
       [fieldName]: result.success ? "" : result.error.errors[0].message,
     }))
-  }
-
-  const handleGeneratePrompt = async () => {
-    try {
-      const generatedPrompt = await generatePrompt(description)
-      if(!generatedPrompt) {
-        toast({
-          title: "Error",
-          description: "Failed to generate prompt",
-          variant: "destructive",
-        })
-        return;
-      }
-        setSystemPrompt(generatedPrompt)
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to generate prompt",
-        variant: "destructive",
-      })
-    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -118,92 +100,117 @@ export default function CreatePage() {
     }
   }
 
+  const handleGeneratePrompt = async (promptIdea: string) => {
+    try {
+      const generatedPrompt = await generatePrompt(promptIdea)
+      setSystemPrompt(generatedPrompt ?? "")
+      setIsPromptDialogOpen(false)
+    } catch (error) {
+      console.error("Error generating prompt:", error)
+      toast({
+        title: "Error",
+        description: "Failed to generate prompt. Please try again.",
+        variant: "destructive",
+      })
+    }
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 text-xl">
       <UpperHeader />
       <div className="flex-1 flex flex-col items-center py-16">
-        <div className="w-full max-w-3xl px-4">
-          <div className="mb-12"></div>
-          <div className="text-center mb-10">
-            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Bot className="w-8 h-8 text-primary" />
-            </div>
-            <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-indigo-600">
-              Create Your AI Assistant
-            </h1>
-            <p className="mt-3 text-muted-foreground text-lg">Design your perfect chatbot in minutes</p>
+      <div className="w-full max-w-3xl px-4">
+        <div className="mb-12"></div>
+        <div className="text-center mb-10">
+        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+          <Bot className="w-8 h-8 text-primary" />
+        </div>
+        <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-indigo-600">
+          Create Your AI Assistant
+        </h1>
+        <p className="mt-3 text-muted-foreground text-xl">Design your perfect chatbot in minutes</p>
+        </div>
+
+        <form
+        onSubmit={handleSubmit}
+        className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 shadow-2xl p-8 space-y-8 relative overflow-hidden"
+        >
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent" />
+
+        <div className="relative space-y-6">
+          <div>
+          <label className="block text-sm font-medium mb-2 text-foreground/80">Name</label>
+          <Input
+            value={name}
+            onChange={(e) => {
+            setName(e.target.value)
+            validateField("name", e.target.value)
+            }}
+            placeholder="Enter a name for your chatbot"
+            className="bg-background/50 backdrop-blur-sm border-border/50"
+            required
+          />
+          {errors.name && <p className="mt-2 text-sm text-red-500">{errors.name}</p>}
           </div>
 
-          <form
-            onSubmit={handleSubmit}
-            className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 shadow-2xl p-8 space-y-8 relative overflow-hidden"
+          <div>
+          <label className="block text-sm font-medium mb-2 text-foreground/80">Description</label>
+          <Textarea
+            value={description}
+            onChange={(e) => {
+            setDescription(e.target.value)
+            validateField("description", e.target.value)
+            }}
+            placeholder="Describe what your chatbot will help with"
+            className="bg-background/50 backdrop-blur-sm border-border/50"
+            required
+          />
+          {errors.description && <p className="mt-2 text-sm text-red-500">{errors.description}</p>}
+          </div>
+
+          <div>
+          <label className="block text-sm font-medium mb-2 text-foreground/80">System Prompt</label>
+          <Textarea
+            value={systemPrompt}
+            onChange={(e) => {
+            setSystemPrompt(e.target.value)
+            validateField("systemPrompt", e.target.value)
+            }}
+            placeholder="Define your chatbot's personality and behavior"
+            className="min-h-[150px] bg-background/50 backdrop-blur-sm border-border/50 resize-y"
+            required
+          />
+          {errors.systemPrompt && <p className="mt-2 text-sm text-red-500">{errors.systemPrompt}</p>}
+          <p className="mt-2 text-sm text-muted-foreground">
+            This prompt shapes your chatbot's personality and expertise. Be specific about its role and how it
+            should interact.
+          </p>
+          </div>
+          <Dialog open={isPromptDialogOpen} onOpenChange={setIsPromptDialogOpen}>
+          <DialogTrigger asChild>
+            <Button type="button" className="w-full">
+            <Sparkles className="w-4 h-4 mr-2" />
+            Generate Prompt
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+            <DialogTitle>Generate System Prompt</DialogTitle>
+            </DialogHeader>
+            <PromptGeneratorForm onGenerate={handleGeneratePrompt} />
+          </DialogContent>
+          </Dialog>
+
+          <Button
+          type="submit"
+          className="w-full h-12 text-lg font-medium bg-gradient-to-r from-primary to-indigo-600 hover:from-primary/90 hover:to-indigo-600/90 shadow-lg hover:shadow-xl transition-all duration-200"
+          disabled={isLoading}
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent" />
-
-            <div className="relative space-y-6">
-              <div>
-                <label className="block text-sm font-medium mb-2 text-foreground/80">Name</label>
-                <Input
-                  value={name}
-                  onChange={(e) => {
-                    setName(e.target.value)
-                    validateField("name", e.target.value)
-                  }}
-                  placeholder="Enter a name for your chatbot"
-                  className="bg-background/50 backdrop-blur-sm border-border/50"
-                  required
-                />
-                {errors.name && <p className="mt-2 text-sm text-red-500">{errors.name}</p>}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2 text-foreground/80">Description</label>
-                <Textarea
-                  value={description}
-                  onChange={(e) => {
-                    setDescription(e.target.value)
-                    validateField("description", e.target.value)
-                  }}
-                  placeholder="Describe what your chatbot will help with"
-                  className="bg-background/50 backdrop-blur-sm border-border/50"
-                  required
-                />
-                {errors.description && <p className="mt-2 text-sm text-red-500">{errors.description}</p>}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2 text-foreground/80">System Prompt</label>
-                <Textarea
-                  value={systemPrompt}
-                  onChange={(e) => {
-                    setSystemPrompt(e.target.value)
-                    validateField("systemPrompt", e.target.value)
-                  }}
-                  placeholder="Define your chatbot's personality and behavior"
-                  className="min-h-[150px] bg-background/50 backdrop-blur-sm border-border/50"
-                  required
-                />
-                {errors.systemPrompt && <p className="mt-2 text-sm text-red-500">{errors.systemPrompt}</p>}
-                <p className="mt-2 text-sm text-muted-foreground">
-                  This prompt shapes your chatbot's personality and expertise. Be specific about its role and how it
-                  should interact.
-                </p>
-              </div>
-              <PromptGeneratorForm onGenerate={async (promptIdea: string) => {
-                // Handle the generated prompt idea
-                setSystemPrompt(promptIdea)
-              }} />
-
-              <Button
-                type="submit"
-                className="w-full h-12 text-lg font-medium bg-gradient-to-r from-primary to-indigo-600 hover:from-primary/90 hover:to-indigo-600/90 shadow-lg hover:shadow-xl transition-all duration-200"
-                disabled={isLoading}
-              >
-                {isLoading ? "Creating..." : "Create Chatbot"}
-              </Button>
-            </div>
-          </form>
+          {isLoading ? "Creating..." : "Create Chatbot"}
+          </Button>
         </div>
+        </form>
+      </div>
       </div>
       <SignInDialog isOpen={showSignIn} onClose={closeSignIn} />
     </div>

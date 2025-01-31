@@ -1,8 +1,3 @@
-'use client'
-
-import React from "react"
-import { useTheme } from "next-themes"
-
 const plans = [
   { name: "Basic Plan", highlight: false },
   { name: "Pro Plan", highlight: true },
@@ -20,11 +15,10 @@ const features = [
 ]
 
 const FeatureComparison = () => {
-  const { theme } = useTheme()
-
   return (
-    <section id="featureComparison" className="py-20 bg-gradient-to-b from-gray-100 to-black dark:from-gray-900 dark:to-black">
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+    <section id="featureComparison" className="py-20 relative overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-b from-muted/50 to-background dark:from-muted"></div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="text-center mb-16 animate__animated animate__fadeIn">
           <h2 className="text-3xl font-bold text-foreground">Compare Features Across Plans</h2>
           <p className="mt-4 text-xl text-muted-foreground">Find the perfect plan for your business needs</p>
@@ -38,7 +32,7 @@ const FeatureComparison = () => {
                 {plans.map((plan, index) => (
                   <th
                     key={index}
-                    className={`px-6 py-4 text-center ${plan.highlight ? "bg-blue-600 text-white" : ""}`}
+                    className={`px-6 py-4 text-center ${plan.highlight ? "bg-blue-600 text-white dark:bg-blue-500" : ""}`}
                   >
                     {plan.name}
                   </th>
@@ -50,15 +44,33 @@ const FeatureComparison = () => {
                 <tr key={index} className="border-b border-border hover:bg-muted/50">
                   <td className="px-6 py-4 font-medium text-foreground">{feature.name}</td>
                   {feature.values.map((value, i) => (
-                    <td key={i} className={`px-6 py-4 text-center ${plans[i].highlight ? "bg-blue-100 dark:bg-blue-900" : ""}`}>
+                    <td
+                      key={i}
+                      className={`px-6 py-4 text-center ${plans[i].highlight ? "bg-blue-100 dark:bg-blue-900/50" : ""}`}
+                    >
                       {typeof value === "boolean" ? (
                         value ? (
-                          <svg className="w-6 h-6 text-green-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg
+                            className="w-6 h-6 text-green-500 dark:text-green-400 mx-auto"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                           </svg>
                         ) : (
-                          <svg className="w-6 h-6 text-red-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                          <svg
+                            className="w-6 h-6 text-red-500 dark:text-red-400 mx-auto"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              d="M6 18L18 6M6 6l12 12"
+                            />
                           </svg>
                         )
                       ) : (
@@ -83,3 +95,4 @@ const FeatureComparison = () => {
 }
 
 export default FeatureComparison
+

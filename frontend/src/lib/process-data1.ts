@@ -33,7 +33,8 @@ interface ChatBot {
   otherSources?: { type: string; name: string }[]; // Optional
 }
 
-const SERVER_URL = process.env.API_SERVER_URL ?? 'http://localhost:3001';
+// const SERVER_URL = process.env.API_SERVER_URL ?? 'http://localhost:3001';
+const SERVER_URL =  'http://localhost:3001';
 export async function createChatBot({
   name,
   description,
@@ -112,6 +113,11 @@ export async function addKnowledge({
   qandaData = [],
   CSV = [],
 }: addKnowledge) {
+  console.log('addKnowledge');
+  console.log(website_URL);
+  console.log(documents);
+  console.log(qandaData);
+  console.log(CSV);
   const session = await auth();
 
   try {

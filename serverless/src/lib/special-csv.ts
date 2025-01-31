@@ -1,4 +1,5 @@
 import csv from 'csv-parser';
+import { Readable } from 'stream';
 
 interface QnAPair {
   question: string;
@@ -11,7 +12,7 @@ export const processCSV = async (file: Express.Multer.File): Promise<QnAPair[]> 
     const stream = file.buffer.toString('utf-8');
 
     // Create a readable stream from the file buffer
-    const readable = require('stream').Readable.from(stream);
+    const readable = Readable.from(stream);
 
     readable
       .pipe(csv())
@@ -29,11 +30,9 @@ export const processCSV = async (file: Express.Multer.File): Promise<QnAPair[]> 
 // Example usage for multiple CSV files
 export const processMultipleCSVs = async (files: Express.Multer.File[]): Promise<QnAPair[]> => {
   const allQnAPairs: QnAPair[] = [];
-
   for (const file of files) {
-    const fileQnAPairs = await processCSV(file); // Process each CSV file
-    allQnAPairs.push(...fileQnAPairs); // Merge results into one array
+    const qnaPairs = await processCSV(file);
+    allQnAPairs.push(...qnaPairs);
   }
-
   return allQnAPairs;
 };

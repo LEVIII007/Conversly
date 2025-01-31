@@ -6,12 +6,11 @@ import { getAnalytics } from '@/lib/queries';
 
 
 interface AnalyticsData {
-  responses: number | null;
-  likes: number | null;
-  dislikes: number | null;
+  responses: number;
+  likes: number;
+  dislikes: number;
   citations: Record<string, number>;
 }
-
 
 export function AnalyticsTab({ chatbotId }: { chatbotId: string }) {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
@@ -21,43 +20,57 @@ export function AnalyticsTab({ chatbotId }: { chatbotId: string }) {
     async function fetchAnalytics() {
       try {
         setLoading(true);
-  
+
         const response = await getAnalytics(parseInt(chatbotId));
-  
+
         if (!response) {
           console.error('Failed to fetch analytics: No response from server.');
-          setAnalytics(null);
+          setAnalytics({
+            responses: 0,
+            likes: 0,
+            dislikes: 0,
+            citations: {},
+          });
           return;
         }
-  
+
         if (response.responses === 0) {
           console.warn('No analytics data found for the chatbot. It may not have been used yet.');
-          setAnalytics(null);
+          setAnalytics({
+            responses: 0,
+            likes: 0,
+            dislikes: 0,
+            citations: {},
+          });
           return;
         }
-  
+
         // Assuming the response contains one record and matches the AnalyticsData structure
         const analyticsData: AnalyticsData = {
-          responses: response?.responses as number ?? null,
-          likes: response?.likes as number?? null,
-          dislikes: response?.dislikes as number ?? null,
+          responses: response?.responses ?? 0,
+          likes: response?.likes ?? 0,
+          dislikes: response?.dislikes ?? 0,
           citations: response?.citations ?? {},
         };
 
         setAnalytics(analyticsData);
       } catch (error) {
         console.error('Error fetching analytics:', error);
-        setAnalytics(null);
+        setAnalytics({
+          responses: 0,
+          likes: 0,
+          dislikes: 0,
+          citations: {},
+        });
       } finally {
         setLoading(false);
       }
     }
-  
+
     if (chatbotId) {
       fetchAnalytics();
     }
   }, [chatbotId]);
-  
 
   if (loading) {
     return <div className="flex items-center justify-center h-64">Loading...</div>;

@@ -6,6 +6,7 @@ import { AuthProvider } from '@/components/auth-provider';
 import type { ChatbotConfig } from '@/types/global';
 import { ChatWidget } from '@/components/ChatWidget';
 import {Toaster} from '@/components/ui/toaster';
+import { SessionProvider } from 'next-auth/react';
 
 export default function RootLayout({
   children,
@@ -19,12 +20,12 @@ export default function RootLayout({
         {/* Your existing head content */}
       </head>
       <body>
-        <AuthProvider>
+        <SessionProvider>
         <div className="min-h-screen bg-gray-50 dark:bg-gray-800">
           <main>{children}</main>
           <Toaster />
         </div>
-        </AuthProvider>
+        </SessionProvider>
         <ChatWidget />
       </body>
     </html>

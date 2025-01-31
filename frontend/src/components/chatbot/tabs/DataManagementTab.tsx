@@ -20,7 +20,7 @@ interface GroupedSources {
   Other: DataSource[];
 }
 
-export function DataManagementTab({ chatbotId }: { chatbotId: string }) {
+export function DataManagementTab({ chatbotId, dataSources }: { chatbotId: string, dataSources: DataSource[] }) {
   const [sources, setSources] = useState<GroupedSources>({
     Website: [],
     Document: [],
