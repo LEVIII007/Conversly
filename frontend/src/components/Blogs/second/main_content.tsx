@@ -1,4 +1,37 @@
 import React from "react";
+import { Highlight, themes } from 'prism-react-renderer';
+
+const renderCode = (code: string, language: string) => (
+  <Highlight
+    theme={themes.nightOwl}
+    code={code.trim()}
+    language={language}
+  >
+    {({ className, style, tokens, getLineProps, getTokenProps }) => (
+      <pre 
+        className="p-3 rounded-lg text-xs overflow-x-auto whitespace-pre" 
+        style={{ 
+          ...style,
+          maxWidth: '100%' // Ensure pre doesn't exceed container
+        }}
+      >
+        {tokens.map((line, i) => (
+          <div 
+            key={i} 
+            {...getLineProps({ line })}
+            className="whitespace-pre" // Prevent line wrapping
+          >
+            <span className="select-none opacity-50 mr-4">{i + 1}</span>
+            {line.map((token, key) => (
+              <span key={key} {...getTokenProps({ token })} />
+            ))}
+          </div>
+        ))}
+      </pre>
+    )}
+  </Highlight>
+);
+
 
 export function BlogContent() {
   return (
@@ -47,6 +80,67 @@ export function BlogContent() {
             <strong>For a Specific Page:</strong> Paste the script only on the pages where you want the chatbot to be active.
           </li>
         </ul>
+
+        <h2 className="text-3xl font-bold mb-8 mt-12">Example Implementation (React)</h2>
+        <p className="mb-6">
+          Here’s how you can implement the chatbot on a React-based website:
+        </p>
+        <div className="relative border rounded-lg max-w-[1000px]"> {/* Fixed width container */}
+            <div className="overflow-x-auto"> {/* Scrollable wrapper */}
+        {renderCode(
+          `'use client';
+
+import { useEffect, useState } from 'react';
+import type { ChatbotConfig } from '@/types/global';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+export function ChatWidget() {
+  const [, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const botConfig: ChatbotConfig = {
+      botId: "1",
+      color: "#569CCE",
+      title: "DocsBot Support",
+      apiUrl: process.env.API_SERVER_URL_GET_IT_FOR_FREE_FROM_SITE!,
+      welcomeMessage: "👋 Hi! I'm your DocsBot assistant. How can I help you today?",
+      buttonAlign: "left" as const,
+      buttonText: "Chat with us",
+      height: "500px",
+      width: "350px",
+      prompt: "",
+      starter_questions: []
+    };
+
+    const script = document.createElement("script");
+    script.src = "";
+    script.async = true;
+    script.onload = () => {
+      if (window.DocsBotAI) {
+        window.DocsBotAI.init(botConfig);
+      }
+    };
+
+    const script2 = document.createElement("script");
+    script2.src = "https://cdn.jsdelivr.net/npm/marked/marked.min.js";
+    script2.async = true;
+
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css";
+
+    document.head.appendChild(script);
+    document.head.appendChild(script2);
+    document.head.appendChild(link);
+  }, []);
+
+  return null;
+}`
+          , 'javascript')}
+          </div>
+          </div>
         
         <h2 className="text-3xl font-bold mb-8 mt-12">Congratulations! 🎉</h2>
         <p className="mb-6">
