@@ -8,6 +8,7 @@ import { ProcessRequestBody } from '../lib/types.js';
 import multer from 'multer';
 import { Request } from 'express';
 import { processMultipleCSVs } from '../lib/special-csv.js';
+import { improveChunks } from '../lib/embeddings.js';
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -69,8 +70,11 @@ export const processHandler = [
           sourceDetails: { type: getContentType(file.originalname) },
         });
 
-        return chunks.map((chunk) => ({
-          text: chunk.text,
+
+
+        const improvedChunksResult = await improveChunks(chunks.map((chunk) => chunk.text));
+        return improvedChunksResult.map((chunk) => ({
+          text: chunk,
           source: file.originalname,
         }));
       });
@@ -92,6 +96,7 @@ export const processHandler = [
           type: 'website',
         });
 
+
         dataSourcesToSave.push({
           type: 'Website',
           name: url,
@@ -99,8 +104,9 @@ export const processHandler = [
         });
 
 
-        return chunks.map((chunk) => ({
-          text: chunk.text,
+        const improvedChunksResult = await improveChunks(chunks.map((chunk) => chunk.text));
+        return improvedChunksResult.map((chunk) => ({
+          text: chunk,
           source: url,
         }));
       });
