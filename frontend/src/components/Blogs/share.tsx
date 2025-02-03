@@ -2,13 +2,14 @@
 
 import React from "react";
 
-const ShareButtons = () => {
-  const pageUrl = encodeURIComponent(window.location.href);
-  const pageTitle = encodeURIComponent(document.title || "Check this out!");
+const ShareButtons = ({blogId} : {blogId : string}) => {
+  const pageUrl = encodeURIComponent(`https://conversly.shashankkk.site/blog/${blogId}`);
+const pageTitle = encodeURIComponent("Check out this amazing article on Conversly.ai!");
 
-  const twitterShareUrl = `https://twitter.com/intent/tweet?url=${pageUrl}&text=${pageTitle}`;
-  const linkedInShareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${pageUrl}`;
-  const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${pageUrl}`;
+const twitterShareUrl = `https://twitter.com/intent/tweet?url=${pageUrl}&text=${pageTitle}`;
+const linkedInShareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${pageUrl}`;
+const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${pageUrl}`;
+
 
   const copyPageUrl = () => {
     navigator.clipboard.writeText(window.location.href)

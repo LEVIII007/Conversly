@@ -9,7 +9,7 @@ export default function BlogPage() {
     <div>
       <BlogHero />
       <BlogContent />
-      <ShareButtons />
+      <ShareButtons blogId="creating-your-first-chatbot" />
       <NavigationButtons />
     </div>
   );

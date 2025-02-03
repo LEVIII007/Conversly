@@ -11,11 +11,11 @@ export function ChatWidget() {
 
   useEffect(() => {
     const botConfig: ChatbotConfig = {
-      botId: "1",
+      botId: "10",
       color: "#569CCE",
-      title: "DocsBot Support",
+      title: "Conversly Support",
       apiUrl: process.env.NEXT_PUBLIC_API_SERVER_URL,
-      welcomeMessage: "👋 Hi! I'm your DocsBot assistant. How can I help you today?",
+      welcomeMessage: "👋 Hi! I'm your Conversly assistant. How can I help you today?",
       buttonAlign: "left" as const,
       buttonText: "Chat with us",
       height: "500px",
