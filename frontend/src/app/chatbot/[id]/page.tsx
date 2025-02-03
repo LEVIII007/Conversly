@@ -11,7 +11,7 @@ import { DataManagementTab } from '@/components/chatbot/tabs/DataManagementTab';
 import { SettingsTab } from '@/components/chatbot/tabs/SettingsTab';
 import { ChatbotHeader } from '@/components/chatbot/ChatbotHeader';
 import { useToast } from '@/hooks/use-toast';
-import { getChatbotWithOwnership, getAnalytics, updateSystemPrompt, deleteKnowledge, DeleteChatBot } from '@/lib/queries';
+import { getChatbotWithOwnership, fetchDataSources } from '@/lib/queries';
 import { AnalyticsTab } from '@/components/chatbot/tabs/AnalyticsTab';
 import UpperHeader from '@/components/upperHeader';
 import Footer from '@/components/landing/footer';
@@ -68,6 +68,15 @@ export default function ChatbotCustomizationPage() {
     router.push(`/chat/${id}`);
   };
 
+  const refreshData = async () => {
+    setTimeout(() => {
+    }, 20000);
+    const updated = await fetchDataSources(Number(id));
+    setDataSources(updated);
+  };
+
+
+
 
   // handleAddDataSource = async (sourceType: string) => {
   // handleUpdateSystemPrompt = async (newPrompt: string) => {
@@ -108,11 +117,11 @@ export default function ChatbotCustomizationPage() {
             </TabsList>
 
             <TabsContent value="data" className="border rounded-lg">
-              <DataSourcesTab chatbotId={id?.toString() ?? ''} />
+              <DataSourcesTab chatbotId={id?.toString() ?? ''} onDataAdded={refreshData} />
             </TabsContent>
 
             <TabsContent value="data-management" className="border rounded-lg">
-              <DataManagementTab chatbotId={id?.toString() ?? ''} dataSources={dataSources} />
+              <DataManagementTab chatbotId={id?.toString() ?? ''} dataSources={dataSources} onDataDeleted={refreshData} />
             </TabsContent>
 
             <TabsContent value="customize" className="border rounded-lg">

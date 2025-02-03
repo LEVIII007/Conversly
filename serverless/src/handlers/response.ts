@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { google } from '@ai-sdk/google';
 import { CoreMessage, generateText, tool } from 'ai';
 import { z } from 'zod';
-import { searchDocumentation, updateResponse } from '../lib/db.js';
+import { searchDocumentation, updateAnalytics, updateResponse } from '../lib/db.js';
 
 
 export async function responseHandler(req: Request, res: Response) {
@@ -13,7 +13,7 @@ export async function responseHandler(req: Request, res: Response) {
     if (!message || !chatbotId) {
       return res.status(400).json({ error: 'Message and chatbotId are required' });
     }
-
+    const citations : string[] = [];
 
     const result = await generateText({
       model: google('gemini-1.5-flash-002'),
@@ -82,17 +82,28 @@ export async function responseHandler(req: Request, res: Response) {
           }),
           execute: async ({ prompt }) => {
             const result = await searchDocumentation(prompt, chatbotId);
+            result.forEach(item => {
+              if (item.citation) {
+              citations.push(item.citation);
+              }
+            });
             return result;
+            },
+          }),
           },
-        }),
-      },
-      maxSteps: 2,
-    });
-    console.log("++++++++++++++++result++++++++++++++++++++");
-    await updateResponse(chatbotId);
-    // console.log(result);
-    return res.json({ answer : result.text });
-
+          maxSteps: 2,
+        });
+        console.log("++++++++++++++++result++++++++++++++++++++");
+        try {
+          if (citations.length == 0) {
+          await updateResponse(chatbotId);
+          } else {
+          await updateAnalytics(chatbotId, citations);
+          }
+        } catch (updateError) {
+          console.error('Error in update operations:', updateError);
+        }
+        return res.json({ answer: result.text, citations : citations });
   } catch (error) {
     console.error('Error in response handler:', error);
     // If headers haven't been sent, send error response

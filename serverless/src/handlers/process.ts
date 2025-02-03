@@ -53,9 +53,15 @@ export const processHandler = [
       const chatbotId = parseInt(chatbotID);
       
       let allChunks: { text: string; source: string }[] = [];
-      let dataSourcesToSave: { type: string; name: string; sourceDetails: any }[] = [];
+      // Build an array of data sources to be saved with the new top‑level citation field.
+      let dataSourcesToSave: {
+        type: string;
+        name: string;
+        sourceDetails: any;
+        citation: string;
+      }[] = [];
 
-      // Parallel processing
+      // Process documents in parallel
       const documentPromises = documents.map(async (file) => {
         const content = await readFileContent(file);
         const chunks = await splitDocument(content, 'semantic', {
@@ -63,86 +69,84 @@ export const processHandler = [
           type: 'document',
         });
 
-        // Add to dataSourcesToSave
+        // For documents, use the file name for citation.
         dataSourcesToSave.push({
           type: 'Document',
           name: file.originalname,
           sourceDetails: { type: getContentType(file.originalname) },
+          citation: file.originalname,
         });
 
-
-
-        const improvedChunksResult = await improveChunks(chunks.map((chunk) => chunk.text));
-        return improvedChunksResult.map((chunk) => ({
+        const improvedChunksResult = await improveChunks(chunks.map(chunk => chunk.text));
+        return improvedChunksResult.map(chunk => ({
           text: chunk,
-          source: file.originalname,
+          source: file.originalname,  // will match the data source by name
         }));
       });
 
+      // Process websites in parallel
       const websitePromises = websiteURL.map(async (url) => {
         const response = await fetch(`${process.env.CRAWL_API_URL}/crawl`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ urls: [url] }),
         });
-
         if (!response.ok) {
           throw new Error('Failed to fetch website content');
         }
-
         const content = await response.json();
         const chunks = await splitDocument(content[0], 'semantic', {
           source: url,
           type: 'website',
         });
 
-
         dataSourcesToSave.push({
           type: 'Website',
           name: url,
           sourceDetails: { url },
+          citation: url,
         });
 
-
-        const improvedChunksResult = await improveChunks(chunks.map((chunk) => chunk.text));
-        return improvedChunksResult.map((chunk) => ({
+        const improvedChunksResult = await improveChunks(chunks.map(chunk => chunk.text));
+        return improvedChunksResult.map(chunk => ({
           text: chunk,
           source: url,
         }));
       });
 
+      // Process Q&A pairs (manual input)
       const qnaPromises = qandaData.map((qa) => {
-        // Add to dataSourcesToSave
+        // For Q&A, use the question as the citation for each pair.
         dataSourcesToSave.push({
           type: 'QandA',
           name: 'Q&A Pairs',
-          sourceDetails: { question: qandaData.map((qa) => qa.question) },
+          sourceDetails: { questions: qandaData.map((qa: any) => qa.question) },
+          citation: qa.question,
         });
-      
+
         return {
           text: `Question: ${qa.question}\nAnswer: ${qa.answer}`,
-          source: qa.question,
+          source: qa.question,  // Note: this source field might not match a data source name.
         };
       });
-      
 
+      // Process CSV files in parallel
       const csvPromises = csvFiles.map(async (csvFile) => {
         const qnaPairs = await processMultipleCSVs([csvFile]);
-      
-        // Add to dataSourcesToSave
         dataSourcesToSave.push({
           type: 'QandA',
           name: csvFile.originalname,
-          sourceDetails: { question: qnaPairs.map((qna) => qna.question) },
+          sourceDetails: { questions: qnaPairs.map(qna => qna.question) },
+          citation: csvFile.originalname,
         });
-      
-        return qnaPairs.map((qna) => ({
+
+        return qnaPairs.map(qna => ({
           text: `${qna.question}\n${qna.answer}`,
-          source: qna.question,
+          source: csvFile.originalname, // Use CSV filename as the source
         }));
       });
 
-      // Wait for all promises to complete
+      // Wait for all promises to complete and flatten the results
       allChunks = [
         ...(await Promise.all(documentPromises)).flat(),
         ...(await Promise.all(websitePromises)).flat(),
@@ -154,33 +158,30 @@ export const processHandler = [
         const texts = allChunks.map(chunk => chunk.text);
         const embeddings = await generateEmbeddings(texts);
 
-        // Prepare data for bulk insert
+        // Prepare embeddingsData: each chunk uses the matching DataSource name as topic.
         const embeddingsData = allChunks.map((chunk, i) => ({
-          userId: userID,
+          userId: Number(userID),
           chatbotId,
-          topic: chunk.source,
+          topic: dataSourcesToSave.find(ds => ds.name === chunk.source)?.name || chunk.source,
           text: chunk.text,
           embedding: embeddings[i],
         }));
 
+        // Prepare dataSourcesData: include the new citation field.
         const dataSourcesData = dataSourcesToSave.map(source => ({
           chatbotId,
           type: source.type as "Website" | "QandA" | "Document" | "CSV",
           name: source.name,
           sourceDetails: source.sourceDetails,
+          citation: source.citation,
         }));
 
-        // Perform bulk inserts in parallel
-        // await Promise.all([
-        //   bulkSaveEmbeddings(embeddingsData),
-        //   bulkSaveDataSources(dataSourcesData),
-        // ]);
-
+        // Perform bulk inserts in parallel using the updated function.
         await bulkSaveEmbeddingsAndDataSources(embeddingsData, dataSourcesData);
 
-
-        
         return res.status(200).json({ status: 'success' });
+      } else {
+        return res.status(400).json({ error: 'No content to process' });
       }
     } catch (error) {
       console.error('Error in process handler:', error);
@@ -188,6 +189,7 @@ export const processHandler = [
     }
   }
 ];
+
 
 
 // export const processHandler = [

@@ -109,7 +109,7 @@ interface PendingSource {
   content?: File | string;
 }
 
-export function DataSourcesTab({ chatbotId }: { chatbotId: string }) {
+export function DataSourcesTab({ chatbotId, onDataAdded }: { chatbotId: string; onDataAdded: () => void }) {
   const { toast } = useToast();
   const [pendingSources, setPendingSources] = useState<PendingSource[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -276,6 +276,7 @@ export function DataSourcesTab({ chatbotId }: { chatbotId: string }) {
           // Reset after successful upload
           setPendingSources([]);
         }, 5000); // Simulate 2 seconds of loading
+        onDataAdded();
       } else {
         toast({
           title: 'Error',

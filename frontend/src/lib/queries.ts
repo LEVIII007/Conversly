@@ -234,27 +234,29 @@ export async function UpdateKnowledgeBase({ id }: { id: number }) {
 }
 
 // Delete specific knowledge from a chatbot
-export const deleteKnowledge = async (id: number, topic: string) => {
+export const deleteKnowledge = async (chatbotId: number, datasourceId: number) => {
   const session = await auth();
   try {
     if (!session?.user?.id) {
       throw new Error('User is not authenticated.');
     }
 
-    // First delete the embeddings
-    await prisma.embeddings.deleteMany({
-      where: {
-        chatbotid: id,
-        topic: topic,
-      },
-    });
+    await prisma.$transaction(async (tx) => {
+      // First, delete the embeddings associated with the given chatbot and datasource
+      await tx.embeddings.deleteMany({
+        where: {
+          chatbotid: chatbotId,
+          dataSourceId: datasourceId,
+        },
+      });
 
-    // Then delete the data source using the name field
-    await prisma.dataSource.deleteMany({
-      where: {
-        chatbotId: id,
-        name: topic,
-      },
+      // Then, delete the DataSource record
+      await tx.dataSource.deleteMany({
+        where: {
+          chatbotId: chatbotId,
+          id: datasourceId, // use id field since that's the primary key in DataSource
+        },
+      });
     });
 
     return { status: 'success' };
@@ -266,6 +268,7 @@ export const deleteKnowledge = async (id: number, topic: string) => {
     return { status: 'error', message: 'An unknown error occurred' };
   }
 };
+
 
 // Fetch all data sources
 export const fetchDataSources = async (id: number) => {
@@ -281,6 +284,7 @@ export const fetchDataSources = async (id: number) => {
         name: true,
         sourceDetails: true,
         createdAt: true,
+        citation: true,
       },
     });
     console.log(dataSources);
@@ -321,22 +325,102 @@ export async function updateSystemPrompt(id: number, systemPrompt: string) {
 
 export async function getAnalytics(chatbotid: number) {
   try {
-    // Fetch analytics records for the given chatbotId
-    const analytics = await prisma.analytics.findMany({
+    // Fetch analytics record for the given chatbotId
+    const analytics = await prisma.analytics.findUnique({
       where: { chatbotid },
       select: {
+        id: true, // Get the analytics ID to fetch citations
         responses: true,
         likes: true,
         dislikes: true,
-        citations: true,
       },
     });
 
-    // Check if data exists, return empty array if none found
-    return analytics && analytics.length > 0 ? analytics[0] : {responses: 0, likes: 0, dislikes: 0, citations: {}};
+    if (!analytics) {
+      return { responses: 0, likes: 0, dislikes: 0, citations: [] };
+    }
+
+    // Fetch citations for this analytics record
+    const citations = await prisma.citation.findMany({
+      where: { chatbotid: chatbotid },
+      select: {
+        source: true,
+        count: true,
+      },
+    });
+
+    return {
+      responses: analytics.responses,
+      likes: analytics.likes,
+      dislikes: analytics.dislikes,
+      citations,
+    };
   } catch (error) {
     console.error('Error fetching analytics:', error);
-    return null; // Return null on error
+    return { responses: 0, likes: 0, dislikes: 0, citations: [] }; // Return empty data on error
+  }
+}
+
+
+
+export async function addCitation(chatbotId: number, dataSourceId: number, citation: string) {
+  try {
+    const result = await prisma.$transaction(async (prismaTx) => {
+      // Step 1: Verify the DataSource exists
+      const dataSource = await prismaTx.dataSource.findUnique({
+        where: { id: dataSourceId },
+        select: { citation: true },
+      });
+      if (!dataSource) {
+        throw new Error('Data source not found');
+      }
+
+      // Step 2: Update the citation field in DataSource
+      const updatedDataSource = await prismaTx.dataSource.update({
+        where: { id: dataSourceId },
+        data: { citation },
+      });
+
+      // Step 3: Update the citation field in all related embeddings
+      await prismaTx.embeddings.updateMany({
+        where: { dataSourceId },
+        data: { citation },
+      });
+
+      return updatedDataSource;
+    });
+
+    return result;
+  } catch (error) {
+    console.error('Error adding citation:', error);
+    return null;
+  }
+}
+
+
+
+// queries.ts or similar
+export async function fetchEmbeddingsForSource(dataSourceId: number): Promise<{ id: number; text: string; topic: string }[]> {
+  try {
+    const embeddings = await prisma.embeddings.findMany({
+      where: {
+        dataSourceId
+      },
+      select: {
+        id : true,
+        text: true,
+        topic : true
+      }
+    });
+
+    return embeddings.map((embedding: { id: number; text: string; topic: string }) => ({
+      id: embedding.id,
+      text: embedding.text,
+      topic: embedding.topic
+    }));
+  } catch (error) {
+    console.error('Error fetching embeddings:', error);
+    return [];
   }
 }
 

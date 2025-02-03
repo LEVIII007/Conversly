@@ -113,15 +113,16 @@ export async function bulkSaveEmbeddingsAndDataSources(
   embeddings: Array<{
     userId: number;
     chatbotId: number;
-    topic: string;
+    topic: string;    // This should match the corresponding DataSource name
     text: string;
     embedding: number[];
   }>,
   sources: Array<{
     chatbotId: number;
-    type: 'Website' | 'Document' | 'QandA' | 'CSV';
+    type: 'Website' | 'QandA' | 'Document' | 'CSV';
     name: string;
     sourceDetails: any;
+    citation: string;  // New field to store citation directly
   }>
 ) {
   const client = await pool.connect();
@@ -129,84 +130,92 @@ export async function bulkSaveEmbeddingsAndDataSources(
   try {
     await client.query('BEGIN');
 
-    // Step 1: Bulk save embeddings
+    // Step 1: Bulk insert data sources with the new citation column.
+    const sourceValues: any[] = [];
+    const sourceValueClauses = sources.map((item, index) => {
+      const baseIndex = index * 5;
+      sourceValues.push(
+        item.chatbotId,
+        item.type,
+        item.name,
+        JSON.stringify(item.sourceDetails),
+        item.citation
+      );
+      return `($${baseIndex + 1}, $${baseIndex + 2}, $${baseIndex + 3}, $${baseIndex + 4}, $${baseIndex + 5})`;
+    }).join(',');
+
+    const sourcesQueryText = `
+      INSERT INTO "DataSource" ("chatbotId", type, name, "sourceDetails", citation)
+      VALUES ${sourceValueClauses}
+      RETURNING id, name, citation
+    `;
+
+    const sourceResult = await client.query(sourcesQueryText, sourceValues);
+
+    // Build a mapping from data source name to its inserted id and citation
+    const sourceMapping: { [name: string]: { id: number; citation: string } } = {};
+    for (const row of sourceResult.rows) {
+      sourceMapping[row.name] = { id: row.id, citation: row.citation };
+    }
+
+    // Step 2: Bulk insert embeddings, setting dataSourceId and citation from the mapping.
     const embeddingValues: any[] = [];
     const embeddingValueClauses = embeddings.map((item, index) => {
-      const baseIndex = index * 5;
+      const baseIndex = index * 7;
+      // Lookup the corresponding DataSource ID using item.topic (which should match the DataSource name)
+      const mapping = sourceMapping[item.topic];
+      const dataSourceId = mapping ? mapping.id : null;
+      // For citation, you may choose to use the DataSource's citation.
+      const citationValue = mapping ? mapping.citation : item.topic;
       embeddingValues.push(
         item.userId,
         item.chatbotId,
         item.topic,
         item.text,
-        JSON.stringify(item.embedding) // Convert the array to a JSON string
+        JSON.stringify(item.embedding),
+        dataSourceId,
+        citationValue
       );
-      return `($${baseIndex + 1}, $${baseIndex + 2}, $${baseIndex + 3}, $${baseIndex + 4}, $${baseIndex + 5})`;
-    });
+      return `($${baseIndex + 1}, $${baseIndex + 2}, $${baseIndex + 3}, $${baseIndex + 4}, $${baseIndex + 5}, $${baseIndex + 6}, $${baseIndex + 7})`;
+    }).join(',');
 
     const embeddingsQueryText = `
-      INSERT INTO embeddings ("userId", "chatbotid", "topic", "text", "embedding")
-      VALUES ${embeddingValueClauses.join(',')}
+      INSERT INTO embeddings ("userId", "chatbotid", topic, text, embedding, "dataSourceId", citation)
+      VALUES ${embeddingValueClauses}
     `;
 
     await client.query(embeddingsQueryText, embeddingValues);
 
-    // Step 2: Bulk save data sources
-    const sourceValues = sources.map((item, index) => 
-      `($${index * 4 + 1}, $${index * 4 + 2}, $${index * 4 + 3}, $${index * 4 + 4})`
-    ).join(',');
-
-    const sourceParams = sources.flatMap(item => [
-      item.chatbotId,
-      item.type,
-      item.name,
-      item.sourceDetails
-    ]);
-
-    const sourcesQueryText = `
-      INSERT INTO "DataSource" ("chatbotId", type, name, "sourceDetails")
-      VALUES ${sourceValues}
-    `;
-
-    await client.query(sourcesQueryText, sourceParams);
-
-    // Commit the transaction
     await client.query('COMMIT');
   } catch (error) {
-    // Rollback the transaction on error
     await client.query('ROLLBACK');
     console.error('Error in bulk save transaction:', error);
     throw error;
   } finally {
-    // Release the client back to the pool
     client.release();
   }
 }
 
+
 interface SearchResult {
-  topic: string;
   text: string;
+  citation : string;
 }
 
 export async function searchDocumentation(
   prompt: string,
   chatbotId: number,
   limit: number = 3
-): Promise<string> {
+): Promise<{ citation: string; text: string }[]> {
   try {
     // Get embedding for the search query
     const genAI = new GoogleGenerativeAI(config.GEMINI_API_KEY);
     const model = genAI.getGenerativeModel({ model: "text-embedding-004" });
-    // const googleai = new GoogleGenerativeAI(process.env.API_KEY as string).getGenerativeModel({
-    //   model: "text-embedding-004",
-    // });
     const result = await model.embedContent(prompt);
     const queryEmbedding = result.embedding.values;
 
-    console.log(prompt)
-    console.log(queryEmbedding)
-
     const queryText = `
-      SELECT topic, text
+      SELECT text, citation
       FROM embeddings 
       WHERE chatbotid = $1
       ORDER BY embedding <=> '[${queryEmbedding}]'
@@ -217,71 +226,49 @@ export async function searchDocumentation(
     const results = response.rows as SearchResult[];
 
     if (results.length === 0) {
-      return "No matching documentation found.";
+      return [];
     }
+    // const citations = results.map(row => row.citation);
+    // await updateAnalytics(chatbotId, citations);
 
-    // Extract topics from the results
-    const topics = results.map(row => row.topic);
-
-    // Update analytics with the found topics
-    await updateAnalytics(chatbotId, topics);
-
-    // Format the context string
-    let contextString = "\n\nRelevant Context:\n";
-    results.forEach((row, idx) => {
-      const topic = String(row.topic);
-      const text = String(row.text);
-      contextString += `\nSection ${idx + 1} (from ${topic}):\n${text}\n`;
-    });
-
-    return contextString;
+    // Return the results as an array of objects containing citation and text
+    return results.map(row => ({
+      citation: row.citation,
+      text: row.text
+    }));
 
   } catch (error) {
     console.error('Error in searchDocumentation:', error);
     throw error;
   }
-} 
+}
 
 
-export const updateAnalytics = async (chatbotId: number, topics: string[]) => {
+export const updateAnalytics = async (chatbotId: number, citations: string[]) => {
   const client = await pool.connect();
 
   try {
     await client.query('BEGIN');
 
-    // Fetch the current citations for the given chatbotId
-    const { rows } = await client.query(
-      `SELECT citations FROM analytics WHERE chatbotid = $1 FOR UPDATE`,
-      [chatbotId]
-    );
+    // This query:
+    // 1. Updates the analytics row for the given chatbot (incrementing responses) and returns its id.
+    // 2. Inserts multiple citation rows by unnesting the citations array.
+    // 3. On conflict (i.e. if a citation for that chatbot already exists) it increments the count.
+    const queryText = `
+      WITH updated AS (
+        UPDATE analytics
+        SET responses = responses + 1, updatedat = NOW()
+        WHERE chatbotid = $1
+        RETURNING id
+      )
+      INSERT INTO Citation (analyticsId, chatbotId, source, count, createdAt, updatedAt)
+      SELECT updated.id, $1, c, 1, NOW(), NOW()
+      FROM updated, unnest($2::text[]) AS c
+      ON CONFLICT (chatbotId, source)
+      DO UPDATE SET count = Citation.count + 1, updatedAt = NOW();
+    `;
 
-    // Parse the current citations (if any) or initialize as an empty object
-    let currentCitations = rows.length > 0 && rows[0].citations ? rows[0].citations : {};
-    if (typeof currentCitations === 'string') {
-      currentCitations = JSON.parse(currentCitations); // Handle stringified JSON (PostgreSQL might return this)
-    }
-
-    // Update citations with new topics
-    topics.forEach((topic) => {
-      if (currentCitations[topic]) {
-        currentCitations[topic] += 1; // Increment count if the topic exists
-      } else {
-        currentCitations[topic] = 1; // Add the topic with count = 1
-      }
-    });
-
-    // Update the `citations` column and increment `responses`
-    await client.query(
-      `
-      INSERT INTO analytics (chatbotid, citations)
-      VALUES ($1, $2, 1)
-      ON CONFLICT (chatbotid) 
-      DO UPDATE 
-      SET 
-        citations = $2::jsonb,
-      `,
-      [chatbotId, JSON.stringify(currentCitations)]
-    );
+    await client.query(queryText, [chatbotId, citations]);
 
     await client.query('COMMIT');
   } catch (error) {
@@ -292,7 +279,6 @@ export const updateAnalytics = async (chatbotId: number, topics: string[]) => {
     client.release();
   }
 };
-
 
 
 

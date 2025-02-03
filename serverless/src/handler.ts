@@ -26,9 +26,9 @@ app.post('/process', ...processHandler);
 app.post('/feedback', feedbackHandler);
 
 app.post('/response', responseHandler);
-// app.listen(port, () => {
-//   console.log(`Server is running at http://localhost:${port}`);
-// });
+app.listen(port, () => {
+  console.log(`Server is running at http://localhost:${port}`);
+});
 
 
-export const handler = serverless(app);
+// export const handler = serverless(app);
