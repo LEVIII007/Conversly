@@ -4,6 +4,7 @@ import { prisma } from '../../prisma';
 import { auth } from '../../auth';
 import dotenv from 'dotenv';
 import { redirect } from 'next/navigation';
+import { subscriptionStatus } from './subscription-provider';
 
 dotenv.config();
 
@@ -42,27 +43,28 @@ export async function createChatBot({
 }: ChatBot) {
   const session = await auth();
 
+  // Ensure the user is authenticated.
+  if (!session || !session.user?.id) {
+    throw new Error('User is not authenticated.');
+  }
+
   try {
-    // Check if the user already has 5 chatbots
-    const userChatbotsCount = await prisma.chatBot.count({
-      where: {
-        userId: session?.user?.id,
-      },
-    });
+    const result = await prisma.$transaction(async (prismaTx) => {
+      // Check subscription status and determine the chatbot limit.
+      const isSubscribed = await subscriptionStatus(session?.user?.id as string);
+      const chatbotLimit = isSubscribed ? 10 : 2;
 
-    if (userChatbotsCount >= 1) {
-      throw new Error('You have reached the maximum number of chatbots allowed.');
-    }
+      // Count the existing chatbots for the user.
+      const userChatbotsCount = await prismaTx.chatBot.count({
+        where: { userId: session?.user?.id },
+      });
 
-    // Ensure the user is authenticated
-    if (!session || !session?.user?.id) {
-      throw new Error('User is not authenticated.');
-    }
+      if (userChatbotsCount >= chatbotLimit) {
+        throw new Error('You have reached the maximum number of chatbots allowed.');
+      }
 
-    // Step 1: Create the chatbot and analytics row in a transaction
-    const result = await prisma.$transaction(async (prisma) => {
-      // Create the chatbot
-      const chatbot = await prisma.chatBot.create({
+      // Create the chatbot.
+      const chatbot = await prismaTx.chatBot.create({
         data: {
           name,
           description,
@@ -71,10 +73,10 @@ export async function createChatBot({
         },
       });
 
-      // Initialize the analytics row for the chatbot
-      const analytics = await prisma.analytics.create({
+      // Initialize the analytics row for the new chatbot.
+      await prismaTx.analytics.create({
         data: {
-          chatbotid: chatbot.id, // Link to the newly created chatbot
+          chatbotid: chatbot.id, // Link to the newly created chatbot.
           responses: 0,
           likes: 0,
           dislikes: 0,
@@ -82,22 +84,15 @@ export async function createChatBot({
         },
       });
 
-      return { chatbot, analytics };
+      return { chatbot, processingStatus: 'success' };
     });
 
-    return { chatbot: result.chatbot, processingStatus: 'success' };
+    return result;
   } catch (error: any) {
-    if (error.message === 'You have reached the maximum number of chatbots allowed.') {
-      console.error('Error creating chatbot:', error.message);
-      throw new Error('You have reached the maximum number of chatbots allowed.');
-    } else {
-      console.error('Error creating chatbot:', error.message);
-      throw new Error(`Error creating chatbot: ${error.message}`);
-    }
+    console.error('Error creating chatbot:', error.message);
+    throw new Error(`Error creating chatbot: ${error.message}`);
   }
 }
-
-
 interface addKnowledge {
   chatbotID: string;
   website_URL?: string[];
@@ -125,6 +120,8 @@ export async function addKnowledge({
     if (!session || !session?.user?.id) {
       throw new Error('User is not authenticated.');
     }
+    const isSubscribed = await subscriptionStatus(session.user.id);
+    const maxDataSources = isSubscribed ? 25 : 2;
 
     // Check if the user has exceeded the maximum number of data sources
     const existingSourcesCount = await prisma.dataSource.count({
@@ -133,7 +130,7 @@ export async function addKnowledge({
       },
     });
 
-    if (existingSourcesCount + website_URL.length + documents.length + qandaData.length > 2) {
+    if (existingSourcesCount + website_URL.length + documents.length + qandaData.length + CSV.length > maxDataSources) {
       throw new Error('You have reached the maximum number of data sources allowed for this chatbot.');
     }
 

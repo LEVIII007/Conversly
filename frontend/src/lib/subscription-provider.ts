@@ -3,15 +3,11 @@ import { prisma } from "../../prisma"
 import { auth } from "../../auth"
 import { redirect } from "next/navigation";
 
-export async function subscriptionStatus() {
+export async function subscriptionStatus(userId : string) {
     try {
-        const session = await auth();
-        if (!session) {
-            return redirect('/login');
-        }
         const status = await prisma.subscribedusers.findFirst({
             where: {
-                userid: session?.user?.id,
+                userid: userId,
             },
         });
 
