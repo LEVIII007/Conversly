@@ -353,7 +353,7 @@ export async function getAnalytics(chatbotid: number) {
       responses: analytics.responses,
       likes: analytics.likes,
       dislikes: analytics.dislikes,
-      citations,
+      citations : citations || [{ source: "No citations", count: 0 }],
     };
   } catch (error) {
     console.error('Error fetching analytics:', error);

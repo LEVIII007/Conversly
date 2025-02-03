@@ -80,7 +80,6 @@ export async function createChatBot({
           responses: 0,
           likes: 0,
           dislikes: 0,
-          citations: {},
         },
       });
 
