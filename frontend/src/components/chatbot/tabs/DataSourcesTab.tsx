@@ -234,30 +234,30 @@ export function DataSourcesTab({ chatbotId, onDataAdded }: { chatbotId: string; 
       const websiteURLs = pendingSources
         .filter(source => source.type === 'Website')
         .map(source => source.name);
-
+  
       const documents = pendingSources
         .filter(source => source.type === 'Document')
         .map(source => ({
           type: (source.content as File).type.includes('pdf') ? 'pdf' as const : 'txt' as const,
           content: source.content as File,
         }));
-
+  
       const qandaData = pendingSources
         .filter(source => source.type === 'QandA')
         .map(source => ({
           question: source.name,
           answer: source.content as string
         }));
-
+  
       const csvData = pendingSources
         .filter(source => source.type === 'CSV')
         .map(source => ({
-          type: 'csv' as const, // Explicitly set type as 'csv'
+          type: 'csv' as const,
           content: source.content as File,
         }));
-
+  
       console.log("csvData", csvData);
-
+  
       const result = await addKnowledge({
         chatbotID: chatbotId,
         website_URL: websiteURLs,
@@ -265,30 +265,38 @@ export function DataSourcesTab({ chatbotId, onDataAdded }: { chatbotId: string; 
         qandaData,
         CSV: csvData
       });
-
+  
       if (result.processingStatus === 'success') {
-        // Simulate a brief delay
         setTimeout(() => {
           toast({
             title: 'Success',
             description: 'Data sources added successfully. Data Source will be available shortly',
           });
-          // Reset after successful upload
+          
+          // Reset sources after toast is shown
           setPendingSources([]);
-        }, 5000); // Simulate 2 seconds of loading
-        onDataAdded();
+  
+          // Enable submit button after 5 seconds
+          setIsLoading(false);
+        }, 5000);
+  
+        setTimeout(() => {
+          onDataAdded();
+        }, 10000);
       } else {
         toast({
           title: 'Error',
           description: 'Failed to add data sources',
           variant: 'destructive',
         });
+  
+        setIsLoading(false);
       }
     } catch (error) {
       if (error instanceof Error && error.message.includes('maximum number of data sources')) {
         toast({
           title: 'Error',
-          description: 'You have reached the maximum number of data sources allowed for this chatbot in the free tier.  Only 2 data sources are allowed.',
+          description: 'You have reached the maximum number of data sources allowed for this chatbot in the free tier. Only 2 data sources are allowed.',
           variant: 'destructive',
         });
       } else {
@@ -299,10 +307,10 @@ export function DataSourcesTab({ chatbotId, onDataAdded }: { chatbotId: string; 
         });
         console.error('Error adding sources:', error);
       }
-    } finally {
       setIsLoading(false);
     }
   };
+  
 
   useEffect(() => {
     console.log('Component re-rendered');

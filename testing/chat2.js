@@ -387,7 +387,7 @@
             body: JSON.stringify({
               message: message,
               chatbotId: this.config.botId,
-              prompt: "be a helpful assistant",
+              prompt: this.config.prompt ?? "be a helpful assistant",
             }),
           });
   

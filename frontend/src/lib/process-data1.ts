@@ -34,8 +34,8 @@ interface ChatBot {
   otherSources?: { type: string; name: string }[]; // Optional
 }
 
-// const SERVER_URL = process.env.API_SERVER_URL ?? 'http://localhost:3001';
-const SERVER_URL =  'http://localhost:3001';
+const SERVER_URL = process.env.API_SERVER_URL ?? 'http://localhost:3001';
+// const SERVER_URL =  'http://localhost:3001';
 export async function createChatBot({
   name,
   description,
@@ -92,6 +92,7 @@ export async function createChatBot({
     throw new Error(`Error creating chatbot: ${error.message}`);
   }
 }
+
 interface addKnowledge {
   chatbotID: string;
   website_URL?: string[];
@@ -128,6 +129,7 @@ export async function addKnowledge({
         chatbotId: parseInt(chatbotID),
       },
     });
+
 
     if (existingSourcesCount + website_URL.length + documents.length + qandaData.length + CSV.length > maxDataSources) {
       throw new Error('You have reached the maximum number of data sources allowed for this chatbot.');
