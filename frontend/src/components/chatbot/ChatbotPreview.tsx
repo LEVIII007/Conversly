@@ -13,7 +13,7 @@ interface ChatbotPreviewProps {
   displayStyle: "corner" | "overlay"
   customIcon: string | null
   starterQuestions: string[]
-  HeaderText : string
+  HeaderText: string
 }
 
 export function ChatbotPreview({
@@ -40,16 +40,26 @@ export function ChatbotPreview({
   }
 
   const IconComponent = () =>
-    customIcon ? <img src={customIcon || "/placeholder.svg"} alt="Custom icon" className="w-8 h-8" /> : selectedIcon
+    customIcon ? (
+      <img src={customIcon || "/placeholder.svg"} alt="Custom icon" className="w-8 h-8" />
+    ) : (
+      selectedIcon
+    )
 
   const HeaderIconComponent = () =>
-    customIcon ? <img src={customIcon || "/placeholder.svg"} alt="Custom icon" className="w-10 h-10" /> : selectedIcon
+    customIcon ? (
+      <img src={customIcon || "/placeholder.svg"} alt="Custom icon" className="w-10 h-10" />
+    ) : (
+      selectedIcon
+    )
 
   return (
-    <div className={`w-[450px] border rounded-lg bg-white dark:bg-gray-800 overflow-hidden h-[600px] ${displayStyle}`}>
+    <div
+      className={`w-[450px] h-[600px] border rounded-xl bg-white dark:bg-gray-800 overflow-hidden ${displayStyle}`}
+    >
       {/* Chat Window */}
       {isExpanded && (
-        <div className="relative">
+        <div className="relative h-full">
           {/* Header */}
           <div className="p-4 flex items-center justify-between" style={{ backgroundColor: color }}>
             <div className="flex items-center gap-3">
@@ -60,25 +70,32 @@ export function ChatbotPreview({
             </div>
             <button onClick={() => setIsExpanded(false)} className="text-white/80 hover:text-white">
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </div>
 
           {/* Chat Area */}
           <div className="h-[460px] overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-gray-900">
-            {/* Starter Questions */}
-            {starterQuestions.filter((q) => q).length > 0 && (
-              <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 mb-4">
-                <h4 className="text-sm font-medium mb-2">Suggested Questions:</h4>
-                <div className="space-y-2">
+            {/* Starter Questions (Improved UI) */}
+            {starterQuestions.filter((q) => q.trim()).length > 0 && (
+              <div className="p-3 mb-4 bg-gray-100 dark:bg-gray-700 rounded-lg shadow-sm">
+                <h4 className="text-sm font-medium text-gray-800 dark:text-gray-200 mb-2">
+                  Suggested Questions:
+                </h4>
+                <div className="flex flex-wrap gap-2">
                   {starterQuestions
-                    .filter((q) => q)
+                    .filter((q) => q.trim())
                     .map((question, index) => (
                       <button
                         key={index}
-                        className="block w-full text-left text-sm p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                         onClick={() => handleStarterQuestionClick(question)}
+                        className="px-3 py-1 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-full transition transform hover:scale-105 hover:bg-gray-200 dark:hover:bg-gray-600"
                       >
                         {question}
                       </button>
@@ -89,7 +106,10 @@ export function ChatbotPreview({
 
             {/* Bot Welcome Message */}
             <div className="flex gap-3">
-              <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: color }}>
+              <div
+                className="w-8 h-8 rounded-full flex items-center justify-center"
+                style={{ backgroundColor: color }}
+              >
                 <IconComponent />
               </div>
               <div className="max-w-[80%]">
@@ -101,7 +121,10 @@ export function ChatbotPreview({
 
             {/* Chat Messages */}
             {messages.map((message, index) => (
-              <div key={index} className={`flex gap-3 ${message.role === "user" ? "justify-end" : ""}`}>
+              <div
+                key={index}
+                className={`flex gap-3 ${message.role === "user" ? "justify-end" : ""}`}
+              >
                 {message.role === "bot" && (
                   <div
                     className="w-8 h-8 rounded-full flex items-center justify-center"
@@ -157,4 +180,3 @@ export function ChatbotPreview({
     </div>
   )
 }
-

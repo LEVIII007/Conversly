@@ -12,7 +12,7 @@ export function ChatWidget() {
   useEffect(() => {
     const botConfig: ChatbotConfig = {
       botId: "10",
-      color: "#569CCE",
+      color: "#0047AB",
       title: "Conversly Support",
       apiUrl: process.env.NEXT_PUBLIC_API_SERVER_URL,
       welcomeMessage: "👋 Hi! I'm your Conversly assistant. How can I help you today?",
