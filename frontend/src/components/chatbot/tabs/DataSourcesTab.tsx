@@ -9,12 +9,20 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import {
   Globe, FileText, Database, MessageSquare,
   Briefcase, Cloud, Mail, AlertCircle, Lock, Plus, X,
+  Upload, ArrowRight, Info
 } from 'lucide-react';
 import { QADialog } from '@/components/chatbot/QADialog';
 import { addKnowledge } from "@/lib/process-data1";
 import { useToast } from "@/hooks/use-toast";
 import Papa from 'papaparse';
 import { documentSchema, csvSchema, urlSchema } from '@/lib/zod';
+import { motion } from "framer-motion";
+// import {
+//   Tooltip,
+//   TooltipContent,
+//   TooltipTrigger,
+// } from "@/components/ui/tooltip";
+
 const DATA_SOURCES = {
   productivity: [
     {
@@ -109,11 +117,39 @@ interface PendingSource {
   content?: File | string;
 }
 
+const dataSources = [
+  {
+    title: "Website Import",
+    description: "Train your assistant on your website content",
+    icon: Globe,
+    type: "website",
+    features: ["Automatic crawling", "Regular updates", "Structured data"],
+    gradient: "from-pink-500/10 via-purple-500/10 to-blue-500/10",
+  },
+  {
+    title: "Document Upload",
+    description: "Upload PDFs, DOCs, and other files",
+    icon: Upload,
+    type: "document",
+    features: ["Multiple formats", "Batch upload", "Text extraction"],
+    gradient: "from-blue-500/10 via-purple-500/10 to-pink-500/10",
+  },
+  {
+    title: "API Integration",
+    description: "Connect to external data sources",
+    icon: Database,
+    type: "api",
+    features: ["Real-time sync", "Custom endpoints", "Secure access"],
+    gradient: "from-purple-500/10 via-pink-500/10 to-blue-500/10",
+  },
+]
+
 export function DataSourcesTab({ chatbotId, onDataAdded }: { chatbotId: string; onDataAdded: () => void }) {
   const { toast } = useToast();
   const [pendingSources, setPendingSources] = useState<PendingSource[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showQADialog, setShowQADialog] = useState(false);
+  const [selectedType, setSelectedType] = useState<string | null>(null);
 
   const handleAddFile = (files: FileList) => {
     const file = files[0];
@@ -317,199 +353,179 @@ export function DataSourcesTab({ chatbotId, onDataAdded }: { chatbotId: string; 
   }, [pendingSources]);
 
   return (
-    <div className="space-y-6">
-      <Tabs defaultValue="productivity" className="w-full">
-        <TabsList className="mb-6">
-          <TabsTrigger value="productivity">Productivity</TabsTrigger>
-          <TabsTrigger value="web">Web</TabsTrigger>
-          <TabsTrigger value="cloud">Cloud Storage</TabsTrigger>
-          <TabsTrigger value="business">Business</TabsTrigger>
+    <div className="space-y-8">
+      {/* Introduction */}
+      <div className="bg-gray-900/60 backdrop-blur-sm border border-gray-800/60 rounded-2xl p-6">
+        <h2 className="font-heading text-xl text-white mb-2">Knowledge Sources</h2>
+        <p className="font-sans text-base text-gray-400">
+          Enhance your AI assistant by adding different types of knowledge sources.
+        </p>
+      </div>
+
+      {/* Main Tabs */}
+      <Tabs defaultValue="productivity" className="space-y-6">
+        <TabsList className="bg-gray-900/60 p-1 rounded-xl">
+          <TabsTrigger 
+            value="productivity" 
+            className="font-sans text-base data-[state=active]:bg-gradient-to-r from-pink-500 to-purple-500 data-[state=active]:text-white"
+          >
+            Productivity
+          </TabsTrigger>
+          <TabsTrigger 
+            value="web"
+            className="font-sans text-base data-[state=active]:bg-gradient-to-r from-pink-500 to-purple-500 data-[state=active]:text-white"
+          >
+            Web
+          </TabsTrigger>
+          <TabsTrigger 
+            value="cloud"
+            className="font-sans text-base data-[state=active]:bg-gradient-to-r from-pink-500 to-purple-500 data-[state=active]:text-white"
+          >
+            Cloud
+          </TabsTrigger>
+          <TabsTrigger 
+            value="business"
+            className="font-sans text-base data-[state=active]:bg-gradient-to-r from-pink-500 to-purple-500 data-[state=active]:text-white"
+          >
+            Business
+          </TabsTrigger>
         </TabsList>
 
+        {/* Tab Contents */}
         {Object.entries(DATA_SOURCES).map(([category, sources]) => (
-          <TabsContent key={category} value={category}>
-            <div className="grid md:grid-cols-2 gap-4">
+          <TabsContent key={category} value={category} className="mt-0">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
               {sources.map((source) => (
-                <Card key={source.id} className="p-4">
-                  <div className="flex items-start gap-4">
-                    <div className={`p-2 rounded-lg ${source.available ? 'bg-primary/10' : 'bg-muted'
-                      }`}>
-                      <source.icon className={`w-5 h-5 ${source.available ? 'text-primary' : 'text-muted-foreground'
-                        }`} />
+                <motion.div
+                  key={source.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="group relative"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-purple-500/5 to-purple-500/10 rounded-2xl" />
+                  
+                  <div className="relative bg-gray-900/60 backdrop-blur-sm border border-gray-800/60 rounded-2xl p-6 h-full transition-all duration-300 hover:border-pink-500/20">
+                    <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-br from-pink-500/10 via-purple-500/10 to-blue-500/10 mb-4">
+                      <source.icon className="w-6 h-6 text-pink-500" />
                     </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-medium">{source.name}</h3>
-                        {!source.available && (
-                          <span className="text-xs bg-muted px-2 py-0.5 rounded-full">
-                            Coming Soon
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {source.description}
-                      </p>
 
-                      {source.id === 'document' && source.available && (
-                        <div className="mt-4">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="w-full relative"
-                            onClick={() => document.getElementById(`file-upload-document`)?.click()}
-                          >
-                            <FileText className="w-4 h-4 mr-2" />
-                            Upload Document
-                            <input
-                              id="file-upload-document"
-                              type="file"
-                              className="hidden"
-                              accept=".pdf,.docx,.txt,.md"
-                              onChange={(e) => {
-                                if (e.target.files?.length) {
-                                  handleAddFile(e.target.files);
-                                }
-                              }}
-                            />
-
-                          </Button>
-                          <div className="flex items-start gap-2 mt-2 text-xs text-muted-foreground">
-                            <AlertCircle className="w-3 h-3 mt-0.5" />
-                            <span>Supports PDF, Word, TXT, MD. Max 10MB</span>
-                          </div>
-                        </div>
-                      )}
-
-                      {source.id === 'qa' && source.available && (
-                        <div className="mt-4">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="w-full"
-                            onClick={() => setShowQADialog(true)}
-                          >
-                            <Plus className="w-4 h-4 mr-2" />
-                            Add Q&A Pair
-                          </Button>
-                        </div>
-                      )}
-
-                      {source.id === 'CSV' && source.available && (
-                        <div className="mt-4">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="w-full relative"
-                            onClick={() => document.getElementById(`CSV-file-upload`)?.click()}
-                          >
-                            <FileText className="w-4 h-4 mr-2" />
-                            Upload CSV
-                            <input
-                              id={`CSV-file-upload`}
-                              type="file"
-                              className="hidden"
-                              accept=".csv"
-                              onChange={(e) => {
-                                if (e.target.files?.length) {
-                                  handleAddCsv(e.target.files);
-                                }
-                              }}
-                            />
-                          </Button>
-                          <div className="flex items-start gap-2 mt-2 text-xs text-muted-foreground">
-                            <AlertCircle className="w-3 h-3 mt-0.5" />
-                            <span>Supports .csv files with 2 columns : Q, A</span>
-                          </div>
-                        </div>
-                      )}
-
-
-                      {source.id === 'url' && source.available && (
-                        <div className="mt-4 space-y-2">
-                          <Input
-                            placeholder="Enter website URL"
-                            onKeyDown={e => {
-                              if (e.key === 'Enter') {
-                                handleAddURL((e.target as HTMLInputElement).value);
-                                (e.target as HTMLInputElement).value = '';
-                              }
-                            }}
-                          />
-                        </div>
-                      )}
-
+                    <h3 className="font-heading text-lg font-semibold text-white mb-2">
+                      {source.name}
                       {!source.available && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="mt-4"
-                          disabled
-                        >
-                          <Lock className="w-3 h-3 mr-2" />
-                          Premium Feature
-                        </Button>
+                        <span className="ml-2 inline-flex items-center">
+                          <Lock className="w-4 h-4 text-gray-400" />
+                        </span>
                       )}
-                    </div>
+                    </h3>
+
+                    <p className="font-sans text-base text-gray-400 mb-4">
+                      {source.description}
+                    </p>
+
+                    {source.available ? (
+                      source.id === 'document' ? (
+                        <label className="cursor-pointer">
+                          <input
+                            type="file"
+                            id={`file-upload-${source.id}`}
+                            className="hidden"
+                            onChange={(e) => e.target.files && handleAddFile(e.target.files)}
+                          />
+                          <Button 
+                            className="w-full bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:opacity-90 rounded-xl group"
+                          >
+                            Upload Document
+                            <Upload className="ml-2 w-4 h-4 group-hover:translate-y-[-2px] transition-transform" />
+                          </Button>
+                        </label>
+                      ) : source.id === 'CSV' ? (
+                        <label className="cursor-pointer">
+                          <input
+                            type="file"
+                            id={`file-upload-${source.id}`}
+                            className="hidden"
+                            onChange={(e) => e.target.files && handleAddCsv(e.target.files)}
+                            accept=".csv"
+                          />
+                          <Button 
+                            className="w-full bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:opacity-90 rounded-xl group"
+                          >
+                            Upload CSV
+                            <Upload className="ml-2 w-4 h-4 group-hover:translate-y-[-2px] transition-transform" />
+                          </Button>
+                        </label>
+                      ) : source.id === 'qa' ? (
+                        <Button
+                          onClick={() => setShowQADialog(true)}
+                          className="w-full bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:opacity-90 rounded-xl group"
+                        >
+                          Add Q&A Pairs
+                          <Plus className="ml-2 w-4 h-4 group-hover:rotate-90 transition-transform" />
+                        </Button>
+                      ) : (
+                        <Button 
+                          className="w-full bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:opacity-90 rounded-xl group"
+                        >
+                          Connect
+                          <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                        </Button>
+                      )
+                    ) : (
+                      <Button 
+                        disabled 
+                        className="w-full bg-gray-800 text-gray-400 cursor-not-allowed rounded-xl"
+                      >
+                        Coming Soon
+                      </Button>
+                    )}
                   </div>
-                </Card>
+                </motion.div>
               ))}
             </div>
           </TabsContent>
         ))}
       </Tabs>
 
+      {/* Pending Sources */}
       {pendingSources.length > 0 && (
-        <Card className="mt-8 p-4">
-          <h3 className="font-medium mb-4">Pending Sources</h3>
-          <div className="space-y-2">
-            {pendingSources.map((source, index) => (
-              <div key={index} className="flex items-center justify-between bg-muted/50 p-2 rounded-lg">
-                <div className="flex items-center gap-2">
-                  {source.type === 'Document' && (
-                    <>
-                      <FileText className="w-4 h-4" />
-                      <span>{source.name}</span>
-                    </>
-                  )}
-                  {source.type === 'Website' && (
-                    <>
-                      <Globe className="w-4 h-4" />
-                      <span>{source.name}</span>
-                    </>
-                  )}
-                  {source.type === 'QandA' && (
-                    <>
-                      <MessageSquare className="w-4 h-4" />
-                      <span>{source.name}</span>
-                    </>
-                  )}
-                  {source.type === 'CSV' && (
-                    <>
-                      <MessageSquare className="w-4 h-4" />
-                      <span>{source.name}</span>
-                    </>
-                  )}
+        <div className="bg-gray-900/60 backdrop-blur-sm border border-gray-800/60 rounded-2xl p-6">
+          <h3 className="font-heading text-lg text-white mb-4">Pending Sources</h3>
+          <div className="space-y-3">
+            {pendingSources.map((source) => (
+              <motion.div
+                key={source.id}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="flex items-center justify-between bg-gray-800/50 rounded-xl p-4"
+              >
+                <div className="flex items-center gap-3">
+                  <FileText className="w-5 h-5 text-pink-500" />
+                  <span className="font-sans text-base text-white">{source.name}</span>
                 </div>
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => handleRemoveSource(index)}
+                  onClick={() => setPendingSources(prev => prev.filter(s => s.id !== source.id))}
+                  className="text-gray-400 hover:text-white hover:bg-gray-700"
                 >
                   <X className="w-4 h-4" />
                 </Button>
-              </div>
+              </motion.div>
             ))}
+            
+            <Button
+              onClick={handleSaveAllSources}
+              disabled={isLoading}
+              className="w-full bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:opacity-90 rounded-xl group mt-4"
+            >
+              {isLoading ? "Processing..." : "Process All Sources"}
+              <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </Button>
           </div>
-          <Button
-            onClick={handleSaveAllSources}
-            className="w-full mt-4"
-            disabled={isLoading}
-          >
-            {isLoading ? 'Saving...' : 'Save All Sources'}
-          </Button>
-        </Card>
+        </div>
       )}
 
+      {/* QA Dialog */}
       <QADialog
         isOpen={showQADialog}
         onClose={() => setShowQADialog(false)}

@@ -1,8 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Menu, User, Sun, Moon, LogOut } from 'lucide-react';
-import { useTheme } from '@/hooks/useTheme';
+import { Menu, User, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { useSession, signOut, signIn } from 'next-auth/react';
 import {
@@ -15,7 +14,6 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 export default function Header() {
-  const { theme, toggleTheme } = useTheme();
   const { data: session } = useSession();
   const [mounted, setMounted] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -84,20 +82,6 @@ export default function Header() {
 
           {/* Right Section */}
           <div className="flex items-center space-x-4">
-            {/* Theme Toggle */}
-            <Button
-              onClick={toggleTheme}
-              variant="ghost"
-              size="icon"
-              className="rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
-            >
-              {theme === 'dark' ? (
-                <Sun className="h-5 w-5" />
-              ) : (
-                <Moon className="h-5 w-5" />
-              )}
-            </Button>
-
             {/* User Menu */}
             {session ? (
               <DropdownMenu>

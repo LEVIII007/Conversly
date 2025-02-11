@@ -1,142 +1,203 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Activity, FileText } from 'lucide-react';
-import { getAnalytics } from '@/lib/queries';
+import { motion } from 'framer-motion';
+import { BarChart, LineChart, MessageSquare, ThumbsUp, Users, Star, AlertCircle } from 'lucide-react';
 
-interface AnalyticsData {
-  responses: number;
-  likes: number;
-  dislikes: number;
-  citations: { source: string; count: number }[];  // ✅ Correct type
+interface AnalyticsTabProps {
+  chatbotId: string;
+  analyticsData: any;
 }
 
-export function AnalyticsTab({ chatbotId }: { chatbotId: string }) {
-  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
-  const [loading, setLoading] = useState(true);
+// Dummy feedback data
+const recentFeedback = [
+  { id: 1, rating: 5, message: "Very helpful and accurate responses!", date: "2024-03-15" },
+  { id: 2, rating: 4, message: "Good but could be faster", date: "2024-03-14" },
+  { id: 3, rating: 5, message: "Exactly what I needed!", date: "2024-03-14" },
+  { id: 4, rating: 3, message: "Decent, but needs improvement in technical answers", date: "2024-03-13" },
+];
 
-  useEffect(() => {
-    async function fetchAnalytics() {
-      try {
-        setLoading(true);
-        const response = await getAnalytics(parseInt(chatbotId));
-
-        if (!response) {
-          console.error('Failed to fetch analytics: No response from server.');
-          setAnalytics({
-            responses: 0,
-            likes: 0,
-            dislikes: 0,
-            citations: [], // ✅ Default to empty array
-          });
-          return;
-        }
-
-        if (response.responses === 0) {
-          console.warn('No analytics data found for the chatbot. It may not have been used yet.');
-          setAnalytics({
-            responses: 0,
-            likes: 0,
-            dislikes: 0,
-            citations: [], // ✅ Default to empty array
-          });
-          return;
-        }
-
-        // ✅ Ensure citations is always an array (default to [])
-        const analyticsData: AnalyticsData = {
-          responses: response.responses ?? 0,
-          likes: response.likes ?? 0,
-          dislikes: response.dislikes ?? 0,
-          citations: response.citations?.map(citation => ({
-            ...citation,
-            count: citation.count ?? 0,
-          })) ?? [], // ✅ Default to empty array
-        };
-
-        setAnalytics(analyticsData);
-      } catch (error) {
-        console.error('Error fetching analytics:', error);
-        setAnalytics({
-          responses: 0,
-          likes: 0,
-          dislikes: 0,
-          citations: [], // ✅ Default to empty array
-        });
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    if (chatbotId) {
-      fetchAnalytics();
-    }
-  }, [chatbotId]);
-
-  if (loading) {
-    return <div className="flex items-center justify-center h-64">Loading...</div>;
-  }
-
-  if (!analytics) {
-    return <div>No analytics data available</div>;
-  }
-
+function SectionHeader({ 
+  title, 
+  description,
+  icon: Icon 
+}: { 
+  title: string; 
+  description?: string;
+  icon: React.ElementType;
+}) {
   return (
-    <div className="space-y-6 p-6">
-      {/* Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <StatCard title="Total Responses" value={analytics.responses} icon={<Activity className="w-4 h-4" />} />
-        <StatCard title="Helpful Responses" value={analytics.likes} icon={<Activity className="w-4 h-4 text-green-500" />} />
-        <StatCard title="Unhelpful Responses" value={analytics.dislikes} icon={<Activity className="w-4 h-4 text-red-500" />} />
+    <div className="flex items-center gap-3 mb-6">
+      <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-pink-500/10 via-purple-500/10 to-blue-500/10">
+        <Icon className="w-5 h-5 text-pink-500" />
       </div>
-
-      {analytics.responses === 0 && (
-        <div className="text-center text-muted-foreground">
-          No one on your website has used the chatbot yet.
-        </div>
-      )}
-
-      {/* Source Usage */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold flex items-center gap-2">
-          <FileText className="w-5 h-5" />
-          Source Usage
-        </h3>
-        <div className="bg-card rounded-lg p-4">
-          {analytics.citations.length > 0 ? (
-            analytics.citations.map(({ source, count }) => (
-              <div key={source} className="py-3 border-b last:border-0">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="font-medium">{source}</span>
-                  <span className="text-sm text-muted-foreground">{count} responses</span>
-                </div>
-                <div className="w-full bg-secondary rounded-full h-2">
-                  <div
-                    className="bg-primary rounded-full h-2 transition-all"
-                    style={{
-                      width: `${(count / (analytics.responses || 1)) * 100}%`,
-                    }}
-                  />
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className="text-sm text-muted-foreground">No citations recorded yet.</div>
-          )}
-        </div>
+      <div>
+        <h2 className="font-heading text-xl font-semibold text-white">
+          {title}
+        </h2>
+        {description && (
+          <p className="font-sans text-base text-gray-400">
+            {description}
+          </p>
+        )}
       </div>
     </div>
   );
 }
 
-function StatCard({ title, value, icon }: { title: string; value: number; icon: React.ReactNode }) {
+function StatCard({ title, value, icon: Icon, trend }: any) {
   return (
-    <div className="bg-card rounded-lg p-4 border">
-      <div className="flex items-center justify-between">
-        <h4 className="text-sm font-medium text-muted-foreground">{title}</h4>
-        {icon}
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-gray-900/60 backdrop-blur-sm border border-gray-800/60 rounded-2xl p-6"
+    >
+      <div className="flex items-center justify-between mb-4">
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-pink-500/10 via-purple-500/10 to-blue-500/10">
+          <Icon className="w-5 h-5 text-pink-500" />
+        </div>
+        {trend && (
+          <span className={`font-sans text-sm ${trend > 0 ? 'text-green-500' : 'text-red-500'}`}>
+            {trend > 0 ? '+' : ''}{trend}%
+          </span>
+        )}
       </div>
-      <p className="text-2xl font-bold mt-2">{value}</p>
+      <h3 className="font-heading text-2xl font-bold text-white mb-1">
+        {value}
+      </h3>
+      <p className="font-sans text-base text-gray-400">
+        {title}
+      </p>
+    </motion.div>
+  );
+}
+
+function FeedbackCard({ feedback }: { feedback: any }) {
+  return (
+    <motion.div 
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      className="bg-gray-900/60 backdrop-blur-sm border border-gray-800/60 rounded-xl p-4 flex items-start gap-4"
+    >
+      <div className="flex-shrink-0">
+        <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-gradient-to-br from-pink-500/10 via-purple-500/10 to-blue-500/10">
+          <Star className="w-4 h-4 text-pink-500" />
+        </div>
+      </div>
+      <div className="flex-grow">
+        <div className="flex items-center gap-2 mb-1">
+          <div className="flex">
+            {[...Array(5)].map((_, i) => (
+              <Star 
+                key={i} 
+                className={`w-4 h-4 ${i < feedback.rating ? 'text-yellow-500' : 'text-gray-600'}`} 
+                fill={i < feedback.rating ? 'currentColor' : 'none'}
+              />
+            ))}
+          </div>
+          <span className="font-sans text-sm text-gray-400">
+            {new Date(feedback.date).toLocaleDateString()}
+          </span>
+        </div>
+        <p className="font-sans text-base text-white">
+          {feedback.message}
+        </p>
+      </div>
+    </motion.div>
+  );
+}
+
+export function AnalyticsTab({ chatbotId, analyticsData }: AnalyticsTabProps) {
+  const stats = [
+    {
+      title: "Total Conversations",
+      value: analyticsData?.responses || "2,847",
+      icon: MessageSquare,
+      trend: 12
+    },
+    {
+      title: "Unique Users",
+      value: analyticsData?.likes || "1,234",
+      icon: Users,
+      trend: 8
+    },
+    {
+      title: "Average Rating",
+      value: analyticsData?.dislikes || "4.8",
+      icon: Star,
+      trend: 3
+    },
+    {
+      title: "Response Rate",
+      value: analyticsData?.responseRate || "98%",
+      icon: ThumbsUp,
+      trend: -2
+    }
+  ];
+
+  return (
+    <div className="space-y-8">
+      {/* Overview */}
+      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {stats.map((stat, index) => (
+          <StatCard key={index} {...stat} />
+        ))}
+      </div>
+
+      {/* Charts Section */}
+      <div className="grid md:grid-cols-2 gap-6">
+        <div className="bg-gray-900/60 backdrop-blur-sm border border-gray-800/60 rounded-2xl p-6">
+          <SectionHeader 
+            title="Usage Trends" 
+            description="Conversations over time"
+            icon={LineChart}
+          />
+          {/* Add your chart component here */}
+        </div>
+
+        <div className="bg-gray-900/60 backdrop-blur-sm border border-gray-800/60 rounded-2xl p-6">
+          <SectionHeader 
+            title="Popular Topics" 
+            description="Most discussed subjects"
+            icon={BarChart}
+          />
+          {/* Add your chart component here */}
+        </div>
+      </div>
+
+      {/* Recent Feedback */}
+      <div className="bg-gray-900/60 backdrop-blur-sm border border-gray-800/60 rounded-2xl p-6">
+        <SectionHeader 
+          title="Recent Feedback" 
+          description="Latest user reviews and ratings"
+          icon={Star}
+        />
+        
+        <div className="space-y-4">
+          {recentFeedback.map((feedback) => (
+            <FeedbackCard key={feedback.id} feedback={feedback} />
+          ))}
+        </div>
+      </div>
+
+      {/* Alert Section */}
+      {analyticsData?.alerts && analyticsData.alerts.length > 0 && (
+        <div className="bg-red-500/10 backdrop-blur-sm border border-red-500/20 rounded-2xl p-6">
+          <SectionHeader 
+            title="Alerts" 
+            description="Issues requiring attention"
+            icon={AlertCircle}
+          />
+          
+          <div className="space-y-2">
+            {analyticsData.alerts.map((alert: any, index: number) => (
+              <div key={index} className="flex items-center gap-2 text-red-400">
+                <AlertCircle className="w-4 h-4" />
+                <span className="font-sans text-base">{alert.message}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

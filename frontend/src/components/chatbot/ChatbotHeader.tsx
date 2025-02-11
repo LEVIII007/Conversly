@@ -1,36 +1,42 @@
-import { Badge } from '@/components/ui/badge';
-import { Bot } from 'lucide-react';
+import { Bot, Share2 } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { motion } from "framer-motion"
 
-interface ChatbotHeaderProps {
-  chatbot: any;
-}
-
-export function ChatbotHeader({ chatbot }: ChatbotHeaderProps) {
+export function ChatbotHeader({ chatbot }: { chatbot: any }) {
   return (
-    <header className="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800 p-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <div className="p-2 bg-indigo-100 dark:bg-indigo-900 rounded-lg">
-            <Bot className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+    <motion.div 
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="relative border-b border-gray-800/60"
+    >
+      <div className="absolute inset-0 bg-gradient-to-b from-purple-500/5 to-transparent" />
+      
+      <div className="container relative py-8">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-6">
+            <div className="w-16 h-16 rounded-xl flex items-center justify-center bg-gradient-to-br from-pink-500/10 via-purple-500/10 to-blue-500/10">
+              <Bot className="w-8 h-8 text-pink-500" />
+            </div>
+            
+            <div>
+              <h1 className="font-heading text-2xl font-bold text-white mb-1">
+                {chatbot.name}
+              </h1>
+              <p className="font-sans text-base text-gray-400">
+                {chatbot.description}
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-xl font-semibold">{chatbot?.name}</h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">ID: {chatbot?.id}</p>
-          </div>
-            <Badge variant="success">
-            <span className="flex items-center">
-              <span className="inline-block w-2 h-2 mr-2 bg-green-500 rounded-full"></span>
-              Active
-            </span>
-            </Badge>
-        </div>
 
-        <nav className="flex items-center space-x-4">
-          <a href="#" className="text-sm hover:text-indigo-600">Dashboard</a>
-          <a href="#" className="text-sm hover:text-indigo-600">Analytics</a>
-          <a href="#" className="text-sm hover:text-indigo-600">Settings</a>
-        </nav>
+          <Button 
+            variant="outline" 
+            className="border-gray-800 text-white hover:bg-gray-800/50"
+          >
+            <Share2 className="w-4 h-4 mr-2" />
+            Share Assistant
+          </Button>
+        </div>
       </div>
-    </header>
-  );
+    </motion.div>
+  )
 } 

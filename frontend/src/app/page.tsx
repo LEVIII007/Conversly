@@ -6,20 +6,22 @@ import PricingSection from "@/components/landing/pricing"
 import QuestionsSection from "@/components/landing/questions"
 import Footer from "@/components/landing/footer"
 import { TestimonialsSection }from "@/components/landing/testimonials"
-import Scalability from "@/components/landing/stats"
-import RelatedArticles from "@/components/landing/blogs"
 
-export default function landingPage() {
+import RelatedArticles from "@/components/landing/blogs"
+import ScalabilitySection from "@/components/landing/scalability"
+
+export default async function landingPage() {
   return (
-    <main className="min-h-screen bg-background">
+    <main className="bg-black">
       <Navbar />
+      <Hero />
       <FeaturesSection />
-      <Scalability />
+      <ScalabilitySection />
       <HowItWorks />
       <PricingSection />
       <RelatedArticles />
       <QuestionsSection />
-      <TestimonialsSection />
+      {/* <TestimonialsSection /> */}
       <Footer />
     </main>
   )

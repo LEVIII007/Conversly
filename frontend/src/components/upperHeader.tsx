@@ -1,103 +1,133 @@
 'use client';
+import { useState, useEffect } from "react";
+import { useSession, signIn, signOut } from "next-auth/react";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import Image from "next/image";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
-import React, { useState, useEffect } from 'react';
-import { useSession, signIn, signOut } from 'next-auth/react';
-import { useRouter } from 'next/router';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { useToast } from '@/hooks/use-toast';
-import { useTheme } from '@/hooks/useTheme';
-import Link from 'next/link';
-import Image from 'next/image';
-import converslyIcon from '@/public/conversly-icon.png';
-import { Sun, Moon, User, LogOut } from 'react-feather';
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
+export default function UpperHeader() {
+  const [scrolled, setScrolled] = useState(false);
+  const { data: session } = useSession();
+  const [mounted, setMounted] = useState(false);
 
-const UpperHeader: React.FC = () => {
-    const { data: session } = useSession();
-    const { theme, toggleTheme } = useTheme();
-    const [isScrolled, setIsScrolled] = useState(false);
+  // Always call hooks in the same order
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
-    useEffect(() => {
-        const handleScroll = () => {
-            setIsScrolled(window.scrollY > 0);
-        };
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
-        window.addEventListener('scroll', handleScroll);
-        return () => {
-            window.removeEventListener('scroll', handleScroll);
-        };
-    }, []);
+  // Instead of returning early, conditionally render the content in the JSX
+  return (
+    <>
+      {mounted && (
+        <motion.header
+          initial={{ y: -100 }}
+          animate={{ y: 0 }}
+          className="fixed top-0 left-0 right-0 z-50"
+        >
+          <div className="container px-4 sm:px-6 lg:px-8 py-4">
+            <div 
+              className={`
+                rounded-2xl backdrop-blur-sm border border-gray-800/60
+                ${scrolled 
+                  ? 'bg-gray-900/60 shadow-lg shadow-black/20' 
+                  : 'bg-gray-900/30'
+                }
+                transition-all duration-300
+              `}
+            >
+              <div className="flex items-center justify-between px-6 py-3">
+                {/* Logo and Business Name */}
+                <Link href="/" className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-pink-500 to-purple-500">
+                    <span className="text-xl font-bold text-white">C</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-xl font-bold text-white font-display">
+                      ConverslyAI
+                    </span>
+                    <span className="text-xs text-gray-400">AI-Powered Knowledge Base</span>
+                  </div>
+                </Link>
 
-    return (
-        <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-200 ${isScrolled ? 'bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-sm' : 'bg-transparent'}`}>
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex justify-between h-16 items-center">
-                    {/* Logo */}
-                    <Link
-                        href="/"
-                        className="flex-shrink-0 flex items-center hover:opacity-80 transition-opacity mr-auto"
-                    >
-                        <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400">
-                            Conversly AI
-                        </h1>
-                    </Link>
+                {/* Navigation Links
+                <nav className="hidden md:flex items-center gap-8">
+                  <Link 
+                    href="/pricing" 
+                    className="text-gray-300 hover:text-white transition-colors"
+                  >
+                    Pricing
+                  </Link>
+                  
+                </nav> */}
 
-                    {/* Right Section */}
-                    <div className="flex items-center space-x-4 ml-auto">
-                        {/* Theme Toggle */}
-                        <Button
-                            onClick={toggleTheme}
-                            variant="ghost"
-                            size="icon"
-                            className="rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
-                        >
-                            {theme === 'dark' ? (
-                                <Sun className="h-5 w-5" />
-                            ) : (
-                                <Moon className="h-5 w-5" />
-                            )}
-                        </Button>
-
-                        {/* User Menu */}
-                        {session ? (
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                                        <Avatar className="h-8 w-8">
-                                            <AvatarImage src={session.user?.image || ''} alt={session.user?.name || ''} />
-                                            <AvatarFallback>
-                                                {session.user?.name?.[0] || 'U'}
-                                            </AvatarFallback>
-                                        </Avatar>
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="w-56">
-                                    <DropdownMenuItem asChild>
-                                        <Link href="/profile" className="flex items-center">
-                                            <User className="mr-2 h-4 w-4" />
-                                            <span>Profile</span>
-                                        </Link>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => signOut()}>
-                                        <LogOut className="mr-2 h-4 w-4" />
-                                        <span>Sign Out</span>
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        ) : (
-                            <Button 
-                                onClick={() => signIn('google')}
-                                className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-full px-6"
-                            >
-                                Sign In
-                            </Button>
-                        )}
-                    </div>
+                {/* Auth Buttons */}
+                <div className="flex items-center gap-4">
+                  {session ? (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger>
+                        <div className="w-10 h-10 rounded-full border-2 border-pink-500/50 overflow-hidden">
+                          <Image
+                            src={session.user?.image || '/default-avatar.png'}
+                            alt="User avatar"
+                            width={40}
+                            height={40}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="bg-gray-900 border border-gray-800">
+                        <DropdownMenuItem>
+                          <Link href="/profile" className="w-full text-gray-300 hover:text-white">
+                            Profile
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <button 
+                            onClick={() => signOut()} 
+                            className="w-full text-left text-gray-300 hover:text-white"
+                          >
+                            Sign Out
+                          </button>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  ) : (
+                    <>
+                      <Button 
+                        variant="ghost" 
+                        className="hidden sm:inline-flex text-gray-300 hover:text-white hover:bg-gray-800/50"
+                        onClick={() => signIn('google')}
+                      >
+                        Sign In
+                      </Button>
+                      <Button 
+                        className="bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:opacity-90"
+                      >
+                        Get Started
+                      </Button>
+                    </>
+                  )}
                 </div>
+              </div>
             </div>
-        </header>
-    );
-};
-
-export default UpperHeader;
+          </div>
+        </motion.header>
+      )}
+    </>
+  );
+}

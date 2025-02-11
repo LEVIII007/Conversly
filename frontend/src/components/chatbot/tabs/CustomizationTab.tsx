@@ -1,5 +1,7 @@
 'use client';
+
 import { useState } from 'react';
+import { motion } from 'framer-motion';
 import { ChromePicker } from 'react-color';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,7 +17,21 @@ import {
   Upload,
   Frame,
   Code,
+  Palette,
+  Settings2,
+  Layout,
+  Globe,
+  ListPlus,
+  Sparkles,
+  Plus,
+  LucideIcon
 } from 'lucide-react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+  TooltipProvider,
+} from "@/components/ui/tooltip";
 import { useToast } from '@/hooks/use-toast';
 import { ChatbotPreview } from '@/components/chatbot/ChatbotPreview';
 import { Highlight, themes } from 'prism-react-renderer';
@@ -26,18 +42,61 @@ interface CustomizationTabProps {
   prompt: string;
 }
 
+/** 
+ * A central interface for all chatbot configuration,
+ * making it easier to store and manage the entire config in a single object. 
+ */
+interface ChatbotConfig {
+  color: string;
+  widgetHeader: string;
+  welcomeMessage: string;
+  promptscript: string;
+  selectedIcon: string;
+  customIcon: string | null;
+  buttonAlignment: 'left' | 'right';
+  showButtonText: boolean;
+  widgetButtonText: string;
+  chatWidth: string;
+  chatHeight: string;
+  displayStyle: 'corner' | 'overlay';
+  domains: string[];
+  starterQuestions: string[];
+}
+
+function SectionHeader({ 
+  title, 
+  description,
+  icon: Icon 
+}: { 
+  title: string; 
+  description?: string;
+  icon: React.ElementType;
+}) {
+  return (
+    <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-pink-500/10 via-purple-500/10 to-blue-500/10">
+          <Icon className="w-5 h-5 text-pink-500" />
+        </div>
+        <div>
+          <h2 className="font-heading text-xl font-semibold text-white">
+            {title}
+          </h2>
+          {description && (
+            <p className="font-sans text-base text-gray-400">
+              {description}
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export function CustomizationTab({ chatbotId, prompt }: CustomizationTabProps) {
   const { toast } = useToast();
 
-  // Basic / Widget settings
-  const [color, setColor] = useState('#0e4b75');
-  const [widgetHeader, setWidgetHeader] = useState('Support Bot');
-  const [welcomeMessage, setWelcomeMessage] = useState('Hi! How can I help you today? 👋');
-  const [promptscript, setPromptscript] = useState<string>(prompt);
-
-  // Icon settings
-  const [selectedIcon, setSelectedIcon] = useState<string>('chat');
-  const [customIcon, setCustomIcon] = useState<string | null>(null);
+  // Icons array remains constant; no need to store in state
   const icons = [
     { id: 'chat', component: <MessageCircle className="w-6 h-6" /> },
     { id: 'bot', component: <Bot className="w-6 h-6" /> },
@@ -46,78 +105,76 @@ export function CustomizationTab({ chatbotId, prompt }: CustomizationTabProps) {
     { id: 'message', component: <MessageSquare className="w-6 h-6" /> },
   ];
 
-  // Button settings
-  const [buttonAlignment, setButtonAlignment] = useState<'left' | 'right'>('right');
-  const [showButtonText, setShowButtonText] = useState(false);
-  const [widgetButtonText, setWidgetButtonText] = useState('Chat with us');
+  /**
+   * A single piece of state (`config`) holding all the settings 
+   * instead of multiple separate useState hooks.
+   */
+  const [config, setConfig] = useState<ChatbotConfig>({
+    color: '#0e4b75',
+    widgetHeader: 'Support Bot',
+    welcomeMessage: 'Hi! How can I help you today? 👋',
+    promptscript: prompt,
+    selectedIcon: 'chat',
+    customIcon: null,
+    buttonAlignment: 'right',
+    showButtonText: false,
+    widgetButtonText: 'Chat with us',
+    chatWidth: '350px',
+    chatHeight: '500px',
+    displayStyle: 'corner',
+    domains: [''],
+    starterQuestions: ['What is this about?', 'How do I get started?', '', ''],
+  });
 
-  // Size & position
-  const [chatWidth, setChatWidth] = useState('350px');
-  const [chatHeight, setChatHeight] = useState('500px');
-  const [displayStyle, setDisplayStyle] = useState<'corner' | 'overlay'>('corner');
-
-  // Domains configuration
-  const [domains, setDomains] = useState(['']);
-
-  // Starter questions configuration
-  const [starterQuestions, setStarterQuestions] = useState<string[]>([
-    'What is this about?',
-    'How do I get started?',
-    '',
-    '',
-  ]);
-
-  // --- Integration Code ---
-  const embedCode = `<script>
-(function () {
-  const botConfig = {
-    botId: "${chatbotId}",
-    color: "${color}",
-    title: "${widgetHeader}",
-    welcomeMessage: "${welcomeMessage}",
-    headerText: "${widgetHeader}",
-    apiUrl: "https://my0jhajg7c.execute-api.ap-southeast-1.amazonaws.com",
-    buttonAlign: "${buttonAlignment}",
-    buttonText: "${widgetButtonText}",
-    height: "${chatHeight}",
-    width: "${chatWidth}",
-    displayStyle: "${displayStyle}",
-    customIcon: ${customIcon ? `"${customIcon}"` : 'null'},
-    starter_questions: ${JSON.stringify(starterQuestions.filter((q) => q.trim() !== ''))},
-    prompt: "${promptscript}"
+  /** Helper to update config without rewriting the entire object each time. */
+  const updateConfig = (updates: Partial<ChatbotConfig>) => {
+    setConfig((prev) => ({ ...prev, ...updates }));
   };
-  const script = document.createElement("script");
-  script.src = "https://cloud-ide-shas.s3.us-east-1.amazonaws.com/docBot/chat.js";
-  script.async = true;
-  script.onload = () => {
-    if (window.DocsBotAI) { window.DocsBotAI.init(botConfig); }
-  };
-  document.head.appendChild(script);
-})();
-</script>
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-`;
 
-  const iframeCode = `<iframe
-  COMING SOON!!
-></iframe>`;
-
-  // --- Helper Functions ---
+  /** Domain management */
   const handleAddDomain = () => {
-    setDomains([...domains, '']);
+    updateConfig({ domains: [...config.domains, ''] });
   };
 
   const handleDomainChange = (index: number, value: string) => {
-    const newDomains = [...domains];
+    const newDomains = [...config.domains];
     newDomains[index] = value;
-    setDomains(newDomains);
+    updateConfig({ domains: newDomains });
   };
 
   const handleRemoveDomain = (index: number) => {
-    const newDomains = domains.filter((_, i) => i !== index);
-    setDomains(newDomains);
+    const newDomains = config.domains.filter((_, i) => i !== index);
+    updateConfig({ domains: newDomains });
   };
 
+  /** Starter questions management */
+  const handleStarterQuestionChange = (index: number, value: string) => {
+    const newQuestions = [...config.starterQuestions];
+    newQuestions[index] = value;
+    updateConfig({ starterQuestions: newQuestions });
+  };
+
+  const handleAddStarterQuestion = () => {
+    updateConfig({ starterQuestions: [...config.starterQuestions, ''] });
+  };
+
+  /** File upload helper to convert icon to base64 */
+  const handleIconUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        updateConfig({
+          customIcon: base64String,
+          selectedIcon: '',
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  /** Copy code to clipboard */
   const copyToClipboard = (text: string, type: 'embed' | 'iframe') => {
     navigator.clipboard.writeText(text);
     toast({
@@ -126,6 +183,7 @@ export function CustomizationTab({ chatbotId, prompt }: CustomizationTabProps) {
     });
   };
 
+  /** Prism highlight helper */
   const renderCode = (code: string, language: string) => (
     <Highlight theme={themes.nightOwl} code={code.trim()} language={language}>
       {({ className, style, tokens, getLineProps, getTokenProps }) => (
@@ -146,363 +204,557 @@ export function CustomizationTab({ chatbotId, prompt }: CustomizationTabProps) {
     </Highlight>
   );
 
-  // Handle file upload and convert to base64
-  const handleIconUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64String = reader.result as string;
-        setCustomIcon(base64String);
-      };
-      reader.readAsDataURL(file);
-    }
+  /** 
+   * Embed code using the config object. 
+   * Notice we read from `config` instead of multiple variables.
+   */
+  const embedCode = `<script>
+(function () {
+  const botConfig = {
+    botId: "${chatbotId}",
+    color: "${config.color}",
+    title: "${config.widgetHeader}",
+    welcomeMessage: "${config.welcomeMessage}",
+    headerText: "${config.widgetHeader}",
+    apiUrl: "https://my0jhajg7c.execute-api.ap-southeast-1.amazonaws.com",
+    buttonAlign: "${config.buttonAlignment}",
+    buttonText: "${config.widgetButtonText}",
+    height: "${config.chatHeight}",
+    width: "${config.chatWidth}",
+    displayStyle: "${config.displayStyle}",
+    customIcon: ${config.customIcon ? `"${config.customIcon}"` : 'null'},
+    starter_questions: ${JSON.stringify(
+      config.starterQuestions.filter((q) => q.trim() !== '')
+    )},
+    prompt: "${config.promptscript}"
   };
+  const script = document.createElement("script");
+  script.src = "https://cloud-ide-shas.s3.us-east-1.amazonaws.com/docBot/chat.js";
+  script.async = true;
+  script.onload = () => {
+    if (window.DocsBotAI) { window.DocsBotAI.init(botConfig); }
+  };
+  document.head.appendChild(script);
+})();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+`;
+
+  const iframeCode = `<iframe
+  COMING SOON!!
+></iframe>`;
 
   return (
-    <div className="space-y-8 p-6">
-      {/* 1. Widget Customization */}
-<div className="rounded-xl bg-card/50 backdrop-blur-sm p-6 border border-border/50 ">
-  <h2 className="text-2xl font-semibold mb-6 bg-gradient-to-r from-primary to-indigo-600 bg-clip-text text-transparent">
-    Widget Customization
-  </h2>
-  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-    {/* Left Column: Theme, Header, and Welcome Message */}
-    <div className="space-y-4">
-      {/* Theme Color */}
-      <div className="group">
-        <label className="block text-sm font-medium mb-2 text-foreground/80">
-          Theme Color
-        </label>
-        <div className="flex items-center gap-3">
-          <Input
-            type="color"
-            value={color}
-            onChange={(e) => setColor(e.target.value)}
-            className="w-16 h-10 p-1 rounded-lg cursor-pointer"
-          />
-          <Input
-            value={color}
-            onChange={(e) => setColor(e.target.value)}
-            placeholder="#000000"
-            className="flex-1"
-          />
+    <TooltipProvider>
+      <div className="space-y-8">
+        {/* Introduction */}
+        <div className="bg-gray-900/60 backdrop-blur-sm border border-gray-800/60 rounded-2xl p-6">
+          <h2 className="font-heading text-2xl text-white mb-2">
+            Widget Customization
+          </h2>
+          <p className="font-sans text-base text-gray-400">
+            Customize your chatbot's appearance and behavior to match your website.
+          </p>
         </div>
-      </div>
-      {/* Widget Header */}
-      <div className="group">
-        <label className="block text-sm font-medium mb-2 text-foreground/80">
-          Widget Header
-        </label>
-        <Input
-          value={widgetHeader}
-          onChange={(e) => setWidgetHeader(e.target.value)}
-          placeholder="Enter widget header text"
-          className="w-full transition-all duration-200 focus:ring-2 ring-primary/20"
-        />
-      </div>
-      {/* Welcome Message */}
-      <div className="group">
-        <label className="block text-sm font-medium mb-2 text-foreground/80">
-          Welcome Message
-        </label>
-        <Textarea
-          value={welcomeMessage}
-          onChange={(e) => setWelcomeMessage(e.target.value)}
-          placeholder="Enter welcome message"
-          className="w-full min-h-[100px] transition-all duration-200 focus:ring-2 ring-primary/20"
-        />
-      </div>
-    </div>
 
-    {/* Right Column: Prompt Script */}
-    <div className="space-y-4">
-      <div className="group h-full">
-        <label className="block text-sm font-medium mb-2 text-foreground/80]">
-          Prompt Script
-        </label>
-        <Textarea
-          value={promptscript}
-          onChange={(e) => setPromptscript(e.target.value)}
-          placeholder="Enter your prompt script"
-          className="w-full h-full max-h-[267px] transition-all duration-200 focus:ring-2 ring-primary/20"
-        />
-      </div>
-    </div>
-  </div>
-</div>
-          {/* Right Column - Theme Color */}
-          <div className="space-y-4">
-            <div className="group">
-              <label className="block text-sm font-medium mb-2 text-foreground/80">
-                Theme Color
-              </label>
-              <div className="flex items-center gap-3">
-                <Input
-                  type="color"
-                  value={color}
-                  onChange={(e) => setColor(e.target.value)}
-                  className="w-16 h-10 p-1 rounded-lg cursor-pointer"
-                />
-                <Input
-                  value={color}
-                  onChange={(e) => setColor(e.target.value)}
-                  placeholder="#000000"
-                  className="flex-1"
-                />
-              </div>
-            </div>
-          </div>
-
-
-      {/* 2. Icon Settings */}
-      <div className="rounded-xl bg-card/50 backdrop-blur-sm p-6 border border-border/50">
-        <h2 className="text-2xl font-semibold mb-4">Icon Settings</h2>
-        <div className="flex flex-wrap items-center gap-4">
-          {icons.map((icon) => (
-            <Button
-              key={icon.id}
-              variant={selectedIcon === icon.id && !customIcon ? 'default' : 'outline'}
-              onClick={() => {
-                setSelectedIcon(icon.id);
-                setCustomIcon(null);
-              }}
-              className="p-2"
+        {/* Main Settings Tabs */}
+        <Tabs defaultValue="appearance" className="space-y-6">
+          <TabsList className="bg-gray-900/60 p-1 rounded-xl">
+            <TabsTrigger 
+              value="appearance" 
+              className="font-sans text-base data-[state=active]:bg-gradient-to-r from-pink-500 to-purple-500 data-[state=active]:text-white"
             >
-              {icon.component}
-            </Button>
-          ))}
-          <div className="flex items-center gap-2">
-            <label htmlFor="customIconUpload" className="cursor-pointer">
-              <Upload className="w-6 h-6" />
-            </label>
-            <input
-              id="customIconUpload"
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleIconUpload}
-            />
-            {customIcon && (
-              <img src={customIcon} alt="Custom Icon" className="w-8 h-8 object-contain" />
-            )}
-          </div>
-        </div>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Select a preset icon or upload a custom icon. (Uploading a custom icon will override the preset.)
-        </p>
-      </div>
-
-      {/* 3. Button Settings */}
-      <div className="rounded-xl bg-card/50 backdrop-blur-sm p-6 border border-border/50">
-        <h2 className="text-2xl font-semibold mb-4">Button Settings</h2>
-        <div className="space-y-4">
-          <div className="flex items-center space-x-4">
-            <label className="text-sm font-medium">Button Alignment:</label>
-            <Button
-              variant={buttonAlignment === 'left' ? 'default' : 'outline'}
-              onClick={() => setButtonAlignment('left')}
-            >
-              Left
-            </Button>
-            <Button
-              variant={buttonAlignment === 'right' ? 'default' : 'outline'}
-              onClick={() => setButtonAlignment('right')}
-            >
-              Right
-            </Button>
-          </div>
-          <div className="flex items-center space-x-4">
-            <label className="text-sm font-medium">Show Button Text:</label>
-            <input
-              type="checkbox"
-              checked={showButtonText}
-              onChange={(e) => setShowButtonText(e.target.checked)}
-              className="w-4 h-4"
-            />
-          </div>
-          {showButtonText && (
-            <div className="group">
-              <label className="block text-sm font-medium">Button Text:</label>
-              <Input
-                value={widgetButtonText}
-                onChange={(e) => setWidgetButtonText(e.target.value)}
-                placeholder="Chat with us"
-                className="w-full"
-              />
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* 4. Size & Position */}
-      <div className="rounded-xl bg-card/50 backdrop-blur-sm p-6 border border-border/50">
-        <h2 className="text-2xl font-semibold mb-6">Size &amp; Position</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-4">
-            <label className="block text-sm font-medium text-foreground/80">Widget Width</label>
-            <Input
-              value={chatWidth}
-              onChange={(e) => setChatWidth(e.target.value)}
-              placeholder="e.g., 350px"
-              className="w-full"
-            />
-            <label className="block text-sm font-medium text-foreground/80">Widget Height</label>
-            <Input
-              value={chatHeight}
-              onChange={(e) => setChatHeight(e.target.value)}
-              placeholder="e.g., 500px"
-              className="w-full"
-            />
-          </div>
-          <div className="space-y-4">
-            <label className="block text-sm font-medium text-foreground/80">Display Style</label>
-            <div className="flex items-center gap-4">
-              <Button
-                variant={displayStyle === 'corner' ? 'default' : 'outline'}
-                onClick={() => setDisplayStyle('corner')}
-              >
-                Corner
-              </Button>
-              <Button
-                variant={displayStyle === 'overlay' ? 'default' : 'outline'}
-                onClick={() => setDisplayStyle('overlay')}
-              >
-                Overlay
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* 5. Allowed Domains */}
-      <div className="rounded-xl bg-card/50 backdrop-blur-sm p-6 border border-border/50">
-        <h2 className="text-2xl font-semibold mb-4">Allowed Domains</h2>
-        <div className="space-y-2">
-          {domains.map((domain, index) => (
-            <div key={index} className="flex items-center gap-2">
-              <Input
-                value={domain}
-                onChange={(e) => handleDomainChange(index, e.target.value)}
-                placeholder="https://example.com"
-                className="flex-1"
-              />
-              {domains.length > 1 && (
-                <Button variant="ghost" size="icon" onClick={() => handleRemoveDomain(index)}>
-                  <Minus className="w-4 h-4" />
-                </Button>
-              )}
-            </div>
-          ))}
-          <Button variant="outline" size="sm" onClick={handleAddDomain}>
-            Add Domain
-          </Button>
-        </div>
-      </div>
-
-      {/* 6. Starter Questions */}
-      <div className="rounded-xl bg-card/50 backdrop-blur-sm p-6 border border-border/50">
-        <h2 className="text-2xl font-semibold mb-4">Starter Questions</h2>
-        <div className="space-y-2">
-          {starterQuestions.map((question, index) => (
-            <Input
-              key={index}
-              value={question}
-              onChange={(e) => {
-                const newQuestions = [...starterQuestions];
-                newQuestions[index] = e.target.value;
-                setStarterQuestions(newQuestions);
-              }}
-              placeholder={`Starter Question ${index + 1}`}
-              className="w-full"
-            />
-          ))}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setStarterQuestions([...starterQuestions, ''])}
-          >
-            Add Question
-          </Button>
-        </div>
-      </div>
-
-      {/* 7. Integration */}
-      <div className="rounded-xl bg-card/50 backdrop-blur-sm p-6 border border-border/50">
-        <h2 className="text-2xl font-semibold mb-6">Integration</h2>
-        <Tabs defaultValue="script" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-4">
-            <TabsTrigger value="script">
-              <Code className="w-4 h-4 mr-2" />
-              Script Tag
+              <Palette className="w-4 h-4 mr-2" />
+              Appearance
             </TabsTrigger>
-            <TabsTrigger value="iframe">
-              <Frame className="w-4 h-4 mr-2" />
-              iframe
+            <TabsTrigger 
+              value="behavior" 
+              className="font-sans text-base data-[state=active]:bg-gradient-to-r from-pink-500 to-purple-500 data-[state=active]:text-white"
+            >
+              <Settings2 className="w-4 h-4 mr-2" />
+              Behavior
+            </TabsTrigger>
+            <TabsTrigger 
+              value="integration" 
+              className="font-sans text-base data-[state=active]:bg-gradient-to-r from-pink-500 to-purple-500 data-[state=active]:text-white"
+            >
+              <Code className="w-4 h-4 mr-2" />
+              Integration
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="script">
-            <div className="relative">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="absolute right-2 top-2"
-                onClick={() => copyToClipboard(embedCode, 'embed')}
-              >
-                <Copy className="w-4 h-4" />
-              </Button>
-              {renderCode(embedCode, 'html')}
-            </div>
+          <TabsContent value="appearance">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="space-y-6"
+            >
+              {/* Theme Settings */}
+              <div className="bg-gray-900/60 backdrop-blur-sm border border-gray-800/60 rounded-2xl p-6">
+                <SectionHeader 
+                  title="Theme Settings" 
+                  description="Customize the visual appearance of your widget"
+                  icon={Palette}
+                />
+                
+                <div className="grid md:grid-cols-2 gap-6">
+                  {/* Color Picker */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <label className="font-sans text-base text-gray-300">Theme Color</label>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <HelpCircle className="w-4 h-4 text-gray-400" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p className="font-sans text-sm">
+                            This color will be used for the widget's header, buttons, and accents
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                    <div className="flex gap-4">
+                      <Input
+                        type="color"
+                        value={config.color}
+                        onChange={(e) => updateConfig({ color: e.target.value })}
+                        className="w-16 h-10 p-1 rounded-lg cursor-pointer bg-gray-800/50 border-gray-700/50"
+                      />
+                      <Input
+                        value={config.color}
+                        onChange={(e) => updateConfig({ color: e.target.value })}
+                        placeholder="#000000"
+                        className="flex-1 bg-gray-800/50 border-gray-700/50 text-white"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Header Text */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <label className="font-sans text-base text-gray-300">Widget Header</label>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <HelpCircle className="w-4 h-4 text-gray-400" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p className="font-sans text-sm">
+                            The title shown at the top of your chat widget
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                    <Input
+                      value={config.widgetHeader}
+                      onChange={(e) => updateConfig({ widgetHeader: e.target.value })}
+                      placeholder="Support Bot"
+                      className="bg-gray-800/50 border-gray-700/50 text-white"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Icon Settings */}
+              <div className="bg-gray-900/60 backdrop-blur-sm border border-gray-800/60 rounded-2xl p-6">
+                <SectionHeader 
+                  title="Icon Settings" 
+                  description="Choose or upload a custom icon for your chat widget"
+                  icon={Layout}
+                />
+                
+                <div className="space-y-6">
+                  <div className="flex flex-wrap items-center gap-4">
+                    {icons.map((icon) => (
+                      <Button
+                        key={icon.id}
+                        variant={config.selectedIcon === icon.id && !config.customIcon ? 'default' : 'outline'}
+                        onClick={() => updateConfig({ selectedIcon: icon.id, customIcon: null })}
+                        className="p-3 bg-gray-800/50 border-gray-700/50 hover:bg-gray-700/50"
+                      >
+                        {icon.component}
+                      </Button>
+                    ))}
+                    <div className="flex items-center gap-2">
+                      <label 
+                        htmlFor="customIconUpload" 
+                        className="cursor-pointer p-3 rounded-xl border border-gray-700/50 hover:bg-gray-700/50 transition-colors"
+                      >
+                        <Upload className="w-6 h-6 text-gray-400" />
+                      </label>
+                      <input
+                        id="customIconUpload"
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleIconUpload}
+                      />
+                      {config.customIcon && (
+                        <img src={config.customIcon} alt="Custom Icon" className="w-10 h-10 rounded-lg object-contain" />
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2 text-gray-400">
+                    <HelpCircle className="w-4 h-4" />
+                    <p className="font-sans text-sm">
+                      Select a preset icon or upload your own. Custom icons will override presets.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Size & Position */}
+              <div className="bg-gray-900/60 backdrop-blur-sm border border-gray-800/60 rounded-2xl p-6">
+                <SectionHeader 
+                  title="Size & Position" 
+                  description="Configure the dimensions and placement of your widget"
+                  icon={Frame}
+                />
+                
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div>
+                      <label className="font-sans text-base text-gray-300 mb-2 block">Widget Width</label>
+                      <Input
+                        value={config.chatWidth}
+                        onChange={(e) => updateConfig({ chatWidth: e.target.value })}
+                        placeholder="e.g., 350px"
+                        className="bg-gray-800/50 border-gray-700/50 text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="font-sans text-base text-gray-300 mb-2 block">Widget Height</label>
+                      <Input
+                        value={config.chatHeight}
+                        onChange={(e) => updateConfig({ chatHeight: e.target.value })}
+                        placeholder="e.g., 500px"
+                        className="bg-gray-800/50 border-gray-700/50 text-white"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <label className="font-sans text-base text-gray-300 mb-2 block">Display Style</label>
+                    <div className="flex items-center gap-4">
+                      <Button
+                        variant={config.displayStyle === 'corner' ? 'default' : 'outline'}
+                        onClick={() => updateConfig({ displayStyle: 'corner' })}
+                        className="bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:opacity-90"
+                      >
+                        Corner
+                      </Button>
+                      <Button
+                        variant={config.displayStyle === 'overlay' ? 'default' : 'outline'}
+                        onClick={() => updateConfig({ displayStyle: 'overlay' })}
+                        className="border-gray-700 text-white hover:bg-gray-700/50"
+                      >
+                        Overlay
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Button Settings */}
+              <div className="bg-gray-900/60 backdrop-blur-sm border border-gray-800/60 rounded-2xl p-6">
+                <SectionHeader 
+                  title="Button Settings" 
+                  description="Customize the chat button appearance"
+                  icon={MessageSquare}
+                />
+                
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <label className="font-sans text-base text-gray-300">Button Alignment</label>
+                    <div className="flex items-center gap-4">
+                      <Button
+                        variant={config.buttonAlignment === 'left' ? 'default' : 'outline'}
+                        onClick={() => updateConfig({ buttonAlignment: 'left' })}
+                        className={config.buttonAlignment === 'left' 
+                          ? "bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:opacity-90"
+                          : "border-gray-700 text-white hover:bg-gray-700/50"
+                        }
+                      >
+                        Left
+                      </Button>
+                      <Button
+                        variant={config.buttonAlignment === 'right' ? 'default' : 'outline'}
+                        onClick={() => updateConfig({ buttonAlignment: 'right' })}
+                        className={config.buttonAlignment === 'right' 
+                          ? "bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:opacity-90"
+                          : "border-gray-700 text-white hover:bg-gray-700/50"
+                        }
+                      >
+                        Right
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <label className="font-sans text-base text-gray-300">Show Button Text</label>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <HelpCircle className="w-4 h-4 text-gray-400" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p className="font-sans text-sm">Display text next to the chat button</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={config.showButtonText}
+                      onChange={(e) => updateConfig({ showButtonText: e.target.checked })}
+                      className="w-5 h-5 rounded border-gray-700 bg-gray-800/50"
+                    />
+                  </div>
+
+                  {config.showButtonText && (
+                    <div className="space-y-2">
+                      <label className="font-sans text-base text-gray-300">Button Text</label>
+                      <Input
+                        value={config.widgetButtonText}
+                        onChange={(e) => updateConfig({ widgetButtonText: e.target.value })}
+                        placeholder="Chat with us"
+                        className="bg-gray-800/50 border-gray-700/50 text-white"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </motion.div>
           </TabsContent>
 
-          <TabsContent value="iframe">
-            <div className="relative">
-              {renderCode(iframeCode, 'html')}
-            </div>
+          <TabsContent value="behavior">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="space-y-6"
+            >
+              {/* Welcome Message */}
+              <div className="bg-gray-900/60 backdrop-blur-sm border border-gray-800/60 rounded-2xl p-6">
+                <SectionHeader 
+                  title="Welcome Message" 
+                  description="Set the initial message users see when opening the chat"
+                  icon={MessageSquare}
+                />
+                
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <label className="font-sans text-base text-gray-300">Initial Message</label>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <HelpCircle className="w-4 h-4 text-gray-400" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="font-sans text-sm">This message appears when a user first opens the chat</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <Textarea
+                    value={config.welcomeMessage}
+                    onChange={(e) => updateConfig({ welcomeMessage: e.target.value })}
+                    placeholder="Hi! How can I help you today? 👋"
+                    className="bg-gray-800/50 border-gray-700/50 text-white min-h-[100px]"
+                  />
+                </div>
+              </div>
+
+              {/* Prompt Script */}
+              <div className="bg-gray-900/60 backdrop-blur-sm border border-gray-800/60 rounded-2xl p-6">
+                <SectionHeader 
+                  title="System Prompt" 
+                  description="Define your assistant's personality and behavior"
+                  icon={BrainCircuit}
+                />
+                
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <label className="font-sans text-base text-gray-300">Prompt Script</label>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <HelpCircle className="w-4 h-4 text-gray-400" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="font-sans text-sm">This script defines how your AI assistant behaves and responds</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <Textarea
+                    value={config.promptscript}
+                    onChange={(e) => updateConfig({ promptscript: e.target.value })}
+                    placeholder="You are a helpful assistant..."
+                    className="bg-gray-800/50 border-gray-700/50 text-white min-h-[200px]"
+                  />
+                </div>
+              </div>
+
+              {/* Starter Questions */}
+              <div className="bg-gray-900/60 backdrop-blur-sm border border-gray-800/60 rounded-2xl p-6">
+                <SectionHeader 
+                  title="Starter Questions" 
+                  description="Suggest questions to help users get started"
+                  icon={ListPlus}
+                />
+                
+                <div className="space-y-4">
+                  {config.starterQuestions.map((question, index) => (
+                    <div key={index} className="flex items-center gap-3">
+                      <Input
+                        value={question}
+                        onChange={(e) => handleStarterQuestionChange(index, e.target.value)}
+                        placeholder={`Suggestion ${index + 1}`}
+                        className="bg-gray-800/50 border-gray-700/50 text-white"
+                      />
+                      {index >= 2 && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                            const newQuestions = config.starterQuestions.filter((_, i) => i !== index);
+                            updateConfig({ starterQuestions: newQuestions });
+                          }}
+                          className="text-gray-400 hover:text-white hover:bg-gray-700"
+                        >
+                          <Minus className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                  <Button
+                    onClick={handleAddStarterQuestion}
+                    variant="outline"
+                    className="w-full border-gray-700 text-white hover:bg-gray-700/50"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Question
+                  </Button>
+                </div>
+              </div>
+
+              {/* Allowed Domains */}
+              <div className="bg-gray-900/60 backdrop-blur-sm border border-gray-800/60 rounded-2xl p-6">
+                <SectionHeader 
+                  title="Allowed Domains" 
+                  description="Control which websites can embed your chatbot"
+                  icon={Globe}
+                />
+                
+                <div className="space-y-4">
+                  {config.domains.map((domain, index) => (
+                    <div key={index} className="flex items-center gap-3">
+                      <Input
+                        value={domain}
+                        onChange={(e) => handleDomainChange(index, e.target.value)}
+                        placeholder="https://example.com"
+                        className="bg-gray-800/50 border-gray-700/50 text-white"
+                      />
+                      {config.domains.length > 1 && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleRemoveDomain(index)}
+                          className="text-gray-400 hover:text-white hover:bg-gray-700"
+                        >
+                          <Minus className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                  <Button
+                    onClick={handleAddDomain}
+                    variant="outline"
+                    className="w-full border-gray-700 text-white hover:bg-gray-700/50"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Domain
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          </TabsContent>
+
+          <TabsContent value="integration">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="space-y-6"
+            >
+              {/* Integration Code */}
+              <div className="bg-gray-900/60 backdrop-blur-sm border border-gray-800/60 rounded-2xl p-6">
+                <SectionHeader 
+                  title="Widget Code" 
+                  description="Add this code to your website to embed the chatbot"
+                  icon={Code}
+                />
+                
+                <Tabs defaultValue="script" className="space-y-4">
+                  <TabsList className="bg-gray-800/50 p-1 rounded-xl">
+                    <TabsTrigger value="script" className="font-sans text-base">
+                      Script Tag
+                    </TabsTrigger>
+                    <TabsTrigger value="iframe" className="font-sans text-base">
+                      iframe
+                    </TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="script">
+                    <div className="relative">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="absolute right-2 top-2 border-gray-700 text-white hover:bg-gray-700/50"
+                        onClick={() => copyToClipboard(embedCode, 'embed')}
+                      >
+                        <Copy className="w-4 h-4 mr-2" />
+                        Copy
+                      </Button>
+                      {renderCode(embedCode, 'html')}
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="iframe">
+                    <div className="relative">
+                      {renderCode(iframeCode, 'html')}
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              </div>
+
+              {/* Preview */}
+              <div className="bg-gray-900/60 backdrop-blur-sm border border-gray-800/60 rounded-2xl p-6">
+                <SectionHeader 
+                  title="Live Preview" 
+                  description="See how your chatbot will appear on your website"
+                  icon={Sparkles}
+                />
+                
+                <div className="mt-6">
+                  <ChatbotPreview
+                    color={config.color}
+                    selectedIcon={
+                      config.customIcon ? (
+                        <img src={config.customIcon} alt="Custom Icon" className="w-6 h-6" />
+                      ) : (
+                        icons.find((icon) => icon.id === config.selectedIcon)?.component
+                      )
+                    }
+                    buttonAlignment={config.buttonAlignment}
+                    showButtonText={config.showButtonText}
+                    buttonText={config.widgetButtonText}
+                    welcomeMessage={config.welcomeMessage}
+                    displayStyle={config.displayStyle}
+                    customIcon={config.customIcon}
+                    starterQuestions={config.starterQuestions}
+                    HeaderText={config.widgetHeader}
+                  />
+                </div>
+              </div>
+            </motion.div>
           </TabsContent>
         </Tabs>
       </div>
-
-      {/* 8. Preview */}
-      <div className="rounded-xl bg-card/50 backdrop-blur-sm p-6 border border-border/50">
-        <h2 className="text-2xl font-semibold mb-4">Preview</h2>
-        <div className="flex flex-col items-center space-y-4">
-          <ChatbotPreview
-            color={color}
-            selectedIcon={
-              customIcon ? (
-                <img src={customIcon} alt="Custom Icon" className="w-6 h-6" />
-              ) : (
-                icons.find((icon) => icon.id === selectedIcon)?.component
-              )
-            }
-            buttonAlignment={buttonAlignment}
-            showButtonText={showButtonText}
-            buttonText={widgetButtonText}
-            welcomeMessage={welcomeMessage}
-            displayStyle={displayStyle}
-            customIcon={customIcon}
-            starterQuestions={starterQuestions}
-            HeaderText={widgetHeader}
-          />
-          {/* Widget Button Preview */}
-          <div className="relative h-[100px] w-full border rounded-lg bg-gray-50 dark:bg-gray-800 flex items-end">
-            <div
-              className={`absolute bottom-4 ${
-                buttonAlignment === 'right' ? 'right-4' : 'left-4'
-              } flex items-center gap-2`}
-            >
-              {customIcon ? (
-                <img src={customIcon} alt="Custom Icon" className="w-6 h-6" />
-              ) : (
-                icons.find((icon) => icon.id === selectedIcon)?.component
-              )}
-              {showButtonText && <span>{widgetButtonText}</span>}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    </TooltipProvider>
   );
 }

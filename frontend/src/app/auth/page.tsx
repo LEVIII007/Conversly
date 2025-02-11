@@ -1,12 +1,10 @@
 'use client';
 import { SignInDialog } from "@/components/auth/SignInDialog";
 import { useAuthGuard } from "@/hooks/use-auth-guard";
-import { useTheme } from "@/hooks/useTheme";
 
 
 export default function AuthPage() {
     const { showSignIn, closeSignIn } = useAuthGuard()
-    const {theme} = useTheme()
   return (
     <div>
         <h1 className="text-4xl font-bold text-center mt-8">Auth Page</h1>

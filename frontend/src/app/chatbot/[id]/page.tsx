@@ -11,10 +11,11 @@ import { DataManagementTab } from '@/components/chatbot/tabs/DataManagementTab';
 import { SettingsTab } from '@/components/chatbot/tabs/SettingsTab';
 import { ChatbotHeader } from '@/components/chatbot/ChatbotHeader';
 import { useToast } from '@/hooks/use-toast';
-import { getChatbotWithOwnership, fetchDataSources } from '@/lib/queries';
+import { getChatbotWithOwnership, fetchDataSources, getAnalytics } from '@/lib/queries';
 import { AnalyticsTab } from '@/components/chatbot/tabs/AnalyticsTab';
 import UpperHeader from '@/components/upperHeader';
-import Footer from '@/components/landing/footer';
+import { motion } from 'framer-motion';
+import { Database, MessageSquare, Palette, Settings2, BarChart, Bot } from 'lucide-react';
 
 export default function ChatbotCustomizationPage() {
   const { id } = useParams();
@@ -22,47 +23,46 @@ export default function ChatbotCustomizationPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [chatbotData, setChatbotData] = useState<any>(null);
   const [dataSources, setDataSources] = useState<any>(null);
+  const [analyticsData, setAnalyticsData] = useState<any>(null);
   const { toast } = useToast();
 
   useEffect(() => {
-    // Fetch chatbot data
-    const fetchChatbotData = async () => {
+    const fetchData = async () => {
       try {
-        const response = await getChatbotWithOwnership(Number(id));
-        if (response.status === "error") {
-          if (response.message === "Unauthorized") {
-            toast({
-              title: 'Unauthorized',
-              description: 'You do not have permission to access this chatbot.',
-              variant: 'destructive',
-            });
-            router.push('/chatbot'); // Redirect to home or another appropriate page
-          } else if (response.message === "Chatbot not found") {
-            toast({
-              title: 'Not Found',
-              description: 'The requested chatbot does not exist.',
-              variant: 'destructive',
-            });
-            router.push('/chatbot'); // Redirect to home or another appropriate page
-          } else {
-            throw new Error(response.message);
-          }
-        } else {
-          setChatbotData(response.data?.chatbot);
-          setDataSources(response.data?.dataSources);
+        const [chatbotResponse, analyticsResponse] = await Promise.all([
+          getChatbotWithOwnership(Number(id)),
+          getAnalytics(Number(id))
+        ]);
+
+        if (chatbotResponse.status === "error") {
+          handleError(chatbotResponse.message);
+          return;
         }
-            } catch (error) {
-        toast({
-          title: 'Error',
-          description: error instanceof Error ? error.message : 'Failed to load chatbot data',
-          variant: 'destructive',
-        });
+
+        setChatbotData(chatbotResponse.data?.chatbot);
+        setDataSources(chatbotResponse.data?.dataSources);
+        setAnalyticsData(analyticsResponse);
+      } catch (error) {
+        handleError(error);
       } finally {
         setIsLoading(false);
       }
     };
-    fetchChatbotData();
+
+    fetchData();
   }, [id]);
+
+  const handleError = (error: any) => {
+    const message = error?.message || 'Failed to load chatbot data';
+    toast({
+      title: 'Error',
+      description: message,
+      variant: 'destructive',
+    });
+    if (message.includes('Unauthorized') || message.includes('not found')) {
+      router.push('/chatbot');
+    }
+  };
 
   const handleTestChat = () => {
     router.push(`/chat/${id}`);
@@ -75,84 +75,147 @@ export default function ChatbotCustomizationPage() {
     setDataSources(updated);
   };
 
-
-
-
-  // handleAddDataSource = async (sourceType: string) => {
-  // handleUpdateSystemPrompt = async (newPrompt: string) => {
-  // handleDeleteKnowledge = async (knowledgeId: number) => {
-  // handleDeleteChatBot = async () => {
-
-  // const handleUpdateSystemPrompt = (newPrompt: string) => {
-  //   setChatbotData((prev: any) => ({ ...prev, System_Prompt: newPrompt }));
-  // };
-
-  // const handleAddDataSource = (sourceType: string) => {
-  //   // call the db to fetch new data. 
-  // };
-
-
-
-
-
   if (isLoading) {
-    return <div>Loading...</div>; // Replace with proper loading component
+    return (
+      <div className="bg-black min-h-screen flex items-center justify-center">
+        <div className="text-white font-heading text-xl">Loading...</div>
+      </div>
+    );
   }
 
+  const tabs = [
+    {
+      value: "data",
+      label: "Data Sources",
+      icon: Database,
+      description: "Add and manage your chatbot's knowledge sources"
+    },
+    {
+      value: "data-management",
+      label: "Data Management",
+      icon: MessageSquare,
+      description: "Organize and clean your training data"
+    },
+    {
+      value: "customize",
+      label: "Customize",
+      icon: Palette,
+      description: "Personalize your chatbot's appearance"
+    },
+    {
+      value: "system",
+      label: "System Prompt",
+      icon: Bot,
+      description: "Define your chatbot's behavior"
+    },
+    {
+      value: "analytics",
+      label: "Analytics",
+      icon: BarChart,
+      description: "Track performance and usage"
+    },
+    {
+      value: "settings",
+      label: "Settings",
+      icon: Settings2,
+      description: "Configure general settings"
+    }
+  ];
+
   return (
-    <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900">
-      <UpperHeader />
-      <div className="flex-1 flex flex-col overflow-hidden mt-16">
-      <ChatbotHeader chatbot={chatbotData} />
-      
-      <main className="flex-1 overflow-y-auto p-6">
-          <Tabs defaultValue="data" className="w-full">
-            <TabsList className="grid w-full grid-cols-6 gap-2">
-              <TabsTrigger value="data" className="text-sm">Data Sources</TabsTrigger>
-              <TabsTrigger value="data-management" className="text-sm">Data Management</TabsTrigger>
-              <TabsTrigger value="customize" className="text-sm">Customize</TabsTrigger>
-              <TabsTrigger value="system">System Prompt</TabsTrigger>
-              <TabsTrigger value="analytics">Analytics</TabsTrigger>
-              <TabsTrigger value="settings">Settings</TabsTrigger>
-            </TabsList>
+    <div className="min-h-screen bg-black relative">
+      <div className="absolute inset-0">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-500/20 via-background to-transparent opacity-30" />
+        <div className="absolute inset-0 bg-grid-white/5 [mask-image:radial-gradient(black,transparent_10%)]" />
+      </div>
 
-            <TabsContent value="data" className="border rounded-lg">
-              <DataSourcesTab chatbotId={id?.toString() ?? ''} onDataAdded={refreshData} />
-            </TabsContent>
+      <div className="fixed top-0 left-0 right-0 z-50 first-line:border-b border-gray-800/60">
+        <UpperHeader />
+      </div>
 
-            <TabsContent value="data-management" className="border rounded-lg">
-              <DataManagementTab chatbotId={id?.toString() ?? ''} dataSources={dataSources} onDataDeleted={refreshData} />
-            </TabsContent>
+      <div className="relative container pt-24 pb-16">
+        <ChatbotHeader chatbot={chatbotData} />
 
-            <TabsContent value="customize" className="border rounded-lg">
-              <CustomizationTab chatbotId={id?.toString() ?? ''} prompt={chatbotData.System_Prompt} />
-            </TabsContent>
+        <main className="mt-8">
+          <Tabs defaultValue="data" className="space-y-8">
+            <div className="bg-gray-900/60 backdrop-blur-sm border border-gray-800/60 rounded-2xl p-4">
+              <TabsList className="grid grid-cols-6 gap-2 bg-transparent">
+                {tabs.map((tab) => (
+                  <TabsTrigger
+                    key={tab.value}
+                    value={tab.value}
+                    className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-purple-500
+                      flex flex-col items-center gap-2 p-4 rounded-xl border border-gray-800/60 
+                      backdrop-blur-sm transition-all duration-200 hover:border-pink-500/30
+                      font-sans text-base text-gray-400 hover:text-white data-[state=active]:text-white
+                      data-[state=active]:border-transparent"
+                  >
+                    <tab.icon className="w-5 h-5" />
+                    {tab.label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
 
-            <TabsContent value="system" className="border rounded-lg">
-              <SystemPromptTab chatbotId={id?.toString() ?? ''} System_Prompt={chatbotData.System_Prompt} />
-            </TabsContent>
+              {/* Tab Descriptions */}
+              <div className="mt-4 font-sans text-gray-400 text-sm">
+                {tabs.map((tab) => (
+                  <motion.div
+                    key={tab.value}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="hidden data-[state=active]:block"
+                    data-state={tab.value === "data" ? "active" : "inactive"}
+                  >
+                    {tab.description}
+                  </motion.div>
+                ))}
+              </div>
+            </div>
 
-            <TabsContent value="analytics" className="border rounded-lg">
-              <AnalyticsTab chatbotId={id?.toString() ?? ''} />
-            </TabsContent>
-            <TabsContent value="settings" className="border rounded-lg">
-              <SettingsTab chatbotId={id?.toString() ?? ''} chatbot={chatbotData} />
-            </TabsContent>
+            {/* Tab Contents */}
+            <div className="space-y-6">
+              <TabsContent value="data">
+                <DataSourcesTab chatbotId={id?.toString() ?? ''} onDataAdded={refreshData} />
+              </TabsContent>
+
+              <TabsContent value="data-management">
+                <DataManagementTab chatbotId={id?.toString() ?? ''} dataSources={dataSources} onDataDeleted={refreshData} />
+              </TabsContent>
+
+              <TabsContent value="customize">
+                <CustomizationTab chatbotId={id?.toString() ?? ''} prompt={chatbotData.System_Prompt} />
+              </TabsContent>
+
+              <TabsContent value="system">
+                <SystemPromptTab chatbotId={id?.toString() ?? ''} System_Prompt={chatbotData.System_Prompt} />
+              </TabsContent>
+
+              <TabsContent value="analytics">
+                <AnalyticsTab chatbotId={id?.toString() ?? ''} analyticsData={analyticsData} />
+              </TabsContent>
+
+              <TabsContent value="settings">
+                <SettingsTab chatbotId={id?.toString() ?? ''} chatbot={chatbotData} />
+              </TabsContent>
+            </div>
           </Tabs>
-          
         </main>
-        <footer className="border-t border-gray-200 dark:border-gray-800 p-4">
-          <div className="flex justify-end space-x-4">
-            <Button 
-              onClick={handleTestChat}
-              variant="outline"
-              className="text-base"
-            >
-              Test Chatbot
-            </Button>
-          </div>
-        </footer>
+
+        <div className="container py-4 flex justify-between items-center gap-4">
+          <a 
+            href="/contact-us"
+            className="font-heading text-xl text-gray-400 hover:text-white transition-colors"
+          >
+            Need help? Contact us
+          </a>
+          <Button 
+            onClick={handleTestChat}
+            className="bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:opacity-90 rounded-xl"
+          >
+            Test Assistant
+          </Button>
+        </div>
       </div>
-      </div>
+    </div>
   );
-} 
+}

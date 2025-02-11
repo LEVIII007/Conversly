@@ -1,44 +1,83 @@
 'use client';
 
-import { useState } from "react";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import { AlertCircle, Save } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { updateSystemPrompt } from "@/lib/queries";
+import { useState } from 'react';
+import { motion } from 'framer-motion';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
+import { updateSystemPrompt } from '@/lib/queries';
+import { 
+  BrainCircuit, 
+  HelpCircle, 
+  Sparkles, 
+  Save,
+  RefreshCcw,
+  AlertCircle
+} from 'lucide-react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+  TooltipProvider,
+} from "@/components/ui/tooltip";
 
-const PROMPT_TIPS = [
-  "Be specific about the chatbot's role and expertise",
-  "Define the tone of voice (formal, casual, friendly, etc.)",
-  "Specify any limitations or boundaries",
-  "Include relevant domain knowledge or context",
-  "Define how to handle uncertain or out-of-scope questions"
+interface SystemPromptTabProps {
+  chatbotId: string;
+  System_Prompt: string;
+}
+
+function SectionHeader({ 
+  title, 
+  description,
+  icon: Icon 
+}: { 
+  title: string; 
+  description?: string;
+  icon: React.ElementType;
+}) {
+  return (
+    <div className="flex items-center gap-3 mb-6">
+      <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-pink-500/10 via-purple-500/10 to-blue-500/10">
+        <Icon className="w-5 h-5 text-pink-500" />
+      </div>
+      <div>
+        <h2 className="font-heading text-xl font-semibold text-white">
+          {title}
+        </h2>
+        {description && (
+          <p className="font-sans text-base text-gray-400">
+            {description}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+const promptTemplates = [
+  {
+    title: "Professional Assistant",
+    prompt: "You are a professional and knowledgeable assistant. Provide clear, accurate, and helpful responses while maintaining a formal tone.",
+  },
+  {
+    title: "Friendly Guide",
+    prompt: "You are a friendly and approachable guide. Explain concepts in simple terms and use a conversational tone to make users feel comfortable.",
+  },
+  {
+    title: "Technical Expert",
+    prompt: "You are a technical expert. Provide detailed, technical explanations while being precise and thorough in your responses.",
+  },
 ];
 
-const PROMPT_EXAMPLE = `You are a knowledgeable assistant for [Company Name], specializing in [specific domain].
-Your primary role is to help customers with [specific tasks/queries].
-Maintain a [professional but friendly] tone.
-When unsure, acknowledge limitations and direct users to [appropriate resources].
-Focus on providing accurate information from the company's documentation and policies.`;
-
-export function SystemPromptTab({ chatbotId, System_Prompt }: { chatbotId: string, System_Prompt: string }) {
+export function SystemPromptTab({ chatbotId, System_Prompt }: SystemPromptTabProps) {
   const [prompt, setPrompt] = useState(System_Prompt);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
   const handleSave = async () => {
-    if (!prompt.trim()) {
-      toast({
-        title: "Error",
-        description: "System prompt cannot be empty",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsLoading(true);
     try {
-      await updateSystemPrompt(Number(chatbotId), prompt);
+      setIsLoading(true);
+      await updateSystemPrompt(parseInt(chatbotId), prompt);
       toast({
         title: "Success",
         description: "System prompt updated successfully",
@@ -55,45 +94,126 @@ export function SystemPromptTab({ chatbotId, System_Prompt }: { chatbotId: strin
   };
 
   return (
-    <div className="space-y-8">
-      <div className="bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-900 rounded-lg p-4">
-        <h3 className="flex items-center gap-2 text-amber-800 dark:text-amber-200 font-medium">
-          <AlertCircle className="w-5 h-5" />
-          Tips for Writing an Effective System Prompt
-        </h3>
-        <ul className="mt-3 space-y-2 text-sm text-amber-700 dark:text-amber-300">
-          {PROMPT_TIPS.map((tip, index) => (
-            <li key={index} className="flex items-start">
-              <span className="mr-2">•</span>
-              {tip}
-            </li>
-          ))}
-        </ul>
-        <div className="mt-4 p-3 bg-white dark:bg-amber-950/50 rounded border border-amber-200 dark:border-amber-900">
-          <p className="text-sm font-medium text-amber-800 dark:text-amber-200 mb-2">Example:</p>
-          <pre className="text-xs text-amber-700 dark:text-amber-300 whitespace-pre-wrap">
-            {PROMPT_EXAMPLE}
-          </pre>
+    <TooltipProvider>
+      <div className="space-y-8">
+        {/* Main Prompt Section */}
+        <div className="bg-gray-900/60 backdrop-blur-sm border border-gray-800/60 rounded-2xl p-6">
+          <SectionHeader 
+            title="System Prompt" 
+            description="Define your AI assistant's personality and behavior"
+            icon={BrainCircuit}
+          />
+          
+          <div className="space-y-6">
+            <div className="flex items-start gap-4">
+              <div className="flex-grow">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <label className="font-sans text-base text-gray-300">Prompt Script</label>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <HelpCircle className="w-4 h-4 text-gray-400" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="font-sans text-sm max-w-xs">
+                          This prompt shapes your AI's personality and expertise. Be specific about its role, tone, and limitations.
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPrompt(System_Prompt)}
+                    className="border-gray-800 text-white hover:bg-gray-800/50"
+                  >
+                    <RefreshCcw className="w-4 h-4 mr-2" />
+                    Reset
+                  </Button>
+                </div>
+                <Textarea
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
+                  className="min-h-[200px] bg-gray-800/50 border-gray-700/50 text-white font-sans text-base"
+                  placeholder="Define how your AI assistant should behave..."
+                />
+              </div>
+            </div>
+
+            <Button
+              onClick={handleSave}
+              disabled={isLoading}
+              className="w-full bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:opacity-90 rounded-xl"
+            >
+              <Save className="w-4 h-4 mr-2" />
+              {isLoading ? "Saving..." : "Save Changes"}
+            </Button>
+          </div>
+        </div>
+
+        {/* Templates Section */}
+        <div className="bg-gray-900/60 backdrop-blur-sm border border-gray-800/60 rounded-2xl p-6">
+          <SectionHeader 
+            title="Quick Templates" 
+            description="Start with a pre-made prompt template"
+            icon={Sparkles}
+          />
+          
+          <div className="grid md:grid-cols-3 gap-4">
+            {promptTemplates.map((template, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="group relative"
+              >
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-purple-500/5 to-purple-500/10 rounded-xl" />
+                <div className="relative bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-xl p-4 hover:border-pink-500/20 transition-all duration-300">
+                  <h3 className="font-heading text-lg text-white mb-2">{template.title}</h3>
+                  <p className="font-sans text-sm text-gray-400 mb-4">{template.prompt}</p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPrompt(template.prompt)}
+                    className="w-full border-gray-700 text-white hover:bg-gray-700/50"
+                  >
+                    Use Template
+                  </Button>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+
+        {/* Tips Section */}
+        <div className="bg-blue-500/10 backdrop-blur-sm border border-blue-500/20 rounded-2xl p-6">
+          <SectionHeader 
+            title="Writing Tips" 
+            description="Best practices for effective prompts"
+            icon={AlertCircle}
+          />
+          
+          <div className="space-y-3 font-sans text-base text-gray-300">
+            <p className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-blue-500" />
+              Be specific about the assistant's role and expertise
+            </p>
+            <p className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-blue-500" />
+              Define the tone and style of communication
+            </p>
+            <p className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-blue-500" />
+              Set clear boundaries and limitations
+            </p>
+            <p className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-blue-500" />
+              Include specific instructions for handling different types of queries
+            </p>
+          </div>
         </div>
       </div>
-
-      <div className="space-y-4">
-        <h3 className="text-xl font-semibold">System Prompt</h3>
-        <Textarea
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-          placeholder="Enter your system prompt..."
-          className="min-h-[200px]"
-        />
-        <Button
-          onClick={handleSave}
-          disabled={isLoading}
-          className="flex items-center gap-2"
-        >
-          <Save className="w-4 h-4" />
-          {isLoading ? "Saving..." : "Save Prompt"}
-        </Button>
-      </div>
-    </div>
+    </TooltipProvider>
   );
 } 
