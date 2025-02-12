@@ -5,46 +5,46 @@ export const pricingPlans = [
       id: '4', // Plan ID
       name: 'Basic Plan',
       description: 'Ideal for small teams just getting started.',
-      priceMonthly: 149.99,
-      priceAnnually: 1499.99,
-      features: [
-        '3 Chatbots',
-        'Basic Analytics',
-        'Email Support',
-        '100k Messages/month',
-        'Standard Integrations'
-      ],
+      priceMonthly: 4.9,
+      priceAnnually: 49.99,
       popular: false,
+      features: [
+        "Up to 500 messages per month",
+        "Basic AI customization",
+        "Standard support",
+        "Community access",
+      ],
     },
     {
       id: '5', // Plan ID
       name: 'Pro Plan',
       description: 'Perfect for growing teams with more advanced needs.',
-      priceMonthly: 499.99,
-      priceAnnually: 4999.99,
+      priceMonthly: 49.99,
+      priceAnnually: 499.99,
       features: [
-        '10 Chatbots',
-        'Advanced Analytics',
-        'Priority Support',
-        '500k Messages/month',
-        'All Integrations',
-        'Custom Branding'
+        "Up to 10,000 messages per month",
+        "Advanced AI customization",
+        "Priority support",
+        "API access",
+        "Custom branding",
+        "Analytics dashboard",
       ],
       popular: true, // This plan will be highlighted on the page
     },
     {
       id: '6', // Plan ID
-      name: 'Premium Plan',
+      name: 'Enterprise Plan',
       description: 'Best for large teams and enterprises with complex needs.',
-      priceMonthly: 999.99,
-      priceAnnually: 9999.99,
+      priceMonthly: 'Custom',
+      priceAnnually: 'Custom',
       features: [
-        'Unlimited Chatbots',
-        'Enterprise Analytics',
-        '24/7 Support',
-        'Unlimited Messages',
-        'Custom Integrations',
-        'Dedicated Account Manager'
+        "Unlimited messages",
+        "Full AI customization",
+        "24/7 dedicated support",
+        "Custom integrations",
+        "Advanced analytics",
+        "SLA guarantee",
+        "Custom training",
       ],
       popular: false,
     },

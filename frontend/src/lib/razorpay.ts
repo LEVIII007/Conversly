@@ -236,7 +236,7 @@ export const createOrder = async (key: string, paymentAmount: number, isAnnual: 
   try {
     const order = await razorpay.orders.create({
       amount: Math.round(amount * 100),
-      currency: "INR",
+      currency: "USD",
       receipt: `receipt#${receipt}`,
     });
 

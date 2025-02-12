@@ -8,7 +8,7 @@ import { createOrder, verifyPayment } from "@/lib/razorpay"
 
 interface PaymentCardProps {
   planId: string
-  paymentAmount: number
+  paymentAmount: number | string
   planDetails: {
     name: string
     isAnnual: boolean
@@ -22,6 +22,14 @@ export default function PaymentCard({ planId, paymentAmount, planDetails }: Paym
   const { data: session } = useSession()
 
   const handlePayment = () => {
+    if (typeof paymentAmount !== "number") {
+      toast({
+        title: "Custom Plan",
+        description: "For custom plans, please contact sales.",
+        variant: "destructive",
+      })
+      return router.push("/contact-sales")
+    }
     startTransition(async () => {
       try {
         if (!session) {

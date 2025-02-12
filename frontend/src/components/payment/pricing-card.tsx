@@ -1,15 +1,16 @@
-// components/payment/pricing-card.tsx
 "use client";
 
 import PaymentCard from "@/components/payment/payment-card";
+import { Check } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface PricingCardProps {
   plan: {
     id: string;
     name: string;
     description: string;
-    priceMonthly: number;
-    priceAnnually: number;
+    priceMonthly: number | string;
+    priceAnnually: number | string;
     popular?: boolean;
     features: string[];
   };
@@ -17,6 +18,8 @@ interface PricingCardProps {
 }
 
 export default function PricingCard({ plan, isAnnual }: PricingCardProps) {
+  const router = useRouter();
+
   return (
     <div
       className={`
@@ -43,42 +46,45 @@ export default function PricingCard({ plan, isAnnual }: PricingCardProps) {
       <div className="mt-6">
         {/* Monthly Price */}
         <div className={isAnnual ? "hidden" : ""}>
-          <span className="text-4xl font-bold">${plan.priceMonthly.toFixed(2)}</span>
-          <span className="text-gray-400">/month</span>
+          {typeof plan.priceMonthly === "number" ? (
+            <>
+              <span className="text-4xl font-bold">${plan.priceMonthly.toFixed(2)}</span>
+              <span className="text-gray-400">/month</span>
+            </>
+          ) : (
+            <span className="text-4xl font-bold">{plan.priceMonthly}</span>
+          )}
         </div>
         {/* Annual Price */}
         <div className={isAnnual ? "" : "hidden"}>
-          <span className="text-4xl font-bold">${(plan.priceAnnually / 12).toFixed(2)}</span>
-          <span className="text-gray-400">/month</span>
+          {typeof plan.priceAnnually === "number" ? (
+            <>
+              <span className="text-4xl font-bold">${(plan.priceAnnually / 12).toFixed(2)}</span>
+              <span className="text-gray-400">/month</span>
+            </>
+          ) : (
+            <span className="text-4xl font-bold">{plan.priceAnnually}</span>
+          )}
         </div>
       </div>
       <ul className="mt-8 space-y-4">
         {plan.features.map((feature, index) => (
           <li key={index} className="flex items-center text-gray-100">
-            <svg
-              className="w-5 h-5 text-green-500 mr-2"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M5 13l4 4L19 7"
-              />
-            </svg>
-            {feature}
+            <div className="mt-1 p-0.5 rounded-full bg-gradient-to-r from-pink-500/20 to-purple-500/20">
+              <Check className="w-4 h-4 text-pink-500" />
+            </div>
+            <span className="text-gray-300 text-sm">{feature}</span>
           </li>
         ))}
       </ul>
 
       {/* Payment CTA */}
-      <PaymentCard
-        planId={plan.id}
-        paymentAmount={isAnnual ? plan.priceAnnually : plan.priceMonthly}
-        planDetails={{ name: plan.name, isAnnual }}
-      />
+      
+        <PaymentCard
+          planId={plan.id}
+          paymentAmount={isAnnual ? (typeof plan.priceAnnually === "number" ? plan.priceAnnually : plan.priceMonthly) : plan.priceMonthly}
+          planDetails={{ name: plan.name, isAnnual }}
+        />
     </div>
   );
 }
