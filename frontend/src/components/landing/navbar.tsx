@@ -11,6 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { redirect } from "next/navigation";
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -136,7 +137,8 @@ export default function Navbar() {
                       >
                         Sign In
                       </Button>
-                      <Button className="bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:opacity-90">
+                      <Button className="bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:opacity-90"
+                      onClick={() => redirect("/create")}>
                         Get Started
                       </Button>
                     </>

@@ -23,11 +23,11 @@ const Footer = () => {
             <ul className="space-y-2">
               <li className="flex items-center">
                 <Phone className="w-5 h-5 mr-2" />
-                <span className="text-muted-foreground">+1 (555) 123-4567</span>
+                <span className="text-muted-foreground">+91 9528921966</span>
               </li>
               <li className="flex items-center">
                 <Mail className="w-5 h-5 mr-2" />
-                <a href="mailto:tyagishashank118@gmail.com" className="text-muted-foreground hover:text-primary">info@conversly.ai</a>
+                <a href="mailto:tyagishashank118@gmail.com" className="text-muted-foreground hover:text-primary">tyagishashank118@gmail.com</a>
               </li>
               <li className="flex items-center">
                 <MessageCircle className="w-5 h-5 mr-2" />

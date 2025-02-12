@@ -3,6 +3,7 @@
 import { Check, Star } from "lucide-react"
 import Link from "next/link"
 import { motion } from "framer-motion"
+import {redirect} from "next/navigation";
 
 const pricingPlans = [
   {
@@ -10,14 +11,13 @@ const pricingPlans = [
     priceMonthly: "$0",
     description: "Perfect for trying out our platform",
     features: [
-      "Up to 1,000 messages per month",
+      "Up to 500 messages per month",
       "Basic AI customization",
       "Standard support",
-      "1 team member",
       "Community access",
     ],
     gradient: "from-pink-500/10 via-purple-500/10 to-blue-500/10",
-    stats: "1K",
+    stats: "0.5K",
     statsLabel: "Free Messages",
   },
   {
@@ -29,7 +29,6 @@ const pricingPlans = [
       "Up to 10,000 messages per month",
       "Advanced AI customization",
       "Priority support",
-      "5 team members",
       "API access",
       "Custom branding",
       "Analytics dashboard",
@@ -46,7 +45,6 @@ const pricingPlans = [
       "Unlimited messages",
       "Full AI customization",
       "24/7 dedicated support",
-      "Unlimited team members",
       "Custom integrations",
       "Advanced analytics",
       "SLA guarantee",
@@ -152,7 +150,7 @@ export default function PricingSection() {
                     }
                   `}
                 >
-                  <span className="relative z-10">
+                  <span className="relative z-10" onClick={redirect('/pricing')}>
                     {plan.popular ? "Get Started" : plan.priceMonthly === "Custom" ? "Contact Sales" : "Start Free"}
                   </span>
                   <div className="absolute inset-0 -z-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover/button:translate-x-[100%] transition-transform duration-500" />
