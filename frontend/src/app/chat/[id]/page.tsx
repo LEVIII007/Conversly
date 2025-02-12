@@ -2,7 +2,7 @@
 import { redirect } from "next/navigation";
 import { auth } from "../../../../auth";
 import { validateChatbotOwnership } from "@/lib/queries";
-import ChatInterface from "@/components/ChatInterface";
+import ChatInterface from "@/components/chat/ChatInterface";
 
 export default async function ChatPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
