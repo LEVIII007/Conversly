@@ -64,17 +64,6 @@ export default function UpperHeader() {
                   </div>
                 </Link>
 
-                {/* Navigation Links
-                <nav className="hidden md:flex items-center gap-8">
-                  <Link 
-                    href="/pricing" 
-                    className="text-gray-300 hover:text-white transition-colors"
-                  >
-                    Pricing
-                  </Link>
-                  
-                </nav> */}
-
                 {/* Auth Buttons */}
                 <div className="flex items-center gap-4">
                   {session ? (

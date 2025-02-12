@@ -1,5 +1,4 @@
-"use client"
-
+'use client';
 import { Check, Star } from "lucide-react"
 import Link from "next/link"
 import { motion } from "framer-motion"
@@ -8,7 +7,7 @@ import {redirect} from "next/navigation";
 const pricingPlans = [
   {
     name: "Free",
-    priceMonthly: "$0",
+    priceMonthly: "$4.9",
     description: "Perfect for trying out our platform",
     features: [
       "Up to 500 messages per month",
@@ -138,8 +137,11 @@ export default function PricingSection() {
                 </ul>
 
                 {/* CTA Button */}
-                <Link
-                  href={`/pricing?plan=${plan.name.toLowerCase()}`}
+                <button
+                  type="button"
+                  onClick={() => {
+                    // Add your custom behavior here, such as opening a modal or scrolling.
+                  }}
                   className={`
                     w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-medium
                     transition-all duration-300 group/button relative overflow-hidden
@@ -150,11 +152,16 @@ export default function PricingSection() {
                     }
                   `}
                 >
-                  <span className="relative z-10" onClick={redirect('/pricing')}>
-                    {plan.popular ? "Get Started" : plan.priceMonthly === "Custom" ? "Contact Sales" : "Start Free"}
+                  <span className="relative z-10">
+                    {plan.popular
+                      ? "Get Started"
+                      : plan.priceMonthly === "Custom"
+                      ? "Contact Sales"
+                      : "Start Free"}
                   </span>
                   <div className="absolute inset-0 -z-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover/button:translate-x-[100%] transition-transform duration-500" />
-                </Link>
+                </button>
+
 
                 {/* Hover Effect */}
                 <div

@@ -1,4 +1,3 @@
-// app/pricing/page.tsx (or wherever your PricingPage lives)
 import { pricingPlans } from "@/lib/pricing-constants";
 import UpperHeader from "@/components/upperHeader";
 import HeroSection from "@/components/payment/payment-hero";
