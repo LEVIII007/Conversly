@@ -140,6 +140,7 @@ export default function PricingSection() {
                 <button
                   type="button"
                   onClick={() => {
+                    redirect("/pricing")
                     // Add your custom behavior here, such as opening a modal or scrolling.
                   }}
                   className={`
