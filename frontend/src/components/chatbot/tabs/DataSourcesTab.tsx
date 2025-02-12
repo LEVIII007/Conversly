@@ -347,7 +347,7 @@ export function DataSourcesTab({ chatbotId, onDataAdded }: { chatbotId: string; 
     }
   };
   
-
+  
   useEffect(() => {
     console.log('Component re-rendered');
   }, [pendingSources]);
@@ -424,36 +424,57 @@ export function DataSourcesTab({ chatbotId, onDataAdded }: { chatbotId: string; 
 
                     {source.available ? (
                       source.id === 'document' ? (
-                        <label className="cursor-pointer">
-                          <input
-                            type="file"
-                            id={`file-upload-${source.id}`}
-                            className="hidden"
-                            onChange={(e) => e.target.files && handleAddFile(e.target.files)}
-                          />
-                          <Button 
+                        <div>
+                          <Button
+                            variant="outline"
                             className="w-full bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:opacity-90 rounded-xl group"
+                            onClick={() => document.getElementById(`file-upload-${source.id}`)?.click()}
                           >
+                            <FileText className="w-4 h-4 mr-2" />
                             Upload Document
-                            <Upload className="ml-2 w-4 h-4 group-hover:translate-y-[-2px] transition-transform" />
+                            <input
+                              id={`file-upload-${source.id}`}
+                              type="file"
+                              className="hidden"
+                              accept=".pdf,.docx,.txt,.md"
+                              onChange={(e) => {
+                                if (e.target.files?.length) {
+                                  handleAddFile(e.target.files);
+                                }
+                              }}
+                            />
                           </Button>
-                        </label>
+                          <div className="flex items-start gap-2 mt-2 text-xs text-muted-foreground">
+                            <AlertCircle className="w-3 h-3 mt-0.5" />
+                            <span>Supports PDF, Word, TXT, MD. Max 10MB</span>
+                          </div>
+                        </div>
                       ) : source.id === 'CSV' ? (
-                        <label className="cursor-pointer">
-                          <input
-                            type="file"
-                            id={`file-upload-${source.id}`}
-                            className="hidden"
-                            onChange={(e) => e.target.files && handleAddCsv(e.target.files)}
-                            accept=".csv"
-                          />
-                          <Button 
+                        <div>
+                          <Button
+                            variant="outline" 
                             className="w-full bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:opacity-90 rounded-xl group"
+                            onClick={() => document.getElementById('CSV-file-upload')?.click()}
                           >
+                            <FileText className="w-4 h-4 mr-2" />
                             Upload CSV
-                            <Upload className="ml-2 w-4 h-4 group-hover:translate-y-[-2px] transition-transform" />
+                            <input
+                              id="CSV-file-upload"
+                              type="file"
+                              className="hidden"
+                              accept=".csv"
+                              onChange={(e) => {
+                                if (e.target.files?.length) {
+                                  handleAddCsv(e.target.files);
+                                }
+                              }}
+                            />
                           </Button>
-                        </label>
+                          <div className="flex items-start gap-2 mt-2 text-xs text-muted-foreground">
+                            <AlertCircle className="w-3 h-3 mt-0.5" />
+                            <span>Supports .csv files with 2 columns: Q, A</span>
+                          </div>
+                        </div>
                       ) : source.id === 'qa' ? (
                         <Button
                           onClick={() => setShowQADialog(true)}

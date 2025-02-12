@@ -1,4 +1,4 @@
-'use client';
+"use client";
 import { useState, useEffect } from "react";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,6 @@ export default function Navbar() {
   const { data: session } = useSession();
   const [mounted, setMounted] = useState(false);
 
-  // Always call hooks in the same order
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -26,26 +25,26 @@ export default function Navbar() {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
     };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Instead of returning early, conditionally render the content in the JSX
   return (
     <>
       {mounted && (
         <motion.header
           initial={{ y: -100 }}
           animate={{ y: 0 }}
-          className="fixed top-0 left-0 right-0 z-50"
+          className="fixed top-0 left-0 right-0 z-50 font-sans"
         >
           <div className="container px-4 sm:px-6 lg:px-8 py-4">
-            <div 
+            <div
               className={`
                 rounded-2xl backdrop-blur-sm border border-gray-800/60
-                ${scrolled 
-                  ? 'bg-gray-900/60 shadow-lg shadow-black/20' 
-                  : 'bg-gray-900/30'
+                ${
+                  scrolled
+                    ? "bg-gray-900/60 shadow-lg shadow-black/20"
+                    : "bg-gray-900/30"
                 }
                 transition-all duration-300
               `}
@@ -60,32 +59,34 @@ export default function Navbar() {
                     <span className="text-xl font-bold text-white font-display">
                       ConverslyAI
                     </span>
-                    <span className="text-xs text-gray-400">AI-Powered Knowledge Base</span>
+                    <span className="text-xs text-gray-400">
+                      AI-Powered Knowledge Base
+                    </span>
                   </div>
                 </Link>
 
                 {/* Navigation Links */}
                 <nav className="hidden md:flex items-center gap-8">
-                  <Link 
-                    href="#features" 
+                  <Link
+                    href="#features"
                     className="text-gray-300 hover:text-white transition-colors"
                   >
                     Features
                   </Link>
-                  <Link 
-                    href="#pricing" 
+                  <Link
+                    href="#pricing"
                     className="text-gray-300 hover:text-white transition-colors"
                   >
                     Pricing
                   </Link>
-                  <Link 
-                    href="#faq" 
+                  <Link
+                    href="#faq"
                     className="text-gray-300 hover:text-white transition-colors"
                   >
                     FaQs
                   </Link>
-                  <Link 
-                    href="#blog" 
+                  <Link
+                    href="#blog"
                     className="text-gray-300 hover:text-white transition-colors"
                   >
                     Blog
@@ -99,7 +100,7 @@ export default function Navbar() {
                       <DropdownMenuTrigger>
                         <div className="w-10 h-10 rounded-full border-2 border-pink-500/50 overflow-hidden">
                           <Image
-                            src={session.user?.image || '/default-avatar.png'}
+                            src={session.user?.image || "/default-avatar.png"}
                             alt="User avatar"
                             width={40}
                             height={40}
@@ -109,13 +110,16 @@ export default function Navbar() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent className="bg-gray-900 border border-gray-800">
                         <DropdownMenuItem>
-                          <Link href="/profile" className="w-full text-gray-300 hover:text-white">
+                          <Link
+                            href="/profile"
+                            className="w-full text-gray-300 hover:text-white"
+                          >
                             Profile
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem>
-                          <button 
-                            onClick={() => signOut()} 
+                          <button
+                            onClick={() => signOut()}
                             className="w-full text-left text-gray-300 hover:text-white"
                           >
                             Sign Out
@@ -125,16 +129,14 @@ export default function Navbar() {
                     </DropdownMenu>
                   ) : (
                     <>
-                      <Button 
-                        variant="ghost" 
+                      <Button
+                        variant="ghost"
                         className="hidden sm:inline-flex text-gray-300 hover:text-white hover:bg-gray-800/50"
-                        onClick={() => signIn('google')}
+                        onClick={() => signIn("google")}
                       >
                         Sign In
                       </Button>
-                      <Button 
-                        className="bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:opacity-90"
-                      >
+                      <Button className="bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:opacity-90">
                         Get Started
                       </Button>
                     </>

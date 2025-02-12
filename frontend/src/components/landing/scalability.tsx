@@ -1,7 +1,7 @@
-'use client';
-import { motion, useScroll, useTransform } from "framer-motion"
-import { useRef } from "react"
-import { Zap, Users, Globe, Cpu } from "lucide-react"
+"use client";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { useRef } from "react";
+import { Zap, Users, Globe, Cpu } from "lucide-react";
 
 const stats = [
   {
@@ -32,22 +32,25 @@ const stats = [
     gradient: "from-pink-500/10 via-blue-500/10 to-purple-500/10",
     iconColor: "text-pink-500",
   },
-]
+];
 
 export default function ScalabilitySection() {
-  const containerRef = useRef<HTMLDivElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start end", "end start"],
-  })
+  });
 
-  const y = useTransform(scrollYProgress, [0, 1], ["0%", "100%"])
-  const opacity = useTransform(scrollYProgress, [0, 0.5, 1], [1, 1, 0])
+  const y = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]);
+  const opacity = useTransform(scrollYProgress, [0, 0.5, 1], [1, 1, 0]);
 
   return (
-    <section className="bg-black py-24 relative overflow-hidden" ref={containerRef}>
+    <section
+      className="bg-black py-24 relative overflow-hidden font-sans" // Default: Inter for body text
+      ref={containerRef}
+    >
       {/* Animated Background */}
-      <motion.div 
+      <motion.div
         className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-purple-500/30 via-background to-transparent"
         style={{ y, opacity }}
       />
@@ -83,18 +86,19 @@ export default function ScalabilitySection() {
         >
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-pink-500/10 to-purple-500/10 border border-pink-500/20 mb-6">
             <Cpu className="w-4 h-4 text-pink-500" />
-            <span className="text-sm font-medium bg-gradient-to-r from-pink-500 to-purple-500 text-transparent bg-clip-text">
+            <span className="text-sm font-medium bg-gradient-to-r from-pink-500 to-purple-500 text-transparent bg-clip-text font-heading">
               Enterprise Ready
             </span>
           </div>
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 font-display">
             Built for
             <span className="bg-gradient-to-r from-pink-500 to-purple-500 text-transparent bg-clip-text ml-3">
               Scale
             </span>
           </h2>
-          <p className="text-lg text-gray-400 max-w-3xl mx-auto">
-            Handle millions of requests with ease. Our infrastructure is built to scale with your needs.
+          <p className="text-lg text-gray-400 max-w-3xl mx-auto font-sans">
+            Handle millions of requests with ease. Our infrastructure is built
+            to scale with your needs.
           </p>
         </motion.div>
 
@@ -110,16 +114,18 @@ export default function ScalabilitySection() {
               className="relative group"
             >
               <div className="absolute inset-0 bg-gradient-to-b from-transparent via-purple-500/5 to-purple-500/10 rounded-2xl" />
-              <motion.div 
+              <motion.div
                 className="relative bg-gray-900/60 backdrop-blur-sm border border-gray-800/60 rounded-2xl p-6 text-center"
                 whileHover={{ scale: 1.05 }}
                 transition={{ type: "spring", stiffness: 300 }}
               >
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-br ${stat.gradient} mx-auto mb-4`}>
+                <div
+                  className={`w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-br ${stat.gradient} mx-auto mb-4`}
+                >
                   <stat.icon className={`w-6 h-6 ${stat.iconColor}`} />
                 </div>
-                <motion.span 
-                  className="text-3xl font-bold text-white block mb-2"
+                <motion.span
+                  className="text-3xl font-bold text-white block mb-2 font-heading"
                   initial={{ opacity: 0, scale: 0.5 }}
                   whileInView={{ opacity: 1, scale: 1 }}
                   viewport={{ once: true }}
@@ -127,20 +133,22 @@ export default function ScalabilitySection() {
                 >
                   {stat.value}
                 </motion.span>
-                <span className="text-gray-400">{stat.label}</span>
+                <span className="text-gray-400 font-sans">{stat.label}</span>
 
                 {/* Hover Effect */}
-                <div className={`
-                  absolute inset-0 bg-gradient-to-r ${stat.gradient}
-                  opacity-0 group-hover:opacity-10 transition-opacity duration-300 rounded-2xl
-                `} />
+                <div
+                  className={`
+                    absolute inset-0 bg-gradient-to-r ${stat.gradient}
+                    opacity-0 group-hover:opacity-10 transition-opacity duration-300 rounded-2xl
+                  `}
+                />
               </motion.div>
             </motion.div>
           ))}
         </div>
 
         {/* Graph Visualization */}
-        <motion.div 
+        <motion.div
           className="mt-16 h-64 relative"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
@@ -154,9 +162,9 @@ export default function ScalabilitySection() {
             viewport={{ once: true }}
             transition={{ duration: 1.5, ease: "easeOut" }}
           />
-          {/* Add more graph elements here */}
+          {/* Additional graph elements can be added here */}
         </motion.div>
       </div>
     </section>
-  )
-} 
+  );
+}

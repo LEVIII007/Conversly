@@ -5,7 +5,7 @@ import HowItWorks from "@/components/landing/how-it-works"
 import PricingSection from "@/components/landing/pricing"
 import QuestionsSection from "@/components/landing/questions"
 import Footer from "@/components/landing/footer"
-import { TestimonialsSection }from "@/components/landing/testimonials"
+// import { TestimonialsSection }from "@/components/landing/testimonials"
 
 import RelatedArticles from "@/components/landing/blogs"
 import ScalabilitySection from "@/components/landing/scalability"

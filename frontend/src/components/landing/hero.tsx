@@ -1,9 +1,16 @@
 // app/hero.tsx
-'use client';
+"use client";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { redirect } from "next/navigation";
-import { Code2, Database, Bot, Sparkles, ArrowRight, MessageSquare, Code, Zap } from "lucide-react";
+import {
+  Code,
+  Zap,
+  ArrowRight,
+  MessageSquare,
+  Sparkles,
+  Bot,
+} from "lucide-react";
 
 const features = [
   {
@@ -24,12 +31,12 @@ const features = [
     gradient: "from-purple-500/10 via-pink-500/10 to-blue-500/10",
     iconColor: "text-purple-500",
   },
-]
+];
 
 // A modern chatbot UI component
 function ChatUI() {
   return (
-    <div className="w-full max-w-md bg-gray-900/60 backdrop-blur-sm rounded-2xl overflow-hidden border border-gray-800/60">
+    <div className="w-full max-w-md bg-gray-900/60 backdrop-blur-sm rounded-2xl overflow-hidden border border-gray-800/60 font-sans">
       {/* Chat header */}
       <div className="px-4 py-3 flex items-center justify-between border-b border-gray-800/60">
         <div className="flex items-center gap-2">
@@ -46,7 +53,12 @@ function ChatUI() {
             viewBox="0 0 24 24"
             stroke="currentColor"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
           </svg>
         </button>
       </div>
@@ -76,7 +88,10 @@ function ChatUI() {
             <Bot className="w-5 h-5 text-pink-500" />
           </div>
           <div className="bg-gray-800/50 text-gray-200 rounded-2xl rounded-tl-none p-4 max-w-[80%]">
-            <p>The search endpoint has a rate limit of 100 requests per minute per API key. You can monitor your usage in the dashboard.</p>
+            <p>
+              The search endpoint has a rate limit of 100 requests per minute
+              per API key. You can monitor your usage in the dashboard.
+            </p>
           </div>
         </div>
       </div>
@@ -114,17 +129,18 @@ export default function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
+            className="font-sans"
           >
             {/* Badge */}
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-pink-500/10 to-purple-500/10 border border-pink-500/20 mb-8">
               <Sparkles className="w-4 h-4 text-pink-500" />
-              <span className="text-sm font-medium bg-gradient-to-r from-pink-500 to-purple-500 text-transparent bg-clip-text">
+              <span className="text-sm font-medium bg-gradient-to-r from-pink-500 to-purple-500 text-transparent bg-clip-text font-heading">
                 AI-Powered Knowledge Base
               </span>
             </div>
 
             {/* Heading */}
-            <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight">
+            <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight font-display">
               Transform Your{" "}
               <span className="bg-gradient-to-r from-pink-500 to-purple-500 text-transparent bg-clip-text">
                 Documentation
@@ -133,8 +149,8 @@ export default function Hero() {
             </h1>
 
             {/* Description */}
-            <p className="text-xl text-gray-400 mb-8 max-w-xl">
-              Create custom AI chatbots trained on your knowledge base. 
+            <p className="text-xl text-gray-400 mb-8 max-w-xl font-sans">
+              Create custom AI chatbots trained on your knowledge base.
               Deploy anywhere or integrate via API for seamless knowledge sharing.
             </p>
 
@@ -145,16 +161,20 @@ export default function Hero() {
                   key={index}
                   className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-900/60 backdrop-blur-sm border border-gray-800/60"
                 >
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center bg-gradient-to-br ${feature.gradient}`}>
+                  <div
+                    className={`w-8 h-8 rounded-lg flex items-center justify-center bg-gradient-to-br ${feature.gradient}`}
+                  >
                     <feature.icon className={`w-4 h-4 ${feature.iconColor}`} />
                   </div>
-                  <span className="text-sm text-gray-300">{feature.label}</span>
+                  <span className="text-sm text-gray-300 font-sans">
+                    {feature.label}
+                  </span>
                 </div>
               ))}
             </div>
 
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col sm:flex-row gap-4 font-heading">
               <Button
                 size="lg"
                 className="bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:opacity-90 rounded-xl group"
@@ -189,12 +209,4 @@ export default function Hero() {
       </div>
     </section>
   );
-}
-
-// Helper function for rgba colors
-function hexToRgba(hex: string, alpha: number): string {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
