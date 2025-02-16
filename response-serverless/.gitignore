@@ -24,3 +24,13 @@ Thumbs.db
 
 # Pytest
 .cache/
+
+.env
+
+/node_modules
+
+/server/dependencies
+
+/venv   
+
+aws_lambda_artifacts.zip

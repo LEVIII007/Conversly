@@ -1,0 +1,52 @@
+org: zsecure
+service: response-conversly
+
+package:
+  individually: true
+
+provider:
+  name: aws
+  runtime: python3.10
+  timeout: 30
+  region: sa-east-1
+  stage: ${opt:stage, "dev"}
+
+plugins:
+  - serverless-python-requirements
+
+custom:
+  pythonRequirements:
+    usePoetry: true
+    dockerizePip: true
+    slim: true
+    useStaticCache: false
+    useDownloadCache: false
+    layer:
+      name: fastapi-backend-requirements-layer
+      description: Backend FastAPI serverless requirements layer
+      compatibleRuntimes:
+        - python3.10
+
+functions:
+  app:
+    package:
+      individually: true
+      patterns:
+        - "response_conversly/**"
+        - "poetry.lock"
+        - "pyproject.toml"
+        - ".env"
+        - "!package.json"
+        - "!package-lock.json"
+        - "!.serverless/**"
+        - "!node_modules/**"
+        - "!venv/**"
+        - "!data/**"
+
+    handler: response_conversly.api.handler
+    layers:
+      - { Ref: PythonRequirementsLambdaLayer }
+    events:
+      - http:
+          method: any
+          path: "{proxy+}"
