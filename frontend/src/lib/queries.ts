@@ -164,10 +164,10 @@ export async function DeleteChatBot({ id }: { id: number }) {
       where: { id },
     });
 
-    return chatbot;
+    return { success: true };
   } catch (error) {
     console.error('Error deleting chatbot:', error);
-    return null;
+    return { success : false , message: 'An unknown error occurred' };
   }
 }
 

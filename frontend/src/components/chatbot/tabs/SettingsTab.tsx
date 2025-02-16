@@ -24,7 +24,14 @@ export function SettingsTab({ chatbotId, chatbot }: { chatbotId: string; chatbot
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      await DeleteChatBot({ id: Number(chatbotId) });
+      const response = await DeleteChatBot({ id: Number(chatbotId) });
+      if(!response.success) {
+        toast({
+          title: "Error",
+          description: response.message,
+          variant: "destructive",
+        });
+      }
       toast({
         title: "Success",
         description: "Chatbot deleted successfully",

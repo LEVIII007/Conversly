@@ -4,14 +4,29 @@
 import { Trash2 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { DeleteChatBot } from "@/lib/queries";
+import { useToast } from "@/hooks/use-toast";
 
 export default function DeleteButton({ chatbotId }: { chatbotId: number }) {
   const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
 
   const handleDeleteBot = async () => {
     setLoading(true);
     try {
-      await fetch(`/api/chatbots/${chatbotId}`, { method: "DELETE" });
+      const result = await  DeleteChatBot({ id: chatbotId });
+      if(!result.success) {
+        toast({
+          title: "Error",
+          description: result.message,
+          variant: "destructive",
+        });
+        return;
+      }
+      toast({
+        title: "Success",
+        description: "Chatbot deleted successfully",
+      });
       window.location.reload(); // Refresh page after deletion
     } catch (error) {
       console.error("Failed to delete chatbot", error);
