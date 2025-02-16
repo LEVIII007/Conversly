@@ -108,6 +108,7 @@ interface QAPair {
   id: string;
   question: string;
   answer: string;
+  citation: string;
 }
 
 interface PendingSource {
@@ -115,6 +116,7 @@ interface PendingSource {
   type: 'Website' | 'Document' | 'QandA' | 'CSV';
   name: string;
   content?: File | string;
+  citation?: string;
 }
 
 const dataSources = [
@@ -205,7 +207,7 @@ export function DataSourcesTab({ chatbotId, onDataAdded }: { chatbotId: string; 
         const headers = results.meta.fields;
 
         // Ensure required columns are present
-        if (!headers?.includes('Q') || !headers.includes('A')) {
+        if (!headers?.includes('Q') || !headers.includes('A') || !headers.includes("citation")) {
           toast({
             title: 'Invalid CSV format',
             description: 'CSV file must contain "Q" and "A" columns.',
@@ -251,12 +253,13 @@ export function DataSourcesTab({ chatbotId, onDataAdded }: { chatbotId: string; 
     }
   };
 
-  const handleAddQA = (question: string, answer: string) => {
+  const handleAddQA = (question: string, answer: string, citation : string) => {
     setPendingSources(prev => [...prev, {
       id: Date.now().toString(),
       type: 'QandA',
       name: question,
-      content: answer
+      content: answer,
+      citation: citation
     }]);
   };
 
@@ -282,7 +285,8 @@ export function DataSourcesTab({ chatbotId, onDataAdded }: { chatbotId: string; 
         .filter(source => source.type === 'QandA')
         .map(source => ({
           question: source.name,
-          answer: source.content as string
+          answer: source.content as string,
+          citation: source.citation as string
         }));
   
       const csvData = pendingSources
@@ -423,6 +427,36 @@ export function DataSourcesTab({ chatbotId, onDataAdded }: { chatbotId: string; 
                     </p>
 
                     {source.available ? (
+                      source.id === 'url' ? (
+                        <div>
+                          <form onSubmit={(e) => {
+                            e.preventDefault();
+                            const input = e.currentTarget.querySelector('input');
+                            if (input?.value) {
+                              handleAddURL(input.value);
+                              input.value = '';
+                            }
+                          }}>
+                            <input
+                              type="text" 
+                              placeholder="Enter URL"
+                              className="w-full mb-2 p-2 rounded-xl border border-gray-600 bg-transparent text-white"
+                            />
+                            <Button
+                              type="submit"
+                              variant="outline"
+                              className="w-full bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:opacity-90 rounded-xl group"
+                            >
+                              <Globe className="w-4 h-4 mr-2" />
+                              Add URL
+                            </Button>
+                          </form>
+                          <div className="flex items-start gap-2 mt-2 text-xs text-muted-foreground">
+                            <AlertCircle className="w-3 h-3 mt-0.5" />
+                            <span>Enter a valid webpage URL to extract content</span>
+                          </div>
+                        </div>
+                      ):
                       source.id === 'document' ? (
                         <div>
                           <Button
@@ -472,7 +506,7 @@ export function DataSourcesTab({ chatbotId, onDataAdded }: { chatbotId: string; 
                           </Button>
                           <div className="flex items-start gap-2 mt-2 text-xs text-muted-foreground">
                             <AlertCircle className="w-3 h-3 mt-0.5" />
-                            <span>Supports .csv files with 2 columns: Q, A</span>
+                            <span>Supports .csv files with 3 columns: Q, A ,citation</span>
                           </div>
                         </div>
                       ) : source.id === 'qa' ? (

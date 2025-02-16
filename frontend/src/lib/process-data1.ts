@@ -16,6 +16,7 @@ interface Document {
 interface QandA {
   question: string;
   answer: string;
+  citation: string;
 }
 
 interface CSV {
@@ -121,7 +122,7 @@ export async function addKnowledge({
       throw new Error('User is not authenticated.');
     }
     const isSubscribed = await subscriptionStatus(session.user.id);
-    const maxDataSources = isSubscribed ? 25 : 2;
+    const maxDataSources = isSubscribed ? 100 : 150;
 
     // Check if the user has exceeded the maximum number of data sources
     const existingSourcesCount = await prisma.dataSource.count({

@@ -9,18 +9,20 @@ import { Textarea } from '@/components/ui/textarea';
 interface QADialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (question: string, answer: string) => void;
+  onSubmit: (question: string, answer: string, citation : string) => void;
 }
 
 export function QADialog({ isOpen, onClose, onSubmit }: QADialogProps) {
   const [question, setQuestion] = useState('');
   const [answer, setAnswer] = useState('');
+  const [citation, setCitation] = useState('');
 
   const handleSubmit = () => {
     if (question.trim() && answer.trim()) {
-      onSubmit(question, answer);
+      onSubmit(question, answer, citation);
       setQuestion('');
       setAnswer('');
+      setCitation('');
       onClose();
     }
   };
@@ -50,6 +52,17 @@ export function QADialog({ isOpen, onClose, onSubmit }: QADialogProps) {
               value={answer}
               onChange={(e) => setAnswer(e.target.value)}
               placeholder="Enter the answer"
+              rows={4}
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium mb-2 block">
+              Answer
+            </label>
+            <Textarea
+              value={answer}
+              onChange={(e) => setAnswer(e.target.value)}
+              placeholder="set the citation for the answer"
               rows={4}
             />
           </div>
