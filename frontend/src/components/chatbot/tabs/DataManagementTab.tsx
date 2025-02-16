@@ -2,10 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { deleteKnowledge, addCitation, fetchEmbeddingsForSource } from '@/lib/queries';
-import { Globe, File, MessageSquare, Trash2, Edit, Database, Plus, Eye } from 'lucide-react';
+import { Globe, File, MessageSquare, Trash2, Edit, Database, Plus, Eye, Quote } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { CitationDialog } from '@/components/chatbot/citationDialog';
 import { ContentDialog } from '@/components/chatbot/contentDialog';
+import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface DataSource {
   id: number;
@@ -178,54 +180,79 @@ export function DataManagementTab({
     <div className="space-y-8">
       {Object.entries(sources).map(([type, items]) =>
         items.length > 0 && (
-          <div key={type} className="space-y-4">
-            <h3 className="text-xl font-semibold flex items-center gap-2">
-              {getIcon(type)} {type}s
-            </h3>
+          <div key={type} className="bg-gray-900/60 backdrop-blur-sm border border-gray-800/60 rounded-2xl p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-pink-500/10 via-purple-500/10 to-blue-500/10">
+                {getIcon(type)}
+              </div>
+              <div>
+                <h3 className="font-heading text-xl text-white">{type}s</h3>
+                <p className="text-sm text-gray-400">
+                  {type === 'Website' && 'Content from crawled websites'}
+                  {type === 'Document' && 'Uploaded document content'}
+                  {type === 'QandA' && 'Custom Q&A pairs'}
+                </p>
+              </div>
+            </div>
+
             <div className="grid gap-4">
-              {items.map((source : DataSource) => (
-                <div key={source.id} className="border rounded-lg p-4 bg-card">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="font-medium">{source.name}</h4>
-                      <p className="text-sm text-muted-foreground">
-                        Added on {new Date(source.createdAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <div className="flex gap-2">
-                      {/* Show content button */}
-                      <button 
-                        onClick={() => handleShowContent(source)}
-                        className="p-2 hover:bg-accent rounded-full"
-                        title="Show Saved Content"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </button>
+              {items.map((source: DataSource) => (
+                <div key={source.id} className="relative group">
+                  <div className="absolute inset-0 bg-gradient-to-r from-pink-500/5 to-purple-500/5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="relative border rounded-xl p-4 bg-gray-800/50">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1">
+                        <h4 className="font-medium text-white">{source.name}</h4>
+                        <p className="text-sm text-gray-400">
+                          Added on {new Date(source.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                onClick={() => handleShowContent(source)}
+                                variant="ghost"
+                                size="icon"
+                                className="hover:bg-gray-700/50"
+                              >
+                                <Eye className="w-4 h-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>View Content</TooltipContent>
+                          </Tooltip>
 
-                      {/* If QandA, show an edit button */}
-                      {source.type === 'QandA' && (
-                        <button className="p-2 hover:bg-accent rounded-full">
-                          <Edit className="w-4 h-4" />
-                        </button>
-                      )}
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                onClick={() => handleOpenCitationDialog(source)}
+                                variant="ghost"
+                                size="icon"
+                                className="hover:bg-gray-700/50"
+                              >
+                                <Quote className="w-4 h-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Add Citation</TooltipContent>
+                          </Tooltip>
 
-                      {/* Delete */}
-                      <button
-                        onClick={() => handleDelete(source)}
-                        className="p-2 hover:bg-accent rounded-full text-destructive"
-                        title="Delete Data Source"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-
-                      {/* Add Citation */}
-                      <button
-                        onClick={() => handleOpenCitationDialog(source)}
-                        className="p-2 hover:bg-accent rounded-full"
-                        title="Add Citation"
-                      >
-                        <Plus className="w-4 h-4" />
-                      </button>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                onClick={() => handleDelete(source)}
+                                variant="ghost"
+                                size="icon"
+                                className="text-red-400 hover:text-red-300 hover:bg-red-900/20"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Delete Source</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -235,7 +262,6 @@ export function DataManagementTab({
         )
       )}
 
-      {/* Citation Dialog */}
       <CitationDialog
         isOpen={showCitationDialog}
         onClose={() => {
@@ -246,7 +272,6 @@ export function DataManagementTab({
         datasourceId={selectedSource?.id ?? 0}
       />
 
-      {/* Content Dialog */}
       <ContentDialog
         isOpen={showContentDialog}
         onClose={() => {
@@ -254,9 +279,14 @@ export function DataManagementTab({
           setChunks([]);
           setSelectedSource(null);
         }}
-        title={`Content for: ${selectedSource?.name ?? ''}`}
+        title={`Content from: ${selectedSource?.name ?? ''}`}
         chunks={chunks.map(chunk => chunk.text)}
         isLoading={isContentLoading}
+        isEditable={true}
+        onSave={async (editedChunks) => {
+          // You'll implement the save functionality
+          console.log('Saving edited chunks:', editedChunks);
+        }}
       />
     </div>
   );
