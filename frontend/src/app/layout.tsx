@@ -1,8 +1,5 @@
-'use client';
-import { useEffect } from 'react';
+// 'use client';
 import './globals.css';
-import Header from '@/components/Header';
-import { AuthProvider } from '@/components/auth-provider';
 import type { ChatbotConfig } from '@/types/global';
 import { ChatWidget } from '@/components/ChatWidget';
 import {Toaster} from '@/components/ui/toaster';
