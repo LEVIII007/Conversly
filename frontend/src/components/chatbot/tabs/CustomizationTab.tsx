@@ -24,7 +24,9 @@ import {
   ListPlus,
   Sparkles,
   Plus,
-  LucideIcon
+  LucideIcon,
+  Mail,
+  Key
 } from 'lucide-react';
 import {
   Tooltip,
@@ -216,7 +218,8 @@ export function CustomizationTab({ chatbotId, prompt }: CustomizationTabProps) {
     title: "${config.widgetHeader}",
     welcomeMessage: "${config.welcomeMessage}",
     headerText: "${config.widgetHeader}",
-    apiUrl: "https://my0jhajg7c.execute-api.ap-southeast-1.amazonaws.com",
+    apiUrl: REPLACE IT WITH YOUR API URL,
+    apiKey: REPLACE IT WITH YOUR API KEY,
     buttonAlign: "${config.buttonAlignment}",
     buttonText: "${config.widgetButtonText}",
     height: "${config.chatHeight}",
@@ -681,6 +684,33 @@ export function CustomizationTab({ chatbotId, prompt }: CustomizationTabProps) {
               animate={{ opacity: 1 }}
               className="space-y-6"
             >
+              {/* API Key Section */}
+              <div className="bg-gray-900/60 backdrop-blur-sm border border-gray-800/60 rounded-2xl p-6">
+                <SectionHeader 
+                  title="API Key" 
+                  description="Get your API key to use the chatbot"
+                  icon={Key}
+                />
+                
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-4 border border-pink-500/20 rounded-xl bg-pink-500/5">
+                    <div className="space-y-1">
+                      <h4 className="font-heading text-lg text-white">Need an API Key?</h4>
+                      <p className="font-sans text-sm text-gray-400">
+                        Contact us to get your API key for integration
+                      </p>
+                    </div>
+                    <a
+                      href={`mailto:tyagishashank118@gmail.com?subject=API Key Request&body=I need API key for my business,%0D%0A%0D%0AChatbot ID: ${chatbotId}%0D%0AMy email: `}
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:opacity-90 transition-opacity"
+                    >
+                      <Mail className="w-4 h-4" />
+                      Request API Key and Url
+                    </a>
+                  </div>
+                </div>
+              </div>
+
               {/* Integration Code */}
               <div className="bg-gray-900/60 backdrop-blur-sm border border-gray-800/60 rounded-2xl p-6">
                 <SectionHeader 
