@@ -166,7 +166,7 @@ export default function ChatInterface({ data }: ChatInterfaceProps) {
       </div>
        {/* Messages Area */}
        <div className="flex-1 overflow-y-auto p-6 md:px-10 lg:px-20 space-y-8 bg-[#101010]">
-        <div className="max-w-3xl mx-auto">
+        <div className="max-w-5xl mx-auto">
           {messages.length === 0 ? (
             <div className="text-center px-4 py-8 max-w-2xl mx-auto">
               <div className="p-6 rounded-2xl bg-[#181818] border border-gray-800 shadow-xl">

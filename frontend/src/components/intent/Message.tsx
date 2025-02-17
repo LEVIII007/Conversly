@@ -15,27 +15,29 @@ export function Message({ content, role, id, timestamp }: MessageProps) {
       {/* Avatar */}
       <div className={`
         w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0
-        ${role === 'assistant' ? 'bg-primary/10' : 'bg-secondary'}
+        ${role === 'assistant' ? 'bg-purple-500/10' : 'bg-gray-700'}
       `}>
         {role === 'assistant' ? (
-          <Bot size={24} className="text-primary" />
+          <Bot size={24} className="text-purple-400" />
         ) : (
-          <User size={24} className="text-secondary-foreground" />
+          <User size={24} className="text-gray-300" />
         )}
       </div>
 
       {/* Message Content */}
       <div className={`
-        max-w-[80%] rounded-lg p-5 text-lg leading-relaxed
+        max-w-[80%] rounded-lg p-5 font-sans text-[15px] leading-relaxed
         ${role === 'assistant' 
-          ? 'bg-card border border-border' 
-          : 'bg-primary text-primary-foreground'}
+          ? 'bg-[#1a1a1a] text-gray-200' 
+          : 'bg-purple-500/10 text-gray-200'}
       `}>
-        <div className="prose dark:prose-invert max-w-none">
+        <div className="prose prose-invert prose-p:text-gray-200 prose-p:font-sans prose-p:text-[15px] 
+                      prose-code:text-gray-200 prose-pre:bg-[#2a2a2a] prose-pre:text-gray-200
+                      max-w-none">
           <MemoizedMarkdown content={content} id={id} />
         </div>
         {timestamp && (
-          <span className="text-sm text-muted-foreground mt-2 block">
+          <span className="text-sm text-gray-500 mt-2 block font-sans">
             {timestamp}
           </span>
         )}
