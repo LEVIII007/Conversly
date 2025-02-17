@@ -14,7 +14,7 @@ interface Req {
 
 // In-memory rate limiting store
 const requestStore: Map<string, number[]> = new Map();
-const RATE_LIMIT = 1; // Maximum requests allowed per user
+const RATE_LIMIT = 3; // Maximum requests allowed per user
 const TIME_WINDOW = 60 * 60 * 1000; // Time window in milliseconds (1 minute)
 
 function isRateLimited(userId: string): boolean {
