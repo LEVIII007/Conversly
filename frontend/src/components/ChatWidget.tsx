@@ -32,7 +32,7 @@ Guidelines:
       starter_questions : ["What platforms does Conversly.ai integrate with?", "How do I embed a chatbot on my website?", "How does Conversly.ai work?"]
     };
     const script = document.createElement("script");
-    script.src = "https://cloud-ide-shas.s3.us-east-1.amazonaws.com/docBot/chat1.js";
+    script.src = "https://cloud-ide-shas.s3.us-east-1.amazonaws.com/docBot/chat.js";
     script.async = true;
     script.onload = () => {
       if (window.DocsBotAI) {

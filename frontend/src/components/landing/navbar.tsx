@@ -1,4 +1,4 @@
-"use client";
+'use client';
 import { useState, useEffect } from "react";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
@@ -92,6 +92,14 @@ export default function Navbar() {
                   >
                     Blog
                   </Link>
+                  <Button
+                        asChild
+                        className="bg-gradient-to-r from-blue-500 to-teal-500 text-white hover:opacity-90 px-5 py-2 rounded-xl shadow-md transition-all duration-300"
+                      >
+                        <Link href="/demo/intentjs">
+                          Try Our Product on IntentJS Docs
+                        </Link>
+                      </Button>
                 </nav>
 
                 {/* Auth Buttons */}
@@ -137,10 +145,16 @@ export default function Navbar() {
                       >
                         Sign In
                       </Button>
-                      <Button className="bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:opacity-90"
-                      onClick={() => redirect("/create")}>
+
+                      {/* Get Started Button */}
+                      <Button
+                        className="bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:opacity-90"
+                        onClick={() => redirect("/create")}
+                      >
                         Get Started
                       </Button>
+
+                      {/* New Stylish Demo Button */}
                     </>
                   )}
                 </div>

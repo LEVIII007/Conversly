@@ -161,6 +161,7 @@ async def get_embedding(text: str) -> List[float]:
         data = response.json()
 
         # Extract embedding values
+        print(data)
         return data["embedding"]
 
     except httpx.HTTPStatusError as e:
@@ -176,13 +177,13 @@ async def search_documentation(query: str, chatbotId: str) -> str:
         query_embedding = await get_embedding(query)
         pool = await DatabasePool.get_pool()
         async with pool.acquire() as conn:
-            rows = await conn.fetch("""
+            rows = await conn.fetch(f"""
                 SELECT text, citation
                 FROM embeddings 
                 WHERE chatbotid = $1
-                ORDER BY embedding <=> $2::vector
+                ORDER BY embedding <=> '[{query_embedding}]'
                 LIMIT 2;
-            """, int(chatbotId), f'[{",".join(str(x) for x in query_embedding)}]')
+            """, int(chatbotId))
 
         print(rows)
         return "\n\n---\n\n".join(
@@ -219,7 +220,7 @@ async def get_page_content(url: str, chatbotId: str) -> str:
                 SELECT text, citation
                 FROM embeddings
                 WHERE citation = $1 AND chatbotid = $2::integer
-                ORDER BY createdat
+                ORDER BY "createdAt"
             """, url, int(chatbotId))
         if not rows:
             return f"No content found for: {url}"

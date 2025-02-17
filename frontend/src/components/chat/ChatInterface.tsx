@@ -1,10 +1,13 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Message } from '@/components/chat/Message';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useChat } from 'ai/react';
 import { useToast } from '@/hooks/use-toast';
+import { useAuthGuard } from '@/hooks/use-auth-guard';
+import { SignInDialog } from '@/components/auth/SignInDialog';
+import Link from 'next/link';
 
 interface ChatInterfaceProps {
   data: {
@@ -16,9 +19,11 @@ interface ChatInterfaceProps {
 }
 
 export default function ChatInterface({ data }: ChatInterfaceProps) {
-  const {toast} = useToast();
+  const { toast } = useToast();
+  const { showSignIn, closeSignIn } = useAuthGuard();
   const [tone, setTone] = useState('neutral');
   const [prompt, setPrompt] = useState(data?.System_Prompt);
+  
   const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
     maxToolRoundtrips: 5,
     body: {
@@ -68,49 +73,65 @@ export default function ChatInterface({ data }: ChatInterfaceProps) {
   };
 
   return (
-    <div className="flex-1 flex flex-col h-screen bg-background">
-      {/* Chat Header */}
-      <div className="h-16 border-b border-border flex items-center px-6 bg-card">
-        <h1 className="text-2xl font-semibold">Chat Session</h1>
-      </div>
+    <>
+      <div className="flex-1 flex flex-col h-screen bg-background">
+        {/* Chat Header with Branding */}
+        <div className="h-16 border-b border-border flex items-center justify-between px-6 bg-card">
+          <div className="flex items-center gap-4">
+            <Link
+              href="/"
+              className="flex-shrink-0 flex items-center hover:opacity-80 transition-opacity"
+            >
+              <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400">
+                Conversly AI
+              </h1>
+            </Link>
+            <div className="h-6 w-px bg-border" />
+            <h2 className="text-lg font-medium">{data.name}</h2>
+          </div>
+        </div>
 
-      {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-6">
-        {messages.map((message) => (
-          <Message
-            key={message.id}
-            id={message.id}
-            content={message.content}
-            role={message.role as 'user' | 'assistant'}
-          />
-        ))}
-        {isLoading && (
-          <Message id="loading" role="assistant" content="Typing..." />
-        )}
-      </div>
+        {/* Messages Area */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+          {messages.map((message) => (
+            <Message
+              key={message.id}
+              id={message.id}
+              content={message.content}
+              role={message.role as 'user' | 'assistant'}
+            />
+          ))}
+          {isLoading && (
+            <Message id="loading" role="assistant" content="Typing..." />
+          )}
+        </div>
 
-      {/* Input Area */}
-      <div className="border-t border-border p-6 bg-card">
-        <form 
-          onSubmit={handleLimitedSubmit}
-          className="max-w-4xl mx-auto flex gap-4"
-        >
-          <Textarea
-            value={input}
-            onChange={handleInputChange}
-            placeholder="Type your message..."
-            className="min-h-[60px] max-h-40 resize-none text-lg"
-            rows={1}
-          />
-          <Button 
-            type="submit" 
-            className="h-[60px] px-8 text-lg font-medium"
-            disabled={isLoading}
+        {/* Input Area */}
+        <div className="border-t border-border p-6 bg-card">
+          <form 
+            onSubmit={handleLimitedSubmit}
+            className="max-w-4xl mx-auto flex gap-4"
           >
-            Send
-          </Button>
-        </form>
+            <Textarea
+              value={input}
+              onChange={handleInputChange}
+              placeholder="Type your message..."
+              className="min-h-[60px] max-h-40 resize-none text-lg"
+              rows={1}
+            />
+            <Button 
+              type="submit" 
+              className="h-[60px] px-8 text-lg font-medium"
+              disabled={isLoading}
+            >
+              Send
+            </Button>
+          </form>
+        </div>
       </div>
-    </div>
+
+      {/* Sign In Dialog */}
+      <SignInDialog isOpen={showSignIn} onClose={closeSignIn} />
+    </>
   );
 }
