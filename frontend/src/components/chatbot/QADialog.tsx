@@ -57,11 +57,11 @@ export function QADialog({ isOpen, onClose, onSubmit }: QADialogProps) {
           </div>
           <div>
             <label className="text-sm font-medium mb-2 block">
-              Answer
+              Citation
             </label>
             <Textarea
-              value={answer}
-              onChange={(e) => setAnswer(e.target.value)}
+              value={citation}
+              onChange={(e) => setCitation(e.target.value)}
               placeholder="set the citation for the answer"
               rows={4}
             />
