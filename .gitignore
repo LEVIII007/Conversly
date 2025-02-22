@@ -1,7 +1,6 @@
 /backend/venv/
 /backend/myenv/
 /frontend/node_modules/
-/.env
 /frontend/.next
 /out
 .DS_Store
@@ -14,3 +13,5 @@
 
 
 backend/dependencies/
+config.bat
+node_modules
